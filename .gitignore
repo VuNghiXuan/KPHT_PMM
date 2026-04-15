@@ -1,0 +1,36 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# --- IDEs (VS Code, PyCharm) ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Excel & Temporary Files ---
+# Tránh đẩy file data chạy thử lên Git
+#*.xlsx
+#*.xls
+#*.csv
+# File tạm của Excel khi đang mở (thường bắt đầu bằng ~$)
+~$*.xlsx
+~$*.xls
+
+# --- App Specific ---
+# Không đẩy file cấu hình cá nhân hoặc dữ liệu người dùng
+# (Nếu mày muốn người khác dùng cấu hình mặc định, hãy đẩy file sample)
+# rules_config.json
+logs/
+*.log
+
+# --- OS ---
+.DS_Store
+Thumbs.db
