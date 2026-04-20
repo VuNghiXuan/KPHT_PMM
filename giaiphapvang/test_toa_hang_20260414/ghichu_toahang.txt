@@ -1,0 +1,5 @@
+Từ toa hàng --> để tạo lô hàng thì phải cùng nguồn gốc sản phẩm
+Nghĩa là: Gom lô theo có HDDT hay không có hoá đơn, chứ không gom chung
+
+Câu hỏi đặt ra:
+Vậy làm sao để phát hiện trong toa, lô nào đã đc tạo, lô nào chưa?

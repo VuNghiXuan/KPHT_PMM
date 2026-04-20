@@ -1,0 +1,4 @@
+I. Lô hàng Nhà cung cấp
+- Nhiều lô hàng trên hóa đơn chỉ ghi 2 món (do làm chung tem), nhưng thực tế có rất nhiều món lẻ (không khớp thực tế).
+Do đó, cần để cho phép chỉnh sửa SL tại form này.
+- Chi phí phân bổ nên tự động tính toán để thao tác nhanh hơn

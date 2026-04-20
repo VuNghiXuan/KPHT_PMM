@@ -1,8 +1,11 @@
 Google:
-		https://docs.google.com/spreadsheets/d/1wf7ZFHQFfHOLzxHQ6McbgMpcSShS4F1oEpbcIukTPaI/edit?pli=1&gid=1456336984#gid=1456336984
-	file mới 3.11.2025:
+	1. Phần mềm mới:
+		https://docs.google.com/spreadsheets/d/1wf7ZFHQFfHOLzxHQ6McbgMpcSShS4F1oEpbcIukTPaI/edit?pli=1&gid=2038657537#gid=2038657537
+	2. file mới 3.11.2025:
 		https://docs.google.com/spreadsheets/d/1wf7ZFHQFfHOLzxHQ6McbgMpcSShS4F1oEpbcIukTPaI/edit?gid=0#gid=0
-
-	https://docs.google.com/spreadsheets/d/1jljZd94q5hPs_VCUIFFelofH5LKgkAhLZL3cJTgx-xM/edit?gid=667655869#gid=667655869
-miro: 
-	https://miro.com/app/board/uXjVJbsrZyU=/
+	3. Danh mục đề nghị fix, bug
+		https://docs.google.com/spreadsheets/d/1Z0yx-azekSVWWJq8MrYoI9Y5e_k78e3WjihowDW_NAg/edit?gid=0#gid=0
+	4. Quản lý kho (Thu - Chi)
+		https://docs.google.com/spreadsheets/d/1jljZd94q5hPs_VCUIFFelofH5LKgkAhLZL3cJTgx-xM/edit?gid=667655869#gid=667655869
+	5. miro: 
+		https://miro.com/app/board/uXjVJbsrZyU=/

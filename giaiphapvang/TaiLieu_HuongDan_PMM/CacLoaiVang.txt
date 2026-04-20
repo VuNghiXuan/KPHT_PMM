@@ -1,0 +1,43 @@
+BẢN MÔ TẢ BẢN CHẤT HỆ THỐNG LOẠI VÀNG
+
+Hệ thống quản lý dựa trên việc phân biệt rõ ràng giữa hàng thành phẩm (Vàng mới), hàng nguyên liệu và nguồn gốc hàng hóa để xử lý giao dịch.
+
+1. Vàng Nguyên Liệu (Dẻ)
+
+Bản chất: Là các loại vàng dùng để phân biệt với vàng mới (vàng trang sức).
+
+Giao dịch: * Với Nhà cung cấp (NCC): Giao dịch bình thường để nhập/xuất nguyên liệu hoặc thực hiện các nghiệp vụ bù trừ công nợ.
+
+Với Khách lẻ: Dùng để thu mua lại các loại vàng ở dạng nguyên liệu (vàng nhẫn, vàng miếng, vàng rời...) mà khách mang đến bán.
+
+2. Vàng Mới (Trang sức / Thành phẩm)
+
+Bản chất: Là hàng hóa trang sức đã qua chế tác, dùng để kinh doanh thương mại trực tiếp.
+
+Giao dịch:
+
+Với Nhà cung cấp (NCC): Nhập hàng thành phẩm mới về để bán lẻ hoặc thực hiện đổi/trả hàng mới.
+
+Với Khách lẻ: Bán hàng mới cho khách. Trong trường hợp mua lại, đây là những món đồ trước đây đã bán ra từ chính tiệm mình (vàng của tiệm).
+
+3. Vàng Thảo (Vàng cục theo Nhà cung cấp)
+
+Bản chất: Là loại vàng nguyên liệu được quy cách hóa theo từng cục/kiện dựa trên tiêu chuẩn của Nhà cung cấp cụ thể (ví dụ: vàng cục của NCC tên Thảo).
+
+Giao dịch: * Dùng trong các nghiệp vụ giao dịch mua và bán với Nhà cung cấp.
+
+Áp dụng trực tiếp trong các bản chốt giá và phiếu mua vàng nguyên liệu để quản lý chính xác nguồn hàng và công nợ riêng biệt cho đối tác đó.
+
+4. Cơ chế Vàng Cha (Truy nguyên nguồn gốc)
+
+Đối tượng áp dụng: Chỉ dành cho các loại vàng nguyên liệu (Dẻ) mua lại từ khách lẻ mà không phải nguồn gốc từ tiệm mình bán ra (hàng lạ ngoài thị trường).
+
+Bản chất: Bắt buộc phải gắn với một "Vàng Cha" (loại vàng chuẩn tương ứng của tiệm).
+
+Mục đích: Để hệ thống dựa vào mã Cha đó truy xuất tuổi vàng và bảng giá thu mua nội bộ, từ đó định giá chính xác và đưa về đúng nhóm quản lý trong kho.
+
+5. Quy tắc Giao dịch Chung
+
+Tất cả các loại vàng không có "Vàng Cha" (bao gồm Vàng Mới, Vàng Nguyên Liệu chuẩn và Vàng Thảo) đều được phép giao dịch linh hoạt với cả Nhà cung cấp và Khách lẻ.
+
+Vàng có "Vàng Cha" chỉ xuất hiện trong luồng thu mua hàng lạ từ khách lẻ để đảm bảo tính kiểm soát nguồn gốc.

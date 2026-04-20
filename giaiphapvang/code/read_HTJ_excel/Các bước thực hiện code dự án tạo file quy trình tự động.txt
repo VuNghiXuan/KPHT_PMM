@@ -1,0 +1,100 @@
+HỒ SƠ ĐẶC TẢ KỸ THUẬT: HỆ THỐNG TRÍCH XUẤT UI & BIÊN SOẠN QUY TRÌNH TỰ ĐỘNG
+Dự án: Giaiphapvang_Studio_Bot (HTJ-GEN)
+Kiến trúc: MVC (Model - View - Controller)
+Người thực hiện: Thanh Vũ (Vũ Nghi Xuân)
+
+1. MỤC TIÊU VÀ TẦM NHÌN
+Xây dựng một hệ sinh thái quản trị tri thức khép kín:
+
+Số hóa thiết kế: Chuyển đổi bản vẽ Excel thành Metadata (JSON/DB).
+
+Đối soát logic (Audit): Dùng Metadata thiết kế làm chuẩn (Baseline) để soi lỗi giao diện thực tế của Dev.
+
+Tự động hóa tài liệu: Kết hợp dữ liệu quét (Metadata) và hình ảnh trực quan (Visual) để AI biên soạn quy trình hướng dẫn khách hàng.
+
+2. KIẾN TRÚC PHÁT TRIỂN (MVC PATTERN)
+Model: Quản lý SQLite/PostgreSQL. Lưu trữ bảng Feature_Baseline (Thiết kế) và Feature_Actual (Sản phẩm thực).
+
+Controller: - ExcelMiner: Dùng xlwings quét thuộc tính vật lý của Sheet.
+
+AIWriter: Nhận Dictionary + Ảnh chụp để biên soạn quy trình.
+
+Auditor: So sánh sai lệch giữa Baseline và Actual.
+
+View: - Nội bộ: Giao diện Streamlit để Vũ điều khiển quét và duyệt tài liệu.
+
+Thương mại: Tích hợp vào Django để khách hàng tra cứu.
+
+3. CHIẾN THUẬT THU THẬP DỮ LIỆU ĐA TẦNG (HYBRID COLLECTION)
+Hệ thống thu thập 2 loại dữ liệu song song để AI không bị "ngáo":
+
+A. Tầng Metadata (Xương sống - Code thực hiện)
+Sử dụng xlwings trích xuất thông tin vật lý:
+
+Phân cụm (Grouping): Dựa vào Borders để gom các ô vào từng Form/Group.
+
+Cặp bài trùng (Label-Value): Tìm Text bên trái và ô Input (màu vàng/ô trống) bên phải.
+
+Công thức & Số liệu: - Lấy trực tiếp qua .formula.
+
+Nếu không có công thức, lấy .value (Dùng để AI suy luận ngược logic toán học).
+
+Hành động (Actions): Quét toàn bộ Shapes để lấy Text trên nút (Lưu, Duyệt, In...).
+
+B. Tầng Visual (Da thịt - Ảnh chụp màn hình)
+Cơ chế: Code tự động chụp ảnh vùng UsedRange của từng Sheet/Form.
+
+Mục đích: Để AI Vision nhìn thấy bố cục (Trái/Phải/Trên/Dưới), icon và ngữ cảnh thực tế mà code không đọc được text.
+
+4. CƠ CHẾ NHẬN DIỆN VÀ BIÊN SOẠN THÔNG MINH
+4.1. Xử lý Logic Toán học "Ngầm"
+Vấn đề: Người thiết kế đôi khi bấm máy tính tay rồi nhập số "chết" vào Excel (Hard-coded).
+
+Giải pháp: Code thu thập tất cả số mẫu (sample_values) trong Group. AI đóng vai trò "thám tử" để tìm mối quan hệ (ví dụ: thấy 10, 5, 50 -> Tự kết luận Thành tiền = Trọng lượng * Đơn giá) ngay cả khi không có công thức.
+
+4.2. AI Interpretation (Biên soạn Quy trình)
+AI nhận "Combo" [JSON Metadata + Ảnh chụp] để viết:
+
+Mục đích Form: Nhìn Label (Tuổi quy, Trừ lai...) để định nghĩa nghiệp vụ.
+
+Trình tự thực hiện: Sắp xếp trường theo tọa độ vật lý.
+
+Ví dụ: "Nhìn vào khung bên trái, nhập thông tin A, sau đó kiểm tra kết quả tự tính ở ô màu xám B, cuối cùng nhấn nút C."
+
+Cảnh báo: Ô màu vàng = Bắt buộc; Chữ đỏ/Nghiêng = Lưu ý quan trọng.
+
+5. QUY TRÌNH TRIỂN KHAI CODE (ROADMAP)
+Giai đoạn 1 (The Miner):
+
+Viết hàm quét Sheet: Gom Group theo Border, Map Label-Value, lấy Formula và ColorIndex.
+
+Viết hàm chụp ảnh màn hình vùng dữ liệu.
+
+Xuất ra Dictionary tổng hợp cho từng Sheet.
+
+Giai đoạn 2 (The Storage):
+
+Thiết kế Database lưu trữ Dictionary và đường dẫn ảnh.
+
+Xây dựng Baseline để sẵn sàng cho việc đối soát UI với Dev.
+
+Giai đoạn 3 (The Brain):
+
+Thiết lập Prompt Template cho AI.
+
+Đẩy dữ liệu [Dictionary + Image] qua API để AI biên soạn file .txt quy trình.
+
+Giai đoạn 4 (The Guide):
+
+Tích hợp kết quả vào hệ thống Chatbot (RAG).
+
+Chatbot sẽ đọc các file quy trình này để hướng dẫn khách hàng khi họ hỏi.
+
+6. GHI CHÚ QUAN TRỌNG CHO NGƯỜI CODE (VŨ)
+Độ trung thực: Code Miner phải tuyệt đối trung thực với Excel (có gì lấy đó). AI chỉ được phép sáng tạo ở phần "Hành văn".
+
+Linh hoạt: Cấu trúc Dictionary phải đủ sâu (Sheet -> Tab -> Group -> Field) để không bị lẫn lộn khi một Sheet có quá nhiều Form con.
+
+Mở rộng: Sau này tận dụng dữ liệu này để làm kịch bản quay Video Tutorial tự động.
+
+Tài liệu này là tài sản trí tuệ của dự án Giải Pháp Vàng.

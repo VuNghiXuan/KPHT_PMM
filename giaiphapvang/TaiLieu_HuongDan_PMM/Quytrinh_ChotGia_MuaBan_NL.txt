@@ -1,0 +1,57 @@
+TÀI LIỆU QUY TRÌNH HỆ THỐNG: QUẢN LÝ CHỐT GIÁ VÀ MUA BÁN NGUYÊN LIỆU
+I. QUY TRÌNH MUA VÀNG NGUYÊN LIỆU (NHẬP KHO)
+Mục tiêu: Quản lý việc nhập hàng từ Nhà cung cấp (NCC) và phân bổ giá vốn chính xác.
+
+Bước 1 (Chốt giá): Lập phiếu chốt giá với NCC. Lưu ý: Chỉ chốt dựa trên loại vàng quy (tuổi quy), không sử dụng danh mục loại vàng chung.
+
+Bước 2 (Ghi nhận): Lập phiếu mua vàng NL để ghi nhận trọng lượng (TL) thực tế giao từ NCC.
+
+Bước 3 (Phân bổ): Tổng hợp TL vàng sau quy. Tiến hành phân bổ vào các chi tiết chốt giá để tính: TL chốt, Đơn giá chốt, Thành tiền.
+
+Xử lý phần dư: Nếu TL thực tế > TL chốt, phần dư được tính theo đơn giá chốt của dòng mới (dòng cuối cùng).
+
+Bước 4 (Tổng hợp): Hệ thống tự động đẩy Tổng thành tiền từ "Chi tiết thanh toán" lên "Thành tiền của Tổng hợp giao".
+
+Bước 5 (Đơn giá TB): Tự động tính Đơn giá trung bình dựa trên Tổng tiền và TL thực tế để đưa lên Grid NCC Giao hàng.
+
+Bước 6 (Giá vốn): Tự động tính lại Đơn giá vốn trước khi nhập kho nếu có thay đổi về tổng chi phí ở phần thanh toán.
+
+Bước 7 (Trình duyệt): Nhân viên kiểm tra. Điều kiện: Tất cả dòng tổng hợp giao phải có trạng thái Phân bổ = True mới được nhấn Trình duyệt.
+
+Bước 8 (Duyệt): Quản lý/Admin thực hiện Duyệt hoặc Không duyệt.
+
+Bước 9 (Nhập kho): Chỉ khi phiếu đã được Duyệt mới tiến hành nhập kho vật chất.
+
+Bước 10 (Thanh toán): Sau khi nhập kho hoàn tất tất cả các dòng, hệ thống cho phép nhấn "Thanh toán". Tự động tạo Phiếu chi tiền gắn với phiếu mua NL và cập nhật trạng thái "Hoàn tất".
+
+II. QUY TRÌNH BÁN VÀNG NGUYÊN LIỆU (XUẤT KHO)
+Mục tiêu: Quản lý việc xuất kho vàng nguyên liệu bán cho đối tác/NCC.
+
+Bước 1 (Chốt giá): Cửa hàng chốt giá bán với NCC theo Loại vàng (Tuổi quy) và Đơn giá.
+
+Bước 2 (Xuất kho): Xuất kho vàng nguyên liệu để tạo Phiếu bán vàng. Hệ thống quản lý Tỷ giá và Thành tiền theo từng Số lô/Serial cụ thể.
+
+Bước 3 (Định giá): Nhân viên chọn Tuổi quy và nhập thông số Trừ lai. Hệ thống tự động tính lại TL sau quy thực tế.
+
+Bước 4 (Matching): Chọn các chi tiết trong "Tổng hợp vàng bán" để phân bổ vào các phiếu chốt giá bán tương ứng đã lập ở Bước 1.
+
+Bước 5 (Tạm tính): Hệ thống tự động phân bổ và cập nhật dữ liệu vào "Chi tiết thanh toán tạm tính".
+
+Bước 6 & 7 (Phê duyệt): Thực hiện Trình duyệt và Duyệt phiếu theo quy trình phân cấp quản lý.
+
+Bước 8 (Tất toán): Nhân viên nhấn nút "Thanh toán bán vàng" để chuyển sang Form Phiếu thanh toán bán vàng NL, hoàn tất quy trình thu tiền.
+
+III. LOGIC HỆ THỐNG TRỌNG YẾU (DÀNH CHO IT)
+Tính Nhất Quán: Mọi thay đổi về phí hoặc trọng lượng ở các tab chi tiết phải được cập nhật ngay lập tức lên tổng hợp phiếu (Real-time update).
+
+Ràng Buộc Trình Duyệt: * Luôn kiểm tra biến PhanBo == True trên tất cả các dòng chi tiết.
+
+Chặn hành động Nhập kho nếu phiếu chưa ở trạng thái "Đã duyệt".
+
+Công Thức Hao Hụt & Quy Đổi:
+
+TL Sau Quy = (TL Thực tế * Tuổi Quy) - Trừ lai.
+
+TL Hao hụt = TL Nhận - TL Giao (Dùng cho quy trình giao thợ).
+
+UI/UX: Loại bỏ cột "Loại vàng" khỏi riêng Phiếu chốt giá để người dùng chỉ tập trung vào Tuổi quy.
