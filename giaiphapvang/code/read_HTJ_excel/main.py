@@ -1,156 +1,74 @@
 import streamlit as st
-import pandas as pd
-import os
-import json
-from core.excel_miner import ExcelMiner
 from database.db_manager import DBManager
-from core.ai_manager import AIManager 
+from database.knowledge_service import KnowledgeService
+from database.knowledge_manager import KnowledgeManager
+from views.excel_import import ImportExcelView
+from views.knowledge_manager import KnowledgeView
+from views.render_excel import ExcelView
+from views.siderbar import Sidebar
+from views.ai_procedure import AIProcedure
+from config import Config
 
-# --- HÀM HỖ TRỢ XỬ LÝ DATAFRAME ---
-def build_df(rows_data, headers):
-    """Chuyển đổi dữ liệu từ DB thành DataFrame để hiển thị bảng"""
-    if not rows_data: 
-        return pd.DataFrame()
-    
-    # Trích xuất giá trị từ cấu trúc cell {"value": "...", "color": "..."}
-    matrix = []
-    for r in rows_data:
-        row_values = [cell.get('value', '') for cell in r.get('cells', [])]
-        matrix.append(row_values)
-        
-    indices = [r.get('row_index') for r in rows_data]
-    df = pd.DataFrame(matrix, columns=headers, index=indices)
-    return df
 
-def render_view():
+import warnings
+import logging
+
+# Tắt cảnh báo từ thư viện
+warnings.filterwarnings("ignore", category=UserWarning)
+# Tắt log từ logging của transformers
+logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+
+def main():
     st.set_page_config(page_title="HTJ Jewelry System", layout="wide")
     
-    # Khởi tạo Database Manager
-    db = DBManager()
-
-    # --- 1. SIDEBAR: CẤU HÌNH AI ---
-    st.sidebar.header("🧠 Cấu hình AI")
-    
-    if "brain_provider" not in st.session_state:
-        st.session_state.brain_provider = "Gemini"
-
-    brain_list = ["Gemini", "Groq", "Ollama"]
-    brain_choice = st.sidebar.selectbox(
-        "Chọn bộ não soạn quy trình:",
-        brain_list,
-        index=brain_list.index(st.session_state.brain_provider),
-        key="brain_selector_main"
-    )
-    
-    # Cập nhật bộ não nếu có thay đổi
-    if brain_choice != st.session_state.brain_provider:
-        st.session_state.brain_provider = brain_choice
-        st.rerun()
-
-    ai_brain = AIManager(provider=st.session_state.brain_provider)
-
-    st.sidebar.divider()
-
-    # --- 2. SIDEBAR: DANH MỤC SHEETS ---
-    st.sidebar.header("📂 Danh mục Sheets")
-    all_sheets = db.get_all_sheets()
-    selected_sheet_id = None
-    choice = None
-    
-    if all_sheets:
-        search_sheet = st.sidebar.text_input("🔍 Tìm tên Sheet...", "").lower()
-        # Lọc danh sách sheet theo từ khóa tìm kiếm
-        filtered_sheets = [s for s in all_sheets if search_sheet in s.sheet_name.lower()]
-        
-        if filtered_sheets:
-            sheet_names = [s.sheet_name for s in filtered_sheets]
-            # Radio button để chọn sheet
-            choice = st.sidebar.radio("Chọn Sheet để xem dữ liệu:", sheet_names)
+    # --- KHỞI TẠO SERVICES (CHỈ CHẠY 1 LẦN) ---
+    if 'service' not in st.session_state:
+        with st.spinner("🚀 Đang khởi động bộ não AI HTJ..."):
+            st.session_state.db = DBManager(Config.DB_URL)
+            st.session_state.kv = KnowledgeManager(Config.EMBEDDING_MODEL)
             
-            # Lấy ID của sheet đang chọn
-            for s in filtered_sheets:
-                if s.sheet_name == choice:
-                    selected_sheet_id = s.id
-                    break
+            # GIẢ SỬ Vũ có 1 biến agent ở đây (có thể lấy từ config hoặc session)
+            # agent = SmartJewelryAgent() 
+            
+            st.session_state.service = KnowledgeService(
+                st.session_state.db, 
+                st.session_state.kv,
+                ai_agent=None # <--- Tạm thời để None nếu Vũ chưa muốn dùng AI gợi ý
+            )
 
-    # --- 3. MAIN UI ---
+    db = st.session_state.db
+    service = st.session_state.service
+
+    # 1. Sidebar - sidebar.render() nên trả về thêm pid (Project ID)
+    sidebar = Sidebar(db)
+    # Giả sử hàm render của Vũ trả về: sid (sheet_id), sname (sheet_name), pid (project_id)
+    # Nếu Sidebar chưa trả về pid, Vũ hãy cập nhật Sidebar để lấy pid = sheet.project_id
+    sid, sname, pid = sidebar.render() 
+
     st.title("💎 HTJ Jewelry Data Manager")
     
-    with st.expander("📥 Nhập File Excel Gốc (Upload mới)"):
-        uploaded_file = st.file_uploader("Kéo thả file vào đây", type=["xlsx"])
-        if uploaded_file and st.button("🚀 Xử lý & Lưu Database"):
-            os.makedirs("storage/raw_excel", exist_ok=True)
-            temp_path = f"storage/raw_excel/{uploaded_file.name}"
-            with open(temp_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            
-            with st.spinner("Đang phân tích cấu trúc vàng..."):
-                miner = ExcelMiner(temp_path)
-                objs = miner.scan_project()
-                miner.close()
-                db.save_project_data(objs)
-                st.cache_data.clear() # Xóa cache để đảm bảo dữ liệu mới hiện lên
-                st.success("Đã đồng bộ thành công! Vui lòng chọn Sheet ở Sidebar.")
-                st.rerun()
+    # 2. View Nhập File Excel
+    ImportExcelView(db).render()
 
-    # --- 4. KHU VỰC HIỂN THỊ DỮ LIỆU ---
-    if selected_sheet_id:
+    # 3. Khu vực hiển thị nội dung chính
+    if sid:
         st.divider()
-        # Tạo 2 Tab: Bảng dữ liệu và AI
-        tab_table, tab_ai = st.tabs(["📊 Bảng Dữ Liệu Excel", "🤖 AI Agent Portal"])
-
-        with tab_table:
-            # Lấy dữ liệu trực tiếp (bỏ cache đoạn này để tránh lỗi không hiện bảng)
-            rows_data, headers = db.get_data_by_sheet_as_table(selected_sheet_id)
+        tab1, tab2, tab3 = st.tabs(["📊 Bảng Dữ Liệu", "🧠 Định nghĩa tri thức", "🤖 AI Procedure"])
+        
+        with tab1:
+            ExcelView().render_table(db, sid, sname)
             
-            if rows_data:
-                st.subheader(f"Dữ liệu bảng: {choice}")
-                
-                # Xây dựng DataFrame
-                df_full = build_df(rows_data, headers)
-                
-                # Thanh tìm kiếm nội dung trong bảng
-                search_data = st.text_input("🔍 Tìm kiếm nhanh trong bảng...", key="table_search")
-                
-                if search_data:
-                    mask = df_full.apply(lambda row: row.astype(str).str.contains(search_data, case=False).any(), axis=1)
-                    df_display = df_full[mask]
-                else:
-                    df_display = df_full
-                
-                # Hiển thị bảng lên giao diện (Đây là phần Vũ cần nhất)
-                st.dataframe(
-                    df_display, 
-                    use_container_width=True, 
-                    height=600,
-                    column_config={"row_index": st.column_config.NumberColumn("Dòng")}
-                )
-            else:
-                st.warning("Sheet này không có dữ liệu hoặc lỗi cấu trúc.")
-
-        with tab_ai:
-            st.subheader("📝 Biên soạn quy trình tự động")
-            st.info(f"🧠 Bộ não đang sẵn sàng: **{st.session_state.brain_provider}**")
+        with tab2:
+            k_view = KnowledgeView(service)
+            # THAY ĐỔI: Truyền pid thay vì sid để quét tri thức toàn dự án
+            # Giúp Vũ không phải định nghĩa lặp đi lặp lại ở từng sheet
+            k_view.render_approval_interface(pid) 
+            k_view.render_backup_tools(pid)
             
-            # Lấy dữ liệu nén
-            clean_text = db.get_sheet_data_as_cleaned_text(selected_sheet_id)
-            
-            if clean_text and "Không có dữ liệu" not in clean_text:
-                if st.button(f"🚀 Ra lệnh cho {st.session_state.brain_provider} soạn quy trình"):
-                    with st.spinner("AI đang làm việc..."):
-                        result = ai_brain.generate_htj_procedure(choice, clean_text)
-                        st.markdown("---")
-                        st.markdown(result)
-                        st.download_button("📥 Tải bản thảo (.md)", result, file_name=f"HTJ_{choice}.md")
-                
-                with st.expander("👁️ Xem dữ liệu nén đã gửi cho AI"):
-                    st.text_area("Nội dung gửi:", clean_text, height=200)
-            else:
-                st.error("Dữ liệu không đủ để AI xử lý. Hãy kiểm tra lại file Excel.")
-
+        with tab3:
+            AIProcedure(db).render_portal(sid, sname)
     else:
-        # Nếu chưa chọn sheet nào
-        st.info("👈 Vui lòng chọn một Sheet từ danh sách bên trái để bắt đầu.")
+        st.info("👈 Vui lòng chọn Sheet bên trái để bắt đầu làm việc.")
 
 if __name__ == "__main__":
-    render_view()
+    main()
