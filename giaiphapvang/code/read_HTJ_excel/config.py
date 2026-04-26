@@ -21,6 +21,9 @@ class Config:
         os.makedirs(cls.STORAGE_DIR, exist_ok=True)
         os.makedirs(cls.RAW_EXCEL_DIR, exist_ok=True)
 
+    # Nhận diện Button/Action
+    ACTION_KEYWORDS = ["LƯU", "TÍNH", "IN", "XÓA", "CHỐT", "NHẬP", "XUẤT"]
+        
     # Định nghĩa nghiệp vụ
     TASK = ["VÀNG", "KẾ TOÁN", "KHO", "HỆ THỐNG", "BỎ QUA", 'MUA BÁN/ĐỔI', 'NHÀ CUNG CẤP (NCC)']
     

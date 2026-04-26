@@ -283,12 +283,15 @@ class KnowledgeManager:
             print(f"❌ Lỗi Import tri thức: {str(e)}")
             return False
     
-    def clean_data(self, data):
-        """Khử ký tự lạ, xuống dòng cho toàn bộ dictionary/list tri thức"""
-        if isinstance(data, str):
-            return data.replace('\n', ' ').replace('\r', '').strip()
+    @classmethod  # Đổi từ staticmethod sang classmethod
+    def clean_data(cls, data): # Thay data thành (cls, data)
+        """Khử ký tự lạ..."""
+        if isinstance(data, dict):
+            # Dùng cls. để gọi đệ quy chính nó
+            return {k: cls.clean_data(v) for k, v in data.items()} 
         elif isinstance(data, list):
-            return [self.clean_data(i) for i in data]
-        elif isinstance(data, dict):
-            return {k: self.clean_data(v) for k, v in data.items()}
+            return [cls.clean_data(i) for i in data]
+        elif isinstance(data, str):
+            cleaned = data.replace('\u2028', '\n').replace('\u2029', '\n')
+            return "".join(ch for ch in cleaned if ch.isprintable() or ch in "\n\r\t")
         return data

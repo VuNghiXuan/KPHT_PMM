@@ -5,92 +5,111 @@ import os
 import json
 import re
 from config import Config
+from database.models import VectorKnowledge, ExcelSheet
 
 class KnowledgeView:
     def __init__(self, knowledge_service):
         self.service = knowledge_service
 
-    def render_approval_interface(self, project_id, project_name="Dự án hiện tại"):
-        st.subheader(f"🧠 Từ điển nghiệp vụ: {project_name}")
-
-        # --- BƯỚC 1: TỰ ĐỘNG LẤY DỮ LIỆU ĐÃ CÓ TRONG DB ---
-        with self.service.db.get_session() as session:
-            from database.models import VectorKnowledge, ExcelSheet
-            # 1. Lấy tri thức đã tốt nghiệp (đã có định nghĩa)
-            existing_knowledge = session.query(VectorKnowledge).all()
-            # 2. Lấy toàn bộ nhãn thô từ Excel để so soát
-            sheets_data = session.query(ExcelSheet).filter_by(project_id=project_id).all()
-
-        # Tạo danh sách các từ đã biết để loại trừ
-        known_terms = {k.main_term for k in existing_knowledge if k.definition}
-
-        # --- BƯỚC 2: HIỂN THỊ TRI THỨC HIỆN TẠI ---
-        with st.expander("📚 Thư viện tri thức hiện có", expanded=not bool(st.session_state.get('df_knowledge'))):
-            if existing_knowledge:
-                existing_df = pd.DataFrame([{
-                    "term": k.main_term,
-                    "definition": k.definition,
-                    "category": k.category
-                } for k in existing_knowledge])
-                st.dataframe(existing_df, width='stretch', hide_index=True)
-            else:
-                st.info("Chưa có tri thức nào được nạp. Hãy quét Excel bên dưới.")
-
-        st.divider()
-
-        # --- BƯỚC 3: QUÉT VÀ ĐỊNH NGHĨA MỚI ---
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            st.markdown("#### 🔍 Phát hiện thuật ngữ mới")
-        with col2:
-            # Nút bấm để kích hoạt quét thô và gọi AI
-            if st.button("✨ Quét & Gọi AI định nghĩa mới", width='stretch', type="primary"):
-                with st.status("Đang đối soát và gọi AI...", expanded=True) as status:
-                    # 1. Chuẩn bị context thô
-                    raw_context = self.service.prepare_raw_context(sheets_data)
-                    
-                    # 2. Gọi AI soạn thảo (Hàm này tự chọn Groq/Ollama dựa trên token)
-                    draft_data = self.service.draft_business_knowledge(raw_context)
-                    
-                    if draft_data and 'terms' in draft_data:
-                        # 3. Lọc bỏ những từ AI vừa soạn mà thực ra trong DB ĐÃ CÓ RỒI
-                        new_terms_only = [
-                            t for t in draft_data['terms'] 
-                            if t['term'] not in known_terms
-                        ]
-                        
-                        if new_terms_only:
-                            df = pd.DataFrame(new_terms_only)
-                            df['is_approved'] = False
-                            st.session_state.df_knowledge = df
-                            status.update(label=f"✅ Tìm thấy {len(df)} thuật ngữ mới!", state="complete")
-                        else:
-                            status.update(label="✅ Không có thuật ngữ mới nào cần định nghĩa.", state="complete")
-                    else:
-                        st.error("AI không trích xuất được dữ liệu.")
-
-        # --- BƯỚC 4: BẢNG DUYỆT TỪ MỚI (CHỈ HIỆN KHI CÓ TỪ MỚI) ---
-        if 'df_knowledge' in st.session_state and not st.session_state.df_knowledge.empty:
-            st.warning("⚠️ Những mục dưới đây là AI gợi ý từ file Excel, anh Vũ hãy duyệt để nạp vào bộ não:")
+    #-------------------------------------------------------------
+    # 1 Hiển thị kết quả bức thư AI
+    #-------------------------------------------------------------
+    def _handle_ai_scan(self, sheets_data, known_terms):
+        """Hàm xử lý quét Excel và gọi AI định nghĩa"""
+        with st.status("Đang đối soát và gọi AI...", expanded=True) as status:
+            # Test 10 sheet đầu như anh yêu cầu
+            print('Test 10 sheet đầu -------------------------------------------')
+            draft_data = self.service.draft_business_knowledge(sheets_data[:10]) 
             
-            edited_df = st.data_editor(
-                st.session_state.df_knowledge,
-                column_config={
-                    "term": st.column_config.TextColumn("Thuật ngữ mới", disabled=True),
-                    "definition": st.column_config.TextColumn("AI Gợi ý định nghĩa (Sửa nếu cần)", width="large"),
-                    "is_approved": st.column_config.CheckboxColumn("Nạp?")
-                },
-                hide_index=True, width='stretch', key="new_term_editor"
-            )
+            if not draft_data or 'terms' not in draft_data:
+                st.error("AI không trích xuất được dữ liệu.")
+                return
 
-            if st.button("🚀 XÁC NHẬN NẠP THÊM TRI THỨC", width='stretch'):
+            new_terms_only = []
+            for t in draft_data['terms']:
+                # Chuẩn hóa dữ liệu từ AI (Dict hoặc Str)
+                term_name = t['term'] if isinstance(t, dict) else t
+                if term_name not in known_terms:
+                    new_terms_only.append({
+                        "term": term_name,
+                        "definition": t.get('definition', "AI chưa định nghĩa...") if isinstance(t, dict) else "Chưa có định nghĩa",
+                        "category": t.get('category', "PENDING") if isinstance(t, dict) else "PENDING",
+                        "is_approved": False
+                    })
+
+            if new_terms_only:
+                st.session_state.df_knowledge = pd.DataFrame(new_terms_only)
+                status.update(label=f"✅ Tìm thấy {len(new_terms_only)} thuật ngữ mới!", state="complete")
+            else:
+                status.update(label="✅ Không có thuật ngữ mới nào.", state="complete")
+
+    def _render_knowledge_editor(self):
+        """Hàm hiển thị bảng GUI để chỉnh sửa và duyệt trực tiếp"""
+        if 'df_knowledge' not in st.session_state or st.session_state.df_knowledge.empty:
+            return
+
+        st.warning("⚠️ Những mục dưới đây là AI gợi ý, anh Vũ hãy duyệt để nạp vào bộ não:")
+        
+        # Bảng chỉnh sửa trực tiếp
+        edited_df = st.data_editor(
+            st.session_state.df_knowledge,
+            column_config={
+                "term": st.column_config.TextColumn("Thuật ngữ mới", disabled=True),
+                "definition": st.column_config.TextColumn("AI Gợi ý định nghĩa (Sửa tại đây)", width="large"),
+                "category": st.column_config.SelectboxColumn("Loại", options=["VÀNG", "TIỀN CÔNG", "HỆ THỐNG"]),
+                "is_approved": st.column_config.CheckboxColumn("Nạp?")
+            },
+            hide_index=True, width='stretch', key="new_term_editor"
+        )
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🚀 XÁC NHẬN NẠP THÊM", width='stretch', type="primary"):
                 to_save = edited_df[edited_df["is_approved"] == True]
                 if not to_save.empty:
                     if self.service.approve_and_learn({"terms": to_save.to_dict(orient='records')}):
                         st.success("✅ Đã cập nhật bộ não thành công!")
                         del st.session_state.df_knowledge
                         st.rerun()
+        with col2:
+            if st.button("🗑️ Hủy kết quả quét", width='stretch'):
+                del st.session_state.df_knowledge
+                st.rerun()
 
+    def render_approval_interface(self, project_id, project_name="Dự án hiện tại"):
+        """Hàm chính điều phối giao diện"""
+        st.subheader(f"🧠 Từ điển nghiệp vụ: {project_name}")
+
+        # 1. Lấy dữ liệu từ DB
+        with self.service.db.get_session() as session:
+            
+            existing_knowledge = session.query(VectorKnowledge).all()
+            sheets_data = session.query(ExcelSheet).filter_by(project_id=project_id).all()
+
+        known_terms = {k.main_term for k in existing_knowledge if k.definition}
+
+        # 2. Hiển thị tri thức hiện có
+        with st.expander("📚 Thư viện tri thức hiện có", expanded=not bool(st.session_state.get('df_knowledge'))):
+            if existing_knowledge:
+                st.dataframe(pd.DataFrame([{
+                    "term": k.main_term, "definition": k.definition, "category": k.category
+                } for k in existing_knowledge]), width='stretch', hide_index=True)
+            else:
+                st.info("Chưa có tri thức nào.")
+
+        st.divider()
+
+        # 3. Nút bấm quét mới
+        st.markdown("#### 🔍 Phát hiện thuật ngữ mới")
+        if st.button("✨ Quét & Gọi AI định nghĩa mới", type="primary"):
+            self._handle_ai_scan(sheets_data, known_terms)
+
+        # 4. Hiển thị bảng duyệt (Nếu có dữ liệu trong session_state)
+        self._render_knowledge_editor()
+
+    #-------------------------------------------------------------
+    # 2. Xuất và nhâp kiến thức
+    #-------------------------------------------------------------
     def render_backup_tools(self, project_id):
         """Công cụ Export/Import JSON để anh cất file vật lý"""
         st.divider()

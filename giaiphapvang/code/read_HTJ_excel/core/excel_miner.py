@@ -2,6 +2,7 @@ import openpyxl
 import os
 import json
 from database.models import ExcelSheet, DataGroup, DataField
+from config import Config
 
 class ExcelMiner:
     def __init__(self, file_path):
@@ -54,7 +55,7 @@ class ExcelMiner:
                         f_type = "DATA"
                         
                         # Nhận diện Button/Action
-                        action_keywords = ["LƯU", "TÍNH", "IN", "XÓA", "CHỐT", "NHẬP", "XUẤT"]
+                        action_keywords = Config.ACTION_KEYWORDS
                         if any(k in val_str.upper() for k in action_keywords) and len(val_str) < 20:
                             f_type = "UI_BUTTON"
                         
