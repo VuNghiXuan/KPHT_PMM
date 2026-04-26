@@ -1,98 +1,205 @@
-from config import Config
 import json
+import requests
+import os
+import re
+import logging
+import streamlit as st
+import tiktoken
+from sqlalchemy import or_
+from database.models import VectorKnowledge
 
 class KnowledgeService:
     def __init__(self, db_manager, kv_manager, ai_agent=None):
-        """
-        Thằng này đứng giữa điều phối DB và Vector AI
-        """
         self.db = db_manager
-        self.kv = kv_manager
+        self.kv = kv_manager # Lưu lại để dùng cho export/import
         self.ai_agent = ai_agent
+        self.encoder = tiktoken.get_encoding("cl100k_base")
+        self.TOKEN_LIMIT = 4000 
 
-    def process_new_sheet_labels(self, sheet_id):
-        """
-        Bóc nhãn từ DB -> Tính toán Vector -> Trả về danh sách từ mới/cũ
-        """
-        # 1. Lấy nhãn thô từ DB thông qua DBManager
-        labels = self.db.extract_unique_labels(sheet_id)
-        
-        # 2. Mở session DB để đối soát
-        session = self.db.get_session()
-        try:
-            # 3. Nhờ KnowledgeManager lọc xem từ nào lạ, từ nào quen
-            analysis_report = self.kv.identify_new_knowledge(session, labels)
-            return {"status": "success", "data": analysis_report}
-        finally:
-            session.close()
+    # --- PHẦN 1: GIAO TIẾP AI (CỐT LÕI) ---
 
-    def approve_and_learn(self, approved_list):
-        """
-        Lưu những gì Vũ đã định nghĩa vào DB
-        """
-        session = self.db.get_session()
-        try:
-            success = self.kv.commit_knowledge(session, approved_list)
-            return success
-        finally:
-            session.close()
-    
-    def process_all_project_labels(self, project_id):
-        """Quét tất cả nhãn của tất cả các sheet trong cùng 1 dự án"""
-        # 1. Lấy tất cả nhãn độc nhất của cả dự án (không trùng lặp)
-        all_labels = self.db.extract_unique_labels_by_project(project_id)
+    def _call_ai_api(self, prompt):
+        """Hàm điều phối: Kiểm tra Token trước, chọn Provider sau"""
         
-        session = self.db.get_session()
+        # 1. KIỂM TRA TOKEN TRƯỚC
+        token_count = len(self.encoder.encode(prompt))
+        
+        # Lấy cấu hình ưu tiên từ .env
+        preferred_provider = os.getenv("AI_PROVIDER", "groq").lower()
+        
+        # 2. LOGIC QUYẾT ĐỊNH PROVIDER
+        if token_count > self.TOKEN_LIMIT:
+            actual_provider = "ollama"
+            print(f"⚠️ Nội dung quá dài ({token_count} tokens) -> Bắt buộc dùng OLLAMA")
+        else:
+            actual_provider = preferred_provider
+            print(f"🚀 Token ổn ({token_count}) -> Dùng {actual_provider.upper()}")
+
+        # 3. THỰC THI GỌI API THEO PROVIDER ĐÃ CHỌN
         try:
-            # 2. Đối soát với kho tri thức
-            analysis_report = self.kv.identify_new_knowledge(session, all_labels)
+            if actual_provider == "groq":
+                from groq import Groq
+                client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+                completion = client.chat.completions.create(
+                    messages=[{"role": "user", "content": prompt}],
+                    model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+                    temperature=0.1
+                )
+                return completion.choices[0].message.content
+
+            elif actual_provider == "gemini":
+                from google import genai
+                client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+                response = client.models.generate_content(
+                    model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+                    contents=prompt
+                )
+                return response.text
+
+            else:  # Mặc định là OLLAMA (Local)
+                base_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+                payload = {
+                    "model": os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json"
+                }
+                response = requests.post(f"{base_url}/api/generate", json=payload, timeout=300)
+                return response.json().get("response", "")
+
+        except Exception as e:
+            return f"❌ Lỗi tại bộ não {actual_provider}: {str(e)}"
+
+    # --- PHẦN 2: BIÊN SOẠN TRI THỨC (DRAFTING) ---
+
+    def prepare_raw_context(self, sheets_data):
+        """Gom dữ liệu 'có hồn' từ Excel (nhãn, công thức, comment)"""
+        context = []
+        for s in sheets_data:
+            context.append(f"--- SHEET: {s.sheet_name} ---")
+            for g in s.groups:
+                for f in g.fields:
+                    if f.label or f.formula or getattr(f, 'comment', None):
+                        info = f"Ô {f.coord}: [{f.label}] = {f.value}"
+                        if f.formula: info += f" (Công thức: {f.formula})"
+                        if getattr(f, 'comment', None): info += f" | Lưu ý: {f.comment}"
+                        context.append(info)
+        return "\n".join(context)
+
+    def draft_business_knowledge(self, sheets_data):
+        """
+        Hàm chính để AI biên soạn nháp tri thức nghiệp vụ.
+        Tự động phân loại (Category) và trích xuất logic công thức từ dữ liệu Excel.
+        """
+        # 1. Chuẩn bị ngữ cảnh từ dữ liệu thô (đã fix lỗi 'str' object ở bước trước)
+        raw_context = self.prepare_raw_context(sheets_data)
+        
+        if not raw_context:
+            return {"terms": [], "processes": [], "formulas": []}
+
+        # 2. Xây dựng Prompt "thông minh" với yêu cầu phân loại tự động
+        prompt = f"""
+        Bạn là chuyên gia phân tích nghiệp vụ (BA) cấp cao cho hệ thống quản lý vàng bạc đá quý HTJ Jewelry.
+        Nhiệm vụ: Đọc dữ liệu thô từ Excel và hệ thống hóa thành 'Bộ não tri thức'.
+
+        DỮ LIỆU EXCEL THÔ:
+        ---
+        {raw_context}
+        ---
+
+        YÊU CẦU TRÍCH XUẤT (TRẢ VỀ JSON DUY NHẤT):
+        1. 'terms': Các thuật ngữ nghiệp vụ. 
+        - 'category': Tự động phân loại dựa trên nội dung (VÀNG, CÔNG NỢ, KẾ TOÁN, HỆ THỐNG).
+        2. 'processes': Các quy trình tính toán hoặc luồng công việc.
+        3. 'formulas': Các công thức tính toán đặc thù (VD: Công thức tính tuổi vàng, tiền công).
+
+        CẤU TRÚC JSON MẪU:
+        {{
+            "terms": [
+                {{
+                    "term": "Tên thuật ngữ",
+                    "definition": "Định nghĩa chi tiết và cách sử dụng",
+                    "category": "VÀNG"
+                }}
+            ],
+            "processes": [
+                {{
+                    "name": "Quy trình đổi vàng",
+                    "steps": "Bước 1... Bước 2...",
+                    "logic_rules": "Luật bù trừ độ tinh khiết"
+                }}
+            ],
+            "formulas": [
+                {{
+                    "name": "Tính giá vốn",
+                    "explanation": "Giá vàng nguyên liệu + Tiền công + Đá gắn kèm"
+                }}
+            ]
+        }}
+        Lưu ý: Chỉ trả về JSON, không giải thích gì thêm.
+        """
+
+        try:
+            # 3. Gọi API AI (Hàm _call_ai_api của anh)
+            response = self._call_ai_api(prompt)
             
-            # 3. Với những từ mới (NEW), gọi AI gợi ý định nghĩa luôn cho Vũ
-            for item in analysis_report:
-                if item['status'] == 'NEW':
-                    # Gợi ý nhanh: Nếu Vũ để trống, AI Procedure sau này vẫn hiểu, 
-                    # nhưng gợi ý ở đây giúp Vũ kiểm soát tốt hơn.
-                    item['suggested_definition'] = self.ai_suggest_definition(item['term'])
+            # 4. Xử lý làm sạch phản hồi từ AI
+            # Khử markdown nếu AI trả về dạng ```json ... ```
+            clean_json = re.sub(r'```json\s*|```', '', response).strip()
             
-            return analysis_report
+            # Tìm vị trí JSON thực sự (phòng trường hợp AI nói nhảm ở đầu/cuối)
+            start_idx = clean_json.find('{')
+            end_idx = clean_json.rfind('}') + 1
+            if start_idx != -1 and end_idx != 0:
+                clean_json = clean_json[start_idx:end_idx]
+
+            data = json.loads(clean_json)
+            
+            # 5. Hậu xử lý: Đảm bảo các key quan trọng luôn tồn tại để không lỗi View
+            if 'terms' not in data: data['terms'] = []
+            if 'processes' not in data: data['processes'] = []
+            if 'formulas' not in data: data['formulas'] = []
+            
+            # Chuẩn hóa Category thành chữ in hoa
+            for t in data['terms']:
+                t['category'] = t.get('category', 'KHÁC').upper()
+                
+            return data
+
+        except json.JSONDecodeError as je:
+            logging.error(f"❌ Lỗi Parse JSON từ AI: {je}")
+            return {"error": "AI trả về định dạng không hợp lệ", "raw": response}
+        except Exception as e:
+            logging.error(f"❌ Lỗi không xác định khi gọi AI: {e}")
+            return {"error": str(e)}
+
+    # --- PHẦN 3: LƯU TRỮ & DUYỆT (DATABASE) ---
+
+    def approve_and_learn(self, draft_results):
+        """Lưu tri thức đã duyệt vào VectorKnowledge"""
+        session = self.db.get_session()
+        try:
+            # Lưu thuật ngữ
+            for item in draft_results.get('terms', []):
+                existing = session.query(VectorKnowledge).filter_by(main_term=item['term']).first()
+                if existing:
+                    existing.definition = item['definition']
+                else:
+                    session.add(VectorKnowledge(
+                        main_term=item['term'],
+                        definition=item['definition'],
+                        category=item.get('category', 'VÀNG')
+                    ))
+            
+            # Lưu quy trình vào logic_rules của thuật ngữ liên quan (hoặc bảng riêng tùy anh)
+            # Ở đây tui lưu tạm vào log để anh theo dõi
+            print(f"✅ Đã xử lý {len(draft_results.get('terms', []))} thuật ngữ.")
+            
+            session.commit()
+            return True
+        except Exception as e:
+            session.rollback()
+            print(f"❌ Lỗi lưu DB: {e}")
+            return False
         finally:
             session.close()
-
-    def ai_suggest_definition(self, term):
-        """Tự động gợi ý định nghĩa: Ưu tiên Config -> AI -> Trống"""
-        if self.ai_agent:
-            prompt = f"""
-            Thuật ngữ: '{term}'
-            Nhiệm vụ: 
-            1. Định nghĩa ngắn gọn thuật ngữ này trong ngành vàng/phần mềm.
-            2. Tạo ra 3 câu hỏi thực tế mà người dùng thường hỏi về thuật ngữ này.
-            Trả về định dạng JSON: {{"definition": "...", "questions": ["q1", "q2", "q3"]}}
-            """
-            try:
-                response = self.ai_agent.generate(prompt)
-                # Logic parse JSON ở đây...
-                return response
-            except:
-                pass
-        return {"definition": "", "questions": []}
-    
-    
-
-    def export_unlabeled_to_json(self, project_id):
-        """Lọc các thuật ngữ NEW và chuyển thành chuỗi JSON"""
-        # 1. Lấy báo cáo phân tích tri thức
-        analysis_report = self.process_all_project_labels(project_id)
-        
-        # 2. Chỉ lọc những thằng 'NEW'
-        unlabeled_data = [
-            {
-                "term": item['term'],
-                "suggested_definition": item.get('suggested_definition', ''),
-                "status": "NEW",
-                "context": "HTJ Jewelry System"
-            } 
-            for item in analysis_report if item['status'] == 'NEW'
-        ]
-        
-        # Trả về chuỗi JSON có format đẹp (indent=4)
-        return json.dumps(unlabeled_data, indent=4, ensure_ascii=False)

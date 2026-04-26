@@ -1,237 +1,294 @@
 import os
 import numpy as np
 import json
+import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
-from .models_knowledge import VectorKnowledge # Giả định file model của Vũ
+from .models import VectorKnowledge 
 
 class KnowledgeManager:
     def __init__(self, model_name='paraphrase-multilingual-MiniLM-L12-v2'):
-        # Khởi tạo model một lần duy nhất khi tạo instance
+        # Khởi tạo model một lần duy nhất
         self.model = SentenceTransformer(model_name)
+        self.model.max_seq_length = 256
         print(f"🚀 KnowledgeManager: Loaded model {model_name}")
 
-    def get_vector(self, text):
-        """Chuyển văn bản thành bytes để lưu DB"""
-        return self.model.encode(text).astype(np.float32).tobytes()
-
-    def identify_new_knowledge(self, session, labels, threshold=0.3):
+    
+    def identify_new_knowledge(self, session, labels, threshold=0.85):
         """
-        Đối soát danh sách nhãn mới với kho tri thức của HTJ Jewelry System.
-        Hỗ trợ xử lý các bản ghi chưa có embedding để tránh lỗi NoneType.
+        Đối soát nhãn mới - So sánh với kho tri thức hiện có để phân loại.
+        Ngưỡng mặc định 0.85 để tránh nhận nhầm các thuật ngữ chuyên môn khác nhau.
         """
-        import numpy as np
-        from sklearn.metrics.pairwise import cosine_similarity
-
-        # 1. Lấy toàn bộ kiến thức hiện có từ DB
+        # 1. Lấy toàn bộ kiến thức hiện có từ database
         known_records = session.query(VectorKnowledge).all()
         
-        # Nếu DB trống, tất cả nhãn đều là mới
-        if not known_records:
+        # Nếu kho tri thức trống hoặc không có nhãn đầu vào, mặc định tất cả là NEW
+        if not known_records or not labels:
             return [{"term": l, "status": "NEW", "score": 0} for l in labels]
 
-        # 2. Chuẩn bị Vector cũ - Chỉ lấy những bản ghi đã có embedding
-        # Lọc bỏ các bản ghi vừa import mà chưa được vectorize để tránh lỗi np.frombuffer
+        # 2. Lọc các bản ghi đã được tạo embedding)
         valid_records = [r for r in known_records if r.embedding is not None]
         
-        # Nếu không có bản ghi nào có embedding (ví dụ: vừa mới import xong chưa chạy re-index)
         if not valid_records:
             return [{"term": l, "status": "NEW", "score": 0} for l in labels]
 
-        known_texts = [r.question for r in valid_records]
-        known_embeddings = np.array([
-            np.frombuffer(r.embedding, dtype=np.float32) for r in valid_records
-        ])
+        known_texts = [r.main_term for r in valid_records]
         
-        # 3. Tính Vector cho danh sách labels mới gửi lên
-        # Đảm bảo self.model.encode đã được khởi tạo (ví dụ: SentenceTransformer)
+        # 3. Chuyển đổi dữ liệu vector để tính toán toán học
+        # Hỗ trợ cả 2 dạng: List (JSON mới) và Bytes (np.frombuffer cũ)
+        known_embeddings = np.array([
+                r.embedding for r in valid_records 
+                if r.embedding is not None
+            ])
+        
+        # 4. Vectorize danh sách nhãn mới cần đối soát từ Excel
         new_embeddings = self.model.encode(labels)
         
-        # 4. Tính ma trận tương đồng (Cosine Similarity)
+        # 5. Tính toán độ tương đồng Cosine giữa Nhãn mới và Kho tri thức cũ
         similarities = cosine_similarity(new_embeddings, known_embeddings)
         
         report = []
+        # Cấu hình ngưỡng linh hoạt cho nghiệp vụ HTJ
+        HIGH_CONFIDENCE = 0.95  # Chắc chắn là một (Gần như khớp chữ)
+        
         for i, label in enumerate(labels):
-            # Tìm bản ghi tương đồng nhất trong kho
             best_match_idx = np.argmax(similarities[i])
             max_score = similarities[i][best_match_idx]
             
-            # PHÂN LOẠI TRẠNG THÁI:
-            # Trường hợp 1: Nhãn hoàn toàn mới (độ tương đồng dưới ngưỡng threshold)
+            # TRƯỜNG HỢP 1: Thuật ngữ hoàn toàn mới (Score thấp hơn ngưỡng 0.85)
+            # "Tiền công" và "Công gốc" thường rơi vào vùng này (~0.6 - 0.7) -> Sẽ được tạo mới
             if max_score < threshold:
                 report.append({
-                    "term": label,
-                    "status": "NEW",
-                    "match_with": None,
+                    "term": label, 
+                    "status": "NEW", 
+                    "match_with": None, 
                     "score": round(float(max_score), 2)
                 })
             
-            # Trường hợp 2: Nhãn có sự tương đồng nhưng không khớp hoàn toàn (cần Vũ duyệt lại)
-            elif max_score < 0.85: 
+            # TRƯỜNG HỢP 2: Nghi ngờ tương đồng (Vùng nhạy cảm: 0.85 - 0.95)
+            # Hệ thống báo SIMILAR để anh Vũ kiểm tra lại xem có nên gom nhóm không
+            elif max_score < HIGH_CONFIDENCE:
                 report.append({
-                    "term": label,
-                    "status": "SIMILAR",
-                    "match_with": known_texts[best_match_idx],
+                    "term": label, 
+                    "status": "SIMILAR", 
+                    "match_with": known_texts[best_match_idx], 
                     "score": round(float(max_score), 2)
                 })
             
-            # Trường hợp 3: Nếu max_score >= 0.85, hệ thống coi như đã tồn tại
-            # Không thêm vào report để tránh làm phiền người quản lý (Vũ)
-                    
+            # TRƯỜNG HỢP 3: Đã tồn tại chắc chắn (Score > 0.95)
+            # Hệ thống coi như đã biết, không cần định nghĩa lại
+            else:
+                report.append({
+                    "term": label, 
+                    "status": "EXISTS", 
+                    "match_with": known_texts[best_match_idx], 
+                    "score": round(float(max_score), 2)
+                })
+                
         return report
 
+    def get_vector(self, text):
+        'Lưu thành số đọc cho nhanh'
+        if not text: return None
+        # Khi dùng PickleType, anh nên trả về mảng Numpy thuần túy hoặc List.
+        # Đừng ép kiểu sang string hay JSON, hãy để SQLAlchemy tự lo.
+        return self.model.encode(text).tolist()
+
     def commit_knowledge(self, session, approved_list):
+        """Lưu hoặc cập nhật tri thức - Đã sửa lỗi tên cột 'vector'"""
         for item in approved_list:
-            # Nếu Vũ đánh dấu là "Dùng từ cũ", đừng lưu thêm
-            if item.get('action') == 'skip': continue
+            if item.get('action') == 'skip': 
+                continue
             
-            # Kiểm tra tránh trùng lặp key_name
-            existing = session.query(VectorKnowledge).filter_by(question=item['term']).first()
+            term = item['term']
+            # Tìm kiếm theo main_term
+            existing = session.query(VectorKnowledge).filter_by(main_term=term).first()
+            
+            # Đóng gói tọa độ Excel
+            source_meta = item.get('metadata', [])
+            
+            # CHÚ Ý: Key ở đây phải khớp 100% với tên cột trong Class VectorKnowledge
+            data_fields = {
+                "main_term": term,
+                "definition": item.get('definition', ''),
+                "synonyms": item.get('synonyms', ''),
+                "business_rules": item.get('business_rules', ''),
+                "logic_rules": item.get('logic_rules', ''),
+                "sample_questions": item.get('questions', []), # Nếu Model dùng kiểu JSON, ko cần json.dumps
+                "source_mapping": source_meta,
+                "category": item.get('category', 'KHÁC').upper(), # AI tự phân loại
+                "is_approved": 1,                
+                "embedding": self.get_vector(item.get('definition', term))
+            }
+
             if existing:
-                existing.answer = item['definition'] # Cập nhật định nghĩa mới nhất
-                existing.embedding = self.get_vector(item['term'])
+                for key, value in data_fields.items():
+                    setattr(existing, key, value)
             else:
-                new_k = VectorKnowledge(
-                    question=item['term'],
-                    answer=item['definition'],
-                    embedding=self.get_vector(item['term']),
-                    category=item.get('category', 'GLOSSARY')
-                )
+                # Không còn lỗi invalid keyword argument vì đã đổi 'embedding' -> 'vector'
+                new_k = VectorKnowledge(**data_fields)
                 session.add(new_k)
+        
         try:
             session.commit()
             return True
         except Exception as e:
             session.rollback()
-            print(f"❌ Error committing knowledge: {e}")
+            print(f"❌ Lỗi Commit tại KnowledgeManager: {e}")
             return False
 
     def search_exact_answer(self, session, user_query, threshold=0.6):
-        """Dành riêng cho Chatbot truy vấn nhanh lời thoại/định nghĩa"""
-        # Encode câu hỏi của khách
+        """Chatbot truy vấn tri thức - Trả về định nghĩa và vị trí trên Excel"""
         query_vec = self.model.encode([user_query])
         
-        # Lấy tất cả records (Có thể tối ưu bằng cách lấy theo category)
-        records = session.query(VectorKnowledge).all()
+        records = session.query(VectorKnowledge).filter(VectorKnowledge.embedding != None).all()
         if not records: return None
         
-        known_embeddings = np.array([np.frombuffer(r.embedding, dtype=np.float32) for r in records])
-        
-        # Tính tương đồng
+        known_embeddings = np.array([r.embedding for r in records])
         similarities = cosine_similarity(query_vec, known_embeddings)[0]
         best_idx = np.argmax(similarities)
         
         if similarities[best_idx] >= threshold:
+            rec = records[best_idx]
             return {
-                "answer": records[best_idx].answer,
-                "score": similarities[best_idx],
-                "category": records[best_idx].category
+                "term": rec.main_term,
+                "answer": rec.definition,
+                "score": round(float(similarities[best_idx]), 2),
+                "category": rec.category,
+                "mapping": json.loads(rec.source_mapping) if rec.source_mapping else [],
+                "rules": rec.business_rules
             }
         return None
-    
-    def export_to_context_text(self, session, category=None):
-        """Chuyển kiến thức thành văn bản để nạp vào Prompt cho AI soạn quy trình"""
-        query = session.query(VectorKnowledge)
-        if category:
-            query = query.filter_by(category=category)
-        
-        records = query.all()
-        context = "DANH SÁCH THUẬT NGỮ VÀ QUY TẮC ĐÃ BIẾT:\n"
-        for r in records:
-            context += f"- {r.question}: {r.answer}\n"
-        return context
-    
-    def export_to_json(self, session, file_path="storage/knowledge_backup.json"):
-        """Xuất toàn bộ kho tri thức ra file JSON (kèm cả Vector)"""
+
+    def export_to_json(self, session, project_id, db_manager, file_path="storage/knowledge_backup.json"):
+        """
+        Xuất toàn bộ tri thức ra file JSON để backup.
+        Đã tối ưu cho PickleType và khử ký tự lạ.
+        """
         records = session.query(VectorKnowledge).all()
         data_to_export = []
+        known_terms = set() 
         
         for r in records:
-            # Chuyển bytes embedding sang list số thực để lưu được vào JSON
-            vector_list = np.frombuffer(r.embedding, dtype=np.float32).tolist()
-            data_to_export.append({
-                "question": r.question,
-                "answer": r.answer,
-                "category": r.category,
-                "vector": vector_list
-            })
+            known_terms.add(r.main_term)
             
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data_to_export, f, ensure_ascii=False, indent=4)
-        print(f"💾 Đã xuất {len(data_to_export)} tri thức ra file: {file_path}")
+            # Với PickleType, r.embedding đã là list/array, không dùng np.frombuffer
+            vector_list = r.embedding if r.embedding is not None else []
+            
+            # Đưa vào danh sách xuất và dùng self.clean_data để làm sạch tiếng Việt
+            entry = {
+                "term": r.main_term,
+                "definition": r.definition or "",
+                "category": r.category or "VÀNG",
+                "synonyms": r.synonyms or "",
+                # source_mapping nếu lưu dạng JSON trong DB thì lấy thẳng, nếu String thì json.loads
+                "source_mapping": r.source_mapping if isinstance(r.source_mapping, (list, dict)) else (json.loads(r.source_mapping) if r.source_mapping else []),
+                "business_rules": r.business_rules or "",
+                "logic_rules": r.logic_rules or "",
+                "sample_questions": r.sample_questions if isinstance(r.sample_questions, list) else (json.loads(r.sample_questions) if r.sample_questions else []),
+                "vector": vector_list,
+                "status": "DEFINED"
+            }
+            # Làm sạch dữ liệu trước khi nạp vào danh sách xuất
+            data_to_export.append(self.clean_data(entry))
+
+        # Lấy thêm các nhãn chưa được định nghĩa từ database dự án
+        all_labels = db_manager.extract_unique_labels_by_project(project_id)
+        for label in all_labels:
+            if label not in known_terms:
+                data_to_export.append({
+                    "term": label,
+                    "definition": "CHƯA ĐỊNH NGHĨA",
+                    "status": "DRAFT",
+                    "source_mapping": []
+                })
+
+        # Xử lý đường dẫn
+        abs_path = os.path.abspath(file_path)
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+        
+        try:
+            with open(abs_path, "w", encoding="utf-8") as f:
+                # ensure_ascii=False để đọc được tiếng Việt "Dẻ", "Cắt ni"...
+                json.dump(data_to_export, f, ensure_ascii=False, indent=4, default=str)
+            
+            print(f"✅ [HTJ System] Đã xuất {len(data_to_export)} tri thức ra: {abs_path}")
+            return True, abs_path, len(data_to_export)
+        except Exception as e:
+            print(f"❌ Lỗi khi xuất file JSON: {e}")
+            return False, str(e), 0
 
     def import_from_json(self, session, file_path="storage/knowledge_backup.json"):
-        import streamlit as st # Thêm để báo lỗi lên GUI
+        """
+        Import tri thức từ JSON - Tự động tái tạo Vector nếu bị thiếu.
+        Đã khử lỗi bytes-like object bằng cách dùng thẳng List/Array với PickleType.
+        """
         
-        if not os.path.exists(file_path):
-            st.error(f"❌ Không tìm thấy file: {file_path}")
+        if not os.path.exists(file_path): 
+            print(f"⚠️ File không tồn tại: {file_path}")
             return False
             
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 data_import = json.load(f)
-                
-            count_added = 0
-            count_skipped = 0
             
+            count_new = 0
+            count_update = 0
+
             for item in data_import:
-                # 1. Trích xuất dữ liệu
                 term = item.get('term', '').strip()
-                suggested = item.get('suggested_definition', {})
-                definition = suggested.get('definition', '').strip()
-                questions_list = suggested.get('questions', [])
-                question = (questions_list[0] if questions_list else term).strip()
-                context = item.get('context', 'HTJ Jewelry System')
+                # Bỏ qua nhãn trống hoặc nhãn nháp chưa định nghĩa
+                if not term or item.get('status') == 'DRAFT': 
+                    continue 
 
-                if not question: continue # Bỏ qua nếu không có thuật ngữ
+                exists = session.query(VectorKnowledge).filter_by(main_term=term).first()
+                
+                # 1. Xử lý Vector: Ưu tiên lấy từ file, không có thì gọi AI encode lại
+                # KHÔNG dùng .tobytes(), cứ để dạng List/Array cho PickleType tự xử lý
+                vector_data = item.get('vector')
+                if not vector_data or len(vector_data) == 0:
+                    vector_data = self.get_vector(term)
+                
+                # 2. Chuẩn bị dữ liệu (Làm sạch ký tự lạ lần nữa cho chắc)
+                fields = {
+                    "main_term": term,
+                    "definition": item.get('definition', ''),
+                    "category": item.get('category', 'KHÁC').upper(),
+                    "synonyms": item.get('synonyms', ''),
+                    # Lưu thẳng object/list vào cột JSON/PickleType, ko cần json.dumps thủ công
+                    "source_mapping": item.get('source_mapping', []),
+                    "business_rules": item.get('business_rules', ''),
+                    "logic_rules": item.get('logic_rules', ''),
+                    "sample_questions": item.get('sample_questions', []),
+                    "embedding": vector_data,  # Đây là list tọa độ
+                    "is_approved": 1
+                }
 
-                # 2. Logic kiểm tra trùng thông minh hơn
-                # Nếu định nghĩa trống, chỉ kiểm tra theo tên thuật ngữ (question)
-                if not definition:
-                    exists = session.query(VectorKnowledge).filter_by(question=question).first()
-                else:
-                    exists = session.query(VectorKnowledge).filter(
-                        (VectorKnowledge.question == question) | 
-                        (VectorKnowledge.answer == definition)
-                    ).first()
-
+                # 3. Tiến hành Lưu hoặc Cập nhật
                 if not exists:
-                    vector_bytes = None
-                    # Nếu file có vector sẵn thì dùng, không thì để None chờ vectorize sau
-                    if item.get('vector'):
-                        vector_bytes = np.array(item['vector'], dtype=np.float32).tobytes()
-                    
-                    new_k = VectorKnowledge(
-                        question=question,
-                        answer=definition,
-                        category=context,
-                        embedding=vector_bytes
-                    )
-                    session.add(new_k)
-                    count_added += 1
+                    session.add(VectorKnowledge(**fields))
+                    count_new += 1
                 else:
-                    count_skipped += 1
+                    for k, v in fields.items(): 
+                        setattr(exists, k, v)
+                    count_update += 1
             
             session.commit()
-            
-            if count_added > 0:
-                st.success(f"🚀 Thành công: Thêm {count_added} mới, bỏ qua {count_skipped} trùng.")
-                st.rerun() # Ép giao diện load lại dữ liệu mới
-            else:
-                st.warning(f"ℹ️ Không có dữ liệu mới nào được thêm (Trùng {count_skipped}).")
-                
+            print(f"✅ [HTJ System] Import thành công: Thêm mới {count_new}, Cập nhật {count_update}")
             return True
 
         except Exception as e:
             session.rollback()
-            st.error(f"❌ Lỗi: {str(e)}")
+            # Nếu dùng trong Streamlit thì st.error, nếu ko thì dùng print
+            print(f"❌ Lỗi Import tri thức: {str(e)}")
             return False
     
-    def check_exists(self, session, term):
-        """Kiểm tra xem thuật ngữ đã tồn tại cứng trong DB chưa"""
-        return session.query(VectorKnowledge).filter_by(question=term).first() is not None
-
-    
-# --- Khởi tạo instance dùng chung cho toàn app ---
-# Vũ nên khởi tạo cái này một lần ở file main hoặc app.py
-# kv_manager = KnowledgeManager()
+    def clean_data(self, data):
+        """Khử ký tự lạ, xuống dòng cho toàn bộ dictionary/list tri thức"""
+        if isinstance(data, str):
+            return data.replace('\n', ' ').replace('\r', '').strip()
+        elif isinstance(data, list):
+            return [self.clean_data(i) for i in data]
+        elif isinstance(data, dict):
+            return {k: self.clean_data(v) for k, v in data.items()}
+        return data

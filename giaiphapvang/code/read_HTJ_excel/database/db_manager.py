@@ -1,10 +1,16 @@
 import re
 import os
 import streamlit as st
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+import json
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, joinedload
 from database.models import Base, ExcelProject, ExcelSheet, DataGroup, DataField
 from config import Config
+
 
 class DBManager:
     def __init__(self, db_url="sqlite:///storage/htj_data.db"):
@@ -14,97 +20,179 @@ class DBManager:
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
 
-    @staticmethod
-    def col_to_letter(n):
-        if not n or n <= 0: return ""
-        string = ""
-        while n > 0:
-            n, remainder = divmod(n - 1, 26)
-            string = chr(65 + remainder) + string
-        return string
+    # ==========================================================
+    # 1. Lấy dự án hiển thị siderbar
+    # ==========================================================
 
+    def get_all_projects(self):
+        """Lấy danh sách tất cả các file Excel (Projects) đã upload phục vụ cho siderbar"""
+        session = self.get_session()
+        try:
+            # Thêm sắp xếp mới nhất lên đầu cho anh dễ chọn
+            return session.query(ExcelProject).order_by(ExcelProject.id.desc()).all()
+        except Exception as e:
+            print(f"❌ Lỗi lấy Project: {e}")
+            return []
+        finally:
+            session.close()
+
+    # ============================================================================================
+    # 2. Đọc file Excel gốc, vét cạn xem mô tả file, đưa vào DB và xuất file JSON Backup
+    # ============================================================================================
+
+    def save_project_data(self, project_name, sheets_data):
+        """
+        Hàm điều hướng chính: Lưu Database xong rồi kích hoạt AI.
+        """
+        session = self.Session()
+        project_id = None
+        try:
+            # BƯỚC 1: LƯU SQL (BẮT BUỘC PHẢI XONG)
+            project_id = self._persist_excel_to_db(session, project_name, sheets_data)
+            session.commit() # Chốt hạ việc lưu SQL
+            
+            print(f"✅ Đã lưu xong SQL cho Project ID: {project_id}")
+
+        except Exception as e:
+            session.rollback()
+            print(f"❌ Lỗi lưu SQL: {e}")
+            raise e # Dừng luôn tại đây nếu SQL lỗi
+        finally:
+            session.close()
+
+        # BƯỚC 2: GỌI AI (CHỈ CHẠY KHI BƯỚC 1 ĐÃ XONG VÀ CÓ ID)
+        if project_id:
+            try:
+                # Lúc này mới gọi AI xử lý tri thức
+                self._ingest_knowledge_async(project_id, project_name)
+            except Exception as ai_err:
+                # AI lỗi thì kệ nó, đừng để nó làm crash cả app
+                print(f"⚠️ Cảnh báo: SQL xong nhưng AI lỗi: {ai_err}")
+
+        return project_id
+
+    def _persist_excel_to_db(self, session, project_name, sheets_data):
+        """Chuyên trách lưu dữ liệu thô từ sheets_data vào SQLite"""
+        new_project = ExcelProject(file_name=project_name)
+        session.add(new_project)
+        session.flush()
+
+        for s in sheets_data:
+            # Xóa sheet cũ nếu trùng tên trong cùng project (Tránh rác)
+            session.query(ExcelSheet).filter_by(
+                sheet_name=s.sheet_name, 
+                project_id=new_project.id
+            ).delete()
+
+            new_sheet = ExcelSheet(
+                sheet_name=s.sheet_name, 
+                project_id=new_project.id,
+                status=getattr(s, 'status', 'ACTIVE')
+            )
+            session.add(new_sheet)
+            session.flush()
+
+            for g in s.groups:
+                new_group = DataGroup(group_name=g.group_name, sheet_id=new_sheet.id)
+                session.add(new_group)
+                session.flush()
+
+                field_objects = []
+                for f in g.fields:
+                    col_let, _ = self._split_coord(f.coord)
+                    val = int(f.value) if isinstance(f.value, float) and f.value.is_integer() else f.value
+                    
+                    field_objects.append(DataField(
+                        coord=f.coord, row=f.row, column=f.column,
+                        col_letter=col_let or self.col_to_letter(f.column),
+                        label=f.label, value=str(val) if val is not None else "",
+                        formula=f.formula, color_code=f.color_code,
+                        field_type=f.field_type, group_id=new_group.id
+                    ))
+                
+                if field_objects:
+                    session.bulk_save_objects(field_objects)
+        
+        return new_project.id
+    
     def _split_coord(self, coord):
         if not coord: return (None, None)
         match = re.match(r"([A-Z]+)([0-9]+)", str(coord))
         return match.groups() if match else (None, None)
-
-    def save_project_data(self, project_name, sheets_data):
-        """Lưu toàn bộ file Excel thành một Project và các Sheet liên quan"""
-        session = self.Session()
+    
+    def _ingest_knowledge_async(self, project_id, project_name):
+        """
+        Xử lý tri thức AI: Làm sạch dữ liệu -> Phân loại PENDING -> Xuất JSON.
+        """
         try:
-            # 1. TẠO PROJECT MỚI (Đại diện cho 1 file Excel Vũ upload)
-            # Nhập model ExcelProject nếu chưa có ở đầu file
+            from .knowledge_manager import KnowledgeManager
+            kn_manager = KnowledgeManager()
             
-            
-            new_project = ExcelProject(file_name=project_name)
-            session.add(new_project)
-            session.flush()  # Để lấy được new_project.id
+            # Lấy các nhãn độc nhất từ project
+            unique_labels = self.extract_unique_labels_by_project(project_id)
+            if not unique_labels: 
+                return
 
-            for s in sheets_data:
-                # 2. XÓA DỮ LIỆU CŨ (Nếu Vũ muốn ghi đè sheet trùng tên trong cùng hệ thống)
-                # Tùy Vũ: Có thể bỏ qua bước xóa nếu muốn lưu mọi lần upload thành project riêng
-                old_sheet = session.query(ExcelSheet).filter_by(sheet_name=s.sheet_name).first()
-                if old_sheet:
-                    session.delete(old_sheet)
-                    session.flush() 
-
-                # 3. TẠO SHEET MỚI và gắn vào Project ID
-                new_sheet = ExcelSheet(
-                    sheet_name=s.sheet_name, 
-                    project_id=new_project.id,  # <--- GẮN KẾT QUAN TRỌNG Ở ĐÂY
-                    status=getattr(s, 'status', 'ACTIVE')
-                )
-                session.add(new_sheet)
-                session.flush() 
-
-                for g in s.groups:
-                    # 4. TẠO GROUP
-                    new_group = DataGroup(group_name=g.group_name, sheet_id=new_sheet.id)
-                    session.add(new_group)
-                    session.flush()
-
-                    field_objects = []
-                    for f in g.fields:
-                        col_let, _ = self._split_coord(f.coord)
+            with self.get_session() as kn_session:
+                # Đối soát với tri thức hiện có
+                report = kn_manager.identify_new_knowledge(kn_session, unique_labels)
+                
+                new_definitions = []
+                for item in report:
+                    if item['status'] == "NEW":
+                        # LÀM SẠCH NHÃN: Tránh ký tự lạ ngay từ khâu đầu vào
+                        safe_term = self.clean_data(item['term'])
                         
-                        val = f.value
-                        if isinstance(val, float) and val.is_integer():
-                            val = int(val)
-                        
-                        # 5. TẠO FIELD
-                        new_field = DataField(
-                            coord=f.coord, 
-                            row=f.row, 
-                            column=f.column,
-                            col_letter=col_let or self.col_to_letter(f.column),
-                            label=f.label,
-                            value=str(val) if val is not None else "",
-                            formula=f.formula, 
-                            color_code=f.color_code,
-                            field_type=f.field_type,
-                            group_id=new_group.id
-                        )
-                        field_objects.append(new_field)
+                        new_definitions.append({
+                            "term": safe_term,
+                            "definition": "Đang chờ AI phân tích định nghĩa...", 
+                            "category": "PENDING", # Đánh dấu để hậu xử lý
+                            "metadata": [{
+                                "sheet": "Auto-Detect", 
+                                "project": project_name,
+                                "source": "Excel-Scanner"
+                            }]
+                        })
+
+                if new_definitions:
+                    # Lưu vào DB với trạng thái PENDING
+                    kn_manager.commit_knowledge(kn_session, new_definitions)
+                    print(f"🧠 [HTJ System] Đã nạp {len(new_definitions)} nhãn mới (Trạng thái: PENDING)")
                     
-                    if field_objects:
-                        session.bulk_save_objects(field_objects)
-            
-            session.commit()
-            st.cache_data.clear() 
-            print(f"🚀 [HTJ System] Đã lưu Project '{project_name}' với ID: {new_project.id}")
-            return new_project.id
-        except Exception as e:
-            session.rollback()
-            print(f"❌ Lỗi DB khi lưu Project: {e}")
-            raise e
-        finally:
-            session.close()
+                    # GỢI Ý: Anh có thể gọi hàm AI phân loại hàng loạt tại đây nếu muốn
+                    # self.classify_pending_knowledge_with_ai(kn_session)
 
-    def get_all_sheets(self):
-        session = self.Session()
+                # XUẤT JSON BACKUP (Dữ liệu lúc này đã được làm sạch)
+                success, path, total = kn_manager.export_to_json(kn_session, project_id, self)
+                if success:
+                    print(f"📁 [HTJ System] Đã cập nhật file JSON sạch tại: {path}")
+
+        except Exception as ai_err:
+            # Lỗi AI không được làm hỏng luồng lưu Database chính của anh
+            print(f"⚠️ Cảnh báo lỗi xử lý tri thức: {ai_err}")
+
+    @classmethod  # Đổi từ staticmethod sang classmethod
+    def clean_data(cls, data): # Thay data thành (cls, data)
+        """Khử ký tự lạ..."""
+        if isinstance(data, dict):
+            # Dùng cls. để gọi đệ quy chính nó
+            return {k: cls.clean_data(v) for k, v in data.items()} 
+        elif isinstance(data, list):
+            return [cls.clean_data(i) for i in data]
+        elif isinstance(data, str):
+            cleaned = data.replace('\u2028', '\n').replace('\u2029', '\n')
+            return "".join(ch for ch in cleaned if ch.isprintable() or ch in "\n\r\t")
+        return data
+    
+    # ============================================================================================
+    # 3. Hiển thị dự án, sheets, giao diện table lên Gui
+    # ============================================================================================
+
+    def get_sheets_by_project(self, project_id):
+        """Lấy danh sách các sheet thuộc về một project cụ thể"""
+        session = self.get_session()
         try:
-            # Sử dụng joinedload để nạp luôn dữ liệu project vào object sheet
-            return session.query(ExcelSheet).options(joinedload(ExcelSheet.project)).all()
+            return session.query(ExcelSheet).filter_by(project_id=project_id).all()
         finally:
             session.close()
 
@@ -153,20 +241,16 @@ class DBManager:
             return final_rows, header_letters
         finally:
             session.close()
+    
+    @staticmethod
+    def col_to_letter(n):
+        if not n or n <= 0: return ""
+        string = ""
+        while n > 0:
+            n, remainder = divmod(n - 1, 26)
+            string = chr(65 + remainder) + string
+        return string
 
-    def get_sheet_data_as_json(self, sheet_id):
-        session = self.Session()
-        try:
-            fields = session.query(DataField).join(DataGroup).filter(DataGroup.sheet_id == sheet_id).all()
-            return [{
-                "coord": f.coord,
-                "value": f.value,
-                "group": f.group.group_name
-            } for f in fields]
-        finally:
-            session.close()
-
-   
     def get_sheet_data_as_cleaned_text(self, sheet_id):
         """Nén dữ liệu siêu gọn: Cắt số lẻ, lấy 1 mẫu duy nhất để tránh Timeout"""
         session = self.Session()
@@ -186,6 +270,8 @@ class DBManager:
                 val = str(f.value).strip() if f.value else ""
                 # Lọc bỏ dữ liệu rác/trống
                 if not val or val.lower() in ["none", "null", "stt", "-", "true", "false"]: continue
+
+                """Xem lại chỗ này à, nếu file có dòng ghi chú và quy trình thì sao"""
                 if len(val) > 200: val = val[:197] + "..." # Chặn các đoạn text quá dài
 
                 # Nhận diện Module
@@ -241,30 +327,6 @@ class DBManager:
         finally:
             session.close()
     
-    def save_knowledge(self, sheet_id, category, content, brain_name):
-        """Lưu kết quả AI vào làm file kiến thức (Knowledge Base)"""
-        session = self.Session()
-        try:
-            # Nhập model KnowledgeBase nếu chưa có ở đầu file
-            from database.models import KnowledgeBase 
-            
-            new_kb = KnowledgeBase(
-                sheet_id=sheet_id,
-                category=category,
-                content=content,
-                brain_used=brain_name
-            )
-            session.add(new_kb)
-            session.commit()
-            print(f"✅ [HTJ System] Đã lưu tri thức cho sheet {sheet_id}")
-            return True
-        except Exception as e:
-            session.rollback()
-            print(f"❌ Lỗi khi lưu tri thức: {e}")
-            return False
-        finally:
-            session.close()
-    
     def get_knowledge_by_sheet(self, sheet_id):
         """Lấy bản ghi tri thức mới nhất của một sheet"""
         session = self.Session()
@@ -275,91 +337,59 @@ class DBManager:
         finally:
             session.close()
     
-    # Hàm hỗ trợ lấy danh sách từ mới để định nghĩa lưu cho vectorDB :
-    def extract_unique_labels(self, sheet_id):
-        session = self.Session()
-        try:
-            # Lấy toàn bộ label từ DB
-            fields = session.query(DataField.label).join(DataGroup).filter(
-                DataGroup.sheet_id == sheet_id
-            ).all()
-            
-            unique_labels = []
-            # Lấy danh sách cấm từ Config và chuyển về chữ thường để so sánh cho chuẩn
-            blacklist = [item.lower() for item in Config.EXCEL_IGNORE_LABELS]
-
-            for f in fields:
-                label = str(f[0]).strip()
-                # CHỈ LẤY: có chữ, không nằm trong blacklist, không phải chỉ là số thuần túy
-                if (label and 
-                    label.lower() not in blacklist and 
-                    not label.isdigit() and 
-                    len(label) > 1):
-                    unique_labels.append(label)
-
-            return sorted(list(set(unique_labels)))
-        finally:
-            session.close()
-
-    def extract_unique_labels_by_sheet(self, sheet_id): # Đổi tên hàm cho đúng bản chất
-        session = self.Session()
-        try:
-            # Query lấy nhãn từ Field -> Group -> Sheet (theo sheet_id)
-            fields = session.query(DataField.label).join(DataGroup).filter(
-                DataGroup.sheet_id == sheet_id
-            ).all()
-            
-            blacklist = [item.lower() for item in Config.EXCEL_IGNORE_LABELS]
-            unique_labels = []
-            for f in fields:
-                if f[0]:
-                    label = str(f[0]).strip()
-                    # Lọc rác và số
-                    if label and label.lower() not in blacklist and not label.isdigit():
-                        unique_labels.append(label)
-            
-            return sorted(list(set(unique_labels)))
-        finally:
-            session.close()
-            
     def extract_unique_labels_by_project(self, project_id):
-        """Quét và lọc sạch rác (số, ngày, công thức) để lấy thuật ngữ chuẩn"""
+        """Quét nhãn sạch từ DB: Sửa lỗi Join nhập nhằng và tối ưu Regex lọc rác"""
         session = self.Session()
         try:
-            # Truy vấn nhãn từ Field -> Group -> Sheet -> Project
-            fields = session.query(DataField.label).join(DataGroup).join(ExcelSheet).filter(
-                ExcelSheet.project_id == project_id
-            ).all()
+            # SỬA LỖI TẠI ĐÂY: Dùng select_from và chỉ định ON clause tường minh
+            fields = session.query(DataField.label).\
+                select_from(DataField).\
+                join(DataGroup, DataField.group_id == DataGroup.id).\
+                join(ExcelSheet, DataGroup.sheet_id == ExcelSheet.id).\
+                filter(ExcelSheet.project_id == project_id).\
+                all()
             
-            # Lấy danh sách cấm từ Config
             blacklist = [item.lower() for item in Config.EXCEL_IGNORE_LABELS]
             unique_labels = []
             
+            # Tối ưu Regex lọc số và ngày tháng (tránh nhầm nhãn "Vàng 24k")
+            # Chỉ loại bỏ nếu cả cell CHỈ LÀ số thuần túy
+            is_pure_number = re.compile(r'^-?\d+(\.\d+)?$')
+            is_date_format = re.compile(r'\d{2,4}[-/]\d{2}[-/]\d{2,4}')
+
             for f in fields:
                 label = str(f[0]).strip() if f[0] else ""
                 
-                # 1. Bỏ trống, rác trong blacklist hoặc chỉ có 1 ký tự
-                if not label or label.lower() in blacklist or len(label) <= 1:
+                # 1. Bỏ trống, rác trong blacklist, chỉ có 1 ký tự hoặc mã lỗi Excel (#VALUE!, #N/A)
+                if not label or label.lower() in blacklist or len(label) <= 1 or label.startswith('#'):
                     continue
                     
-                # 2. Bỏ Công thức Excel (Bắt đầu bằng dấu =)
+                # 2. Bỏ Công thức Excel
                 if label.startswith('='):
                     continue
-                    
-                # 3. Bỏ Số thuần túy (1.0, 28.0, 1460000...)
-                if re.match(r'^-?\d+(\.\d+)?$', label):
+                
+                # 3. Bỏ Số thuần túy (nhưng giữ lại "Vàng 999" vì 999 có chữ "Vàng")
+                if is_pure_number.match(label) or is_date_format.match(label):
                     continue
-                    
-                # 4. Bỏ định dạng Ngày tháng
-                if re.match(r'\d{2,4}[-/]\d{2}[-/]\d{2,4}', label):
+                
+                # 4. Loại bỏ các nhãn chỉ toàn ký tự đặc biệt hoặc icon rác
+                if not re.search(r'[a-zA-ZÀ-ỹ0-9]', label):
                     continue
 
                 unique_labels.append(label)
-                
-            # Trả về danh sách không trùng lặp và đã sắp xếp
+            
+            # Kết quả trả về là danh sách duy nhất, sắp xếp A-Z
             return sorted(list(set(unique_labels)))
+            
+        except Exception as e:
+            print(f"❌ Lỗi tại extract_unique_labels_by_project: {e}")
+            return []
         finally:
             session.close()
+
+    # ============================================================================================
+    # . Các hàm liên quan đến mô tả bức thư AI
+    # ============================================================================================
 
     def get_session(self):
         """Cung cấp session cho các service khác nếu cần"""

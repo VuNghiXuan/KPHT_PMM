@@ -1,107 +1,111 @@
 import streamlit as st
+import pandas as pd
+import time
+import os
+import json
+import re
 from config import Config
 
 class KnowledgeView:
     def __init__(self, knowledge_service):
         self.service = knowledge_service
 
-    def render_approval_interface(self, project_id):
-        st.subheader("🧠 Quản lý Tri thức Hệ thống")
-        st.info("Hệ thống sẽ quét tất cả nhãn từ các Sheet để định nghĩa một lần duy nhất.")
+    def render_approval_interface(self, project_id, project_name="Dự án hiện tại"):
+        st.subheader(f"🧠 Từ điển nghiệp vụ: {project_name}")
 
-        # Nút quét toàn bộ dự án
-        if st.button("🔍 Quét toàn bộ thuật ngữ dự án"):
-            with st.spinner("Đang đối soát kho tri thức..."):
-                # Gọi hàm xử lý đa sheet mà anh em mình vừa bàn
-                report = self.service.process_all_project_labels(project_id)
-                st.session_state.current_report = report
-        
-        # Hiển thị danh sách kết quả quét
-        if 'current_report' in st.session_state:
-            report = st.session_state.current_report
+        # --- BƯỚC 1: TỰ ĐỘNG LẤY DỮ LIỆU ĐÃ CÓ TRONG DB ---
+        with self.service.db.get_session() as session:
+            from database.models import VectorKnowledge, ExcelSheet
+            # 1. Lấy tri thức đã tốt nghiệp (đã có định nghĩa)
+            existing_knowledge = session.query(VectorKnowledge).all()
+            # 2. Lấy toàn bộ nhãn thô từ Excel để so soát
+            sheets_data = session.query(ExcelSheet).filter_by(project_id=project_id).all()
+
+        # Tạo danh sách các từ đã biết để loại trừ
+        known_terms = {k.main_term for k in existing_knowledge if k.definition}
+
+        # --- BƯỚC 2: HIỂN THỊ TRI THỨC HIỆN TẠI ---
+        with st.expander("📚 Thư viện tri thức hiện có", expanded=not bool(st.session_state.get('df_knowledge'))):
+            if existing_knowledge:
+                existing_df = pd.DataFrame([{
+                    "term": k.main_term,
+                    "definition": k.definition,
+                    "category": k.category
+                } for k in existing_knowledge])
+                st.dataframe(existing_df, width='stretch', hide_index=True)
+            else:
+                st.info("Chưa có tri thức nào được nạp. Hãy quét Excel bên dưới.")
+
+        st.divider()
+
+        # --- BƯỚC 3: QUÉT VÀ ĐỊNH NGHĨA MỚI ---
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            st.markdown("#### 🔍 Phát hiện thuật ngữ mới")
+        with col2:
+            # Nút bấm để kích hoạt quét thô và gọi AI
+            if st.button("✨ Quét & Gọi AI định nghĩa mới", width='stretch', type="primary"):
+                with st.status("Đang đối soát và gọi AI...", expanded=True) as status:
+                    # 1. Chuẩn bị context thô
+                    raw_context = self.service.prepare_raw_context(sheets_data)
+                    
+                    # 2. Gọi AI soạn thảo (Hàm này tự chọn Groq/Ollama dựa trên token)
+                    draft_data = self.service.draft_business_knowledge(raw_context)
+                    
+                    if draft_data and 'terms' in draft_data:
+                        # 3. Lọc bỏ những từ AI vừa soạn mà thực ra trong DB ĐÃ CÓ RỒI
+                        new_terms_only = [
+                            t for t in draft_data['terms'] 
+                            if t['term'] not in known_terms
+                        ]
+                        
+                        if new_terms_only:
+                            df = pd.DataFrame(new_terms_only)
+                            df['is_approved'] = False
+                            st.session_state.df_knowledge = df
+                            status.update(label=f"✅ Tìm thấy {len(df)} thuật ngữ mới!", state="complete")
+                        else:
+                            status.update(label="✅ Không có thuật ngữ mới nào cần định nghĩa.", state="complete")
+                    else:
+                        st.error("AI không trích xuất được dữ liệu.")
+
+        # --- BƯỚC 4: BẢNG DUYỆT TỪ MỚI (CHỈ HIỆN KHI CÓ TỪ MỚI) ---
+        if 'df_knowledge' in st.session_state and not st.session_state.df_knowledge.empty:
+            st.warning("⚠️ Những mục dưới đây là AI gợi ý từ file Excel, anh Vũ hãy duyệt để nạp vào bộ não:")
             
-            if not report:
-                st.success("Không có thuật ngữ mới cần định nghĩa!")
-                return
+            edited_df = st.data_editor(
+                st.session_state.df_knowledge,
+                column_config={
+                    "term": st.column_config.TextColumn("Thuật ngữ mới", disabled=True),
+                    "definition": st.column_config.TextColumn("AI Gợi ý định nghĩa (Sửa nếu cần)", width="large"),
+                    "is_approved": st.column_config.CheckboxColumn("Nạp?")
+                },
+                hide_index=True, width='stretch', key="new_term_editor"
+            )
 
-            with st.form("bulk_approval_form"):
-                st.markdown(f"#### Phát hiện {len(report)} thuật ngữ cần xác nhận")
-                approved_entries = []
-                
-                for idx, item in enumerate(report):
-                    # Chỉ hiển thị những từ MỚI hoặc GẦN GIỐNG để Vũ duyệt
-                    # Những từ đã khớp > 85% sẽ không hiện ở đây cho đỡ rác
-                    with st.container():
-                        col1, col2 = st.columns([1, 2])
-                        
-                        # Cột 1: Hiển thị từ gốc và trạng thái
-                        with col1:
-                            st.markdown(f"**Từ gốc:** `{item['term']}`")
-                            if item['status'] == 'SIMILAR':
-                                st.caption(f"⚠️ Giống từ: *{item['match_with']}* ({item['score']})")
-                            else:
-                                st.caption(f"✨ Thuật ngữ mới hoàn toàn")
-
-                        # Cột 2: Ô nhập định nghĩa (Lấy gợi ý từ Service)
-                        with col2:
-                            # Tự động lấy gợi ý (Config hoặc AI đoán)
-                            suggestion = self.service.ai_suggest_definition(item['term'])
-                            
-                            # Placeholder nhắc Vũ là có thể bỏ trống
-                            desc = st.text_input(
-                                f"Định nghĩa cho {item['term']}", 
-                                value=suggestion,
-                                placeholder="Để trống nếu muốn AI tự suy luận sau...",
-                                key=f"input_{item['term']}_{idx}"
-                            )
-                        
-                        approved_entries.append({
-                            "term": item['term'],
-                            "definition": desc,
-                            "category": "GLOSSARY"
-                        })
-                        st.divider()
-
-                # Nút xác nhận lưu
-                if st.form_submit_button("✅ Xác nhận & Lưu vào Bộ não AI"):
-                    if self.service.approve_and_learn(approved_entries):
-                        st.success("Đã nạp tri thức thành công!")
-                        # Xóa report sau khi lưu để tránh trùng lặp
-                        del st.session_state.current_report
+            if st.button("🚀 XÁC NHẬN NẠP THÊM TRI THỨC", width='stretch'):
+                to_save = edited_df[edited_df["is_approved"] == True]
+                if not to_save.empty:
+                    if self.service.approve_and_learn({"terms": to_save.to_dict(orient='records')}):
+                        st.success("✅ Đã cập nhật bộ não thành công!")
+                        del st.session_state.df_knowledge
                         st.rerun()
 
-    def render_backup_tools(self, project_id): # Thêm project_id vào đây
-        """Công cụ sao lưu tri thức ra file vật lý"""
+    def render_backup_tools(self, project_id):
+        """Công cụ Export/Import JSON để anh cất file vật lý"""
         st.divider()
-        st.subheader("💾 Quản lý file tri thức (JSON)")
+        st.subheader("💾 Backup & Đồng bộ File JSON")
         
-        col1, col2, col3 = st.columns(3) # Chia làm 3 cột cho đẹp
-        
+        col1, col2 = st.columns(2)
         with col1:
-            if st.button("📤 Export Toàn bộ"):
-                session = self.service.db.get_session()
-                self.service.kv.export_to_json(session, Config.JSON_BACKUP_PATH)
-                st.success("Đã backup kho tri thức tổng!")
-        
-        with col2:
-            # --- ĐÂY LÀ NÚT VŨ CẦN ---
-            if st.button("🔍 Export Từ Mới (Chưa định nghĩa)"):
-                # Gọi hàm xử lý và nhận về chuỗi JSON
-                unlabeled_json = self.service.export_unlabeled_to_json(project_id)
-                
-                if unlabeled_json:
-                    st.download_button(
-                        label="📥 Tải file JSON từ mới",
-                        data=unlabeled_json,
-                        file_name=f"unlabeled_project_{project_id}.json",
-                        mime="application/json"
-                    )
-                else:
-                    st.info("Không có từ mới nào cần định nghĩa.")
+            if st.button("📤 Xuất JSON (Cập nhật mới nhất)", width='stretch'):
+                with self.service.db.get_session() as session:
+                    # Giả sử hàm export nằm trong kv_manager hoặc service
+                    success, path, count = self.service.db.export_knowledge_to_json(project_id)
+                    if success:
+                        st.success(f"Đã lưu {count} tri thức vào: {path}")
 
-        with col3:
-            if st.button("📥 Import Knowledge.json"):
-                session = self.service.db.get_session()
-                if self.service.kv.import_from_json(session, Config.JSON_BACKUP_PATH):
-                    st.success("Đã đồng bộ tri thức!")
-                    st.rerun()
+        with col2:
+            if st.button("📥 Nhập JSON vào Hệ thống", width='stretch'):
+                # Logic import từ file vật lý ngược lại DB
+                st.info("Tính năng đang đồng bộ...")

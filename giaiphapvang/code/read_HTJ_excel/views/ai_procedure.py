@@ -52,7 +52,7 @@ class AIProcedure:
 
         with col1:
             if is_edit:
-                if st.button("💾 Lưu vào DB", use_container_width=True):
+                if st.button("💾 Lưu vào DB", width='stretch'):
                     content_to_save = st.session_state[f"content_{sheet_id}"]
                     if content_to_save:
                         self.db.save_knowledge(sheet_id, "Quy trình vận hành", content_to_save, "Manual Edit")
@@ -61,7 +61,7 @@ class AIProcedure:
 
         with col2:
             btn_label = f"🪄 {self.current_brain} Biên soạn"
-            if st.button(btn_label, type="primary", use_container_width=True):
+            if st.button(btn_label, type="primary", width='stretch'):
                 with st.spinner(f"AI {self.current_brain} đang làm việc..."):
                     instruction = f"Cấu trúc Excel: {clean_text}\nNội dung hiện tại: {st.session_state[f'content_{sheet_id}']}"
                     result = self.ai.generate_htj_procedure(sheet_name, instruction)

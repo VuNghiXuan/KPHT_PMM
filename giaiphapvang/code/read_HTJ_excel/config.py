@@ -6,6 +6,9 @@ class Config:
     STORAGE_DIR = "storage"
     RAW_EXCEL_DIR = os.path.join(STORAGE_DIR, "raw_excel")
     JSON_BACKUP_PATH = os.path.join(STORAGE_DIR, "knowledge_backup.json")
+    JSON_PENDING_PATH = os.path.join(STORAGE_DIR, "pending_knowledge.json")
+    JSON_AI_PAYLOAD_PATH = os.path.join(STORAGE_DIR, "ai_payload_batch.json")
+    
     
     # AI & Vector
     EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
@@ -17,6 +20,18 @@ class Config:
     def init_directories(cls):
         os.makedirs(cls.STORAGE_DIR, exist_ok=True)
         os.makedirs(cls.RAW_EXCEL_DIR, exist_ok=True)
+
+    # Định nghĩa nghiệp vụ
+    TASK = ["VÀNG", "KẾ TOÁN", "KHO", "HỆ THỐNG", "BỎ QUA", 'MUA BÁN/ĐỔI', 'NHÀ CUNG CẤP (NCC)']
+    
+    # Prompt tùy biến theo từng loại file/nghiệp vụ
+    TASK_PROMPTS = {
+        "VÀNG": "Mày là chuyên gia định giá vàng. Hãy giải thích các thuật ngữ về tuổi vàng, loại vàng (999, 18k...), quy tuổi chuẩn nghiệp vụ tiệm vàng HTJ.",
+        "KẾ TOÁN": "Mày là kế toán trưởng. Giải thích các nhãn này theo hướng hạch toán, thu chi, công nợ và thuế (Thông tư 22/99).",
+        "KHO": "Mày là quản lý kho nữ trang. Giải thích theo hướng kiểm kê, mã tem, trọng lượng và bao bì.",
+        "MUA BÁN/ĐỔI": "Mày là nhân viên bán hàng. Giải thích các nhãn theo hướng giao dịch với khách, đổi cũ lấy mới, bù lỗ vàng.",
+        "NHÀ CUNG CẤP (NCC)": "Mày là bộ phận thu mua. Giải thích theo hướng đối chiếu với chành, NCC (APJ, Kim Tuấn Quang...)."
+    }
 
     # Danh sách không cần định nghĩa:
     # Danh sách các nhãn Excel không mang giá trị nghiệp vụ (Blacklist)
