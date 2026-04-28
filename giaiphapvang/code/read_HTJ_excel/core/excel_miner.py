@@ -8,22 +8,29 @@ class ExcelMiner:
     def __init__(self, file_path):
         self.file_path = os.path.abspath(file_path)
         try:
-            # Lấy công thức thô (data_only=False)
+            # Lấy công thức thô và giá trị đối soát
             self.wb = openpyxl.load_workbook(self.file_path, data_only=False)
-            # Lấy giá trị đã tính toán (data_only=True) để đối soát
             self.wb_val = openpyxl.load_workbook(self.file_path, data_only=True)
         except Exception as e:
             raise Exception(f"Lỗi đọc file: {e}")
 
     def _get_color(self, cell) -> str:
         if cell.fill and hasattr(cell.fill, 'start_color'):
-            # Trả về mã màu ARGB (ví dụ: FFFFFF00 là màu vàng)
             return str(cell.fill.start_color.index)
         return "N/A"
 
+    def _get_merged_value(self, ws_val, cell):
+        """Xử lý lấy giá trị cho ô nằm trong vùng bị gộp (Merged Cells)"""
+        for merged_range in ws_val.merged_cells.ranges:
+            if cell.coordinate in merged_range:
+                # Trả về giá trị của ô đầu tiên trong vùng gộp
+                return ws_val.cell(merged_range.min_row, merged_range.min_col).value
+        return None
+
     def scan_project(self) -> list:
         project_data = []
-        knowledge_backup = [] # File JSON "xác" file Excel như anh muốn
+        # Cấu trúc lại theo phân cấp Sheet để AI dễ đọc mục lục
+        knowledge_backup = {} 
 
         for name in self.wb.sheetnames:
             ws = self.wb[name]
@@ -31,86 +38,85 @@ class ExcelMiner:
             
             sheet_obj = ExcelSheet(sheet_name=name, status="SCANNING")
             raw_group = DataGroup(group_name=f"Full_Data_{name}")
+            knowledge_backup[name] = []
             
-            print(f"🔍 Đang 'vét cạn' dữ liệu tại Sheet: [{name}]")
+            print(f"🔍 Đang 'vét cạn' tri thức tại Sheet: [{name}]")
 
-            # 1. QUÉT TOÀN BỘ Ô CÓ DỮ LIỆU HOẶC COMMENT
-            # Dùng ws.calculate_dimension() để lấy vùng hoạt động thực sự
-            for row in ws.iter_rows():
+            # Lấy vùng dữ liệu thực tế để tránh quét hàng triệu ô trống của Excel
+            dim = ws.calculate_dimension() 
+            
+            for row in ws[dim]:
                 for cell in row:
-                    # Lấy giá trị thực tế sau khi tính (nếu là công thức)
+                    # 1. Xử lý giá trị (Ưu tiên ô gộp nếu ô hiện tại rỗng)
                     real_val = ws_val[cell.coordinate].value
-                    # Lấy công thức thô
+                    if real_val is None:
+                        real_val = self._get_merged_value(ws_val, cell)
+                    
                     raw_val = cell.value
-                    
-                    # Điều kiện vét: Có giá trị HOẶC có comment HOẶC có màu nền
                     has_comment = cell.comment is not None
-                    has_color = self._get_color(cell) != "00000000" and self._get_color(cell) != "N/A"
+                    color = self._get_color(cell)
+                    has_color = color not in ["00000000", "N/A", "0"]
                     
+                    # Điều kiện vét: Có dữ liệu, có công thức, có màu hoặc có ghi chú
                     if raw_val is not None or has_comment or has_color:
                         val_str = str(raw_val).strip()
-                        is_formula = str(raw_val).startswith('=')
+                        is_formula = val_str.startswith('=')
                         
-                        # --- LOGIC NHẬN DIỆN CHI TIẾT ---
+                        # --- AI LOGIC TAGGING ---
                         f_type = "DATA"
+                        is_bold = cell.font.bold if cell.font else False
                         
-                        # Nhận diện Button/Action
-                        action_keywords = Config.ACTION_KEYWORDS
-                        if any(k in val_str.upper() for k in action_keywords) and len(val_str) < 20:
+                        # Nhận diện Button (Dựa trên từ khóa và độ dài chuỗi)
+                        action_keywords = getattr(Config, 'ACTION_KEYWORDS', ['LƯU', 'IN', 'XÓA', 'TÍNH'])
+                        if any(k in val_str.upper() for k in action_keywords) and len(val_str) < 15:
                             f_type = "UI_BUTTON"
                         
-                        # Nhận diện Header của Grid (Thường in đậm hoặc có màu nền khác biệt)
-                        is_bold = cell.font.bold if cell.font else False
-                        if is_bold and not is_formula:
+                        # Nhận diện Header (Chữ đậm hoặc có màu nền)
+                        elif is_bold and not is_formula:
                             f_type = "GRID_HEADER"
+                        
+                        # Nhận diện ô tính toán quan trọng (Có màu nền)
+                        elif has_color and is_formula:
+                            f_type = "CALC_CELL"
 
-                        # Thu thập mọi "vảy" thông tin
                         field_info = {
                             "coord": cell.coordinate,
-                            "row": cell.row,
-                            "col": cell.column,
                             "value": str(real_val) if real_val is not None else "",
                             "formula": val_str if is_formula else None,
                             "comment": cell.comment.text.strip() if has_comment else None,
-                            "color": self._get_color(cell),
+                            "color": color,
                             "is_bold": is_bold,
                             "type": f_type,
-                            "sheet": name
+                            "is_hidden": ws.row_dimensions[cell.row].hidden or ws.column_dimensions[cell.column_letter].hidden
                         }
 
-                        # Lưu vào Object để nạp DB
+                        # Lưu vào DB Object
                         field_obj = DataField(
                             coord=field_info["coord"],
-                            row=field_info["row"],
-                            column=field_info["col"],
-                            label=f_type, # AI sẽ dùng thông tin này để gán nhãn lại
+                            row=cell.row,
+                            column=cell.column,
+                            label=f"{f_type} (NOTE: {field_info['comment']})" if has_comment else f_type,
                             value=field_info["value"],
                             formula=field_info["formula"],
                             color_code=field_info["color"],
                             field_type=f_type
                         )
-                        
-                        # Bổ sung ghi chú vào label nếu có comment để AI dễ đọc
-                        if field_info["comment"]:
-                            field_obj.label = f"{f_type} (NOTE: {field_info['comment']})"
 
                         raw_group.fields.append(field_obj)
-                        knowledge_backup.append(field_info)
+                        knowledge_backup[name].append(field_info)
 
             if raw_group.fields:
                 sheet_obj.groups.append(raw_group)
                 project_data.append(sheet_obj)
 
-        # 2. XUẤT FILE JSON BACKUP (KNOWLEDGE BASE)
         self._save_backup(knowledge_backup)
-        
         return project_data
 
     def _save_backup(self, data):
         backup_path = "knowledge_backup.json"
         with open(backup_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-        print(f"💾 Đã sao lưu 'gen' hệ thống vào: {backup_path}")
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(f"💾 Gen hệ thống đã được đúc vào: {backup_path}")
 
     def close(self):
         self.wb.close()

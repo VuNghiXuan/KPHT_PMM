@@ -82,14 +82,27 @@ class KnowledgeView:
 
         # 1. Lấy dữ liệu từ DB
         with self.service.db.get_session() as session:
-            
+            # Import tại đây để tránh lỗi circular import nếu có
+            from database.models import VectorKnowledge, ExcelSheet
             existing_knowledge = session.query(VectorKnowledge).all()
             sheets_data = session.query(ExcelSheet).filter_by(project_id=project_id).all()
 
         known_terms = {k.main_term for k in existing_knowledge if k.definition}
 
-        # 2. Hiển thị tri thức hiện có
-        with st.expander("📚 Thư viện tri thức hiện có", expanded=not bool(st.session_state.get('df_knowledge'))):
+        # --- ĐOẠN FIX LỖI TẠI ĐÂY ---
+        # Kiểm tra an toàn: Nếu không có df_knowledge hoặc df rỗng thì mới mở thư viện
+        draft_df = st.session_state.get('df_knowledge')
+        is_draft_empty = True
+        
+        # Nếu draft_df là DataFrame, dùng .empty. Nếu là None hoặc khác thì mặc định là True
+        if isinstance(draft_df, pd.DataFrame):
+            is_draft_empty = draft_df.empty
+        elif draft_df is None:
+            is_draft_empty = True
+        # ----------------------------
+
+        # 2. Hiển thị tri thức hiện có (Dùng is_draft_empty thay vì bool())
+        with st.expander("📚 Thư viện tri thức hiện có", expanded=is_draft_empty):
             if existing_knowledge:
                 st.dataframe(pd.DataFrame([{
                     "term": k.main_term, "definition": k.definition, "category": k.category

@@ -1,0 +1,75 @@
+NỘI DUNG FILE: HTJ_SYSTEM_DEVELOPMENT_PLAN.txt
+1. CẤU TRÚC DỰ ÁN (DJANGO ARCHITECTURE)
+
+Project Name: htj_gold_bot
+
+Apps:
+
+excel_miner: Chuyên trách "vét" và quản lý file Excel (211 sheets).
+
+knowledge: Chuyên về AI, RAG, lưu trữ tri thức nghiệp vụ vàng.
+
+system_monitor: Chuyên quét cấu trúc code, tự động làm tài liệu.
+
+core: Cấu hình hệ thống (Settings, URL).
+
+2. CHIẾN LƯỢC VÉT CẠN EXCEL (EXCEL MINER)
+
+Nguyên tắc: Đọc song song data_only=False (lấy công thức) và data_only=True (lấy giá trị thực).
+
+Xử lý thông minh: - Giải quyết ô gộp (Merged Cells) bằng cách lấy giá trị từ ô gốc.
+
+Nhận diện vùng đỏ/màu sắc để đánh dấu ô đối soát nghiệp vụ.
+
+Quét Data Validation (Dropdown) để lấy danh mục thợ, loại vàng.
+
+Giải pháp chống "ngáo" Token (Compression): - Không gửi 20,000 dòng dữ liệu cho AI.
+
+Chỉ gửi: Toàn bộ Header + Ô có công thức + Nút bấm + 2 dòng dữ liệu mẫu tiêu biểu.
+
+3. HỆ THỐNG TỰ ĐỘNG QUẢN LÝ CODE (SYSTEM MONITOR)
+
+Công nghệ: Sử dụng thư viện ast (Python Abstract Syntax Tree).
+
+Chức năng:
+
+Quét toàn bộ thư mục dự án để bốc tách File, Class, Function.
+
+Lấy Docstring (ghi chú trong code) làm dữ liệu đầu vào cho AI.
+
+Cơ chế Đối soát (Reconciliation): - Phát hiện file mới: Tự động thêm vào DB.
+
+Phát hiện file thừa/đã xóa: Đánh dấu is_active=False trong DB để quản lý lịch sử.
+
+AI Integration: Gửi tên hàm và docstring cho AI để nó viết mô tả chức năng (Description) bằng tiếng Việt chuẩn nghiệp vụ vàng.
+
+4. CẤU TRÚC DATABASE (DATABASE SCHEMA)
+
+ExcelProject / ExcelSheet / DataField: Lưu "xác" file Excel và logic ô.
+
+ProjectStructure: Lưu bản đồ file, class, hàm của dự án.
+
+VectorKnowledge: Lưu tri thức đã được AI đúc kết và anh Vũ duyệt.
+
+SheetProcess: Lưu hướng dẫn sử dụng từng sheet (SOP).
+
+5. DANH SÁCH CÔNG NGHỆ (TECH STACK)
+
+Backend: Django (Quản trị dữ liệu chặt chẽ).
+
+AI Engine: Gemini 1.5 Pro / Groq (Llama 3).
+
+Excel Lib: openpyxl (Đọc sâu cấu trúc).
+
+Background Task: Celery + Redis (Để quét 211 sheets mà không treo web).
+
+GUI: Streamlit (Cho giao diện chat và duyệt tri thức nhanh).
+
+💡 Lời nhắn riêng cho anh Vũ:
+Để bắt đầu, anh nên thực hiện theo thứ tự:
+
+Dựng khung Django theo cấu trúc thư mục tui đã gửi.
+
+Chạy con Bot ProjectWatcher đầu tiên để nó tự làm tài liệu cho chính nó. Mỗi khi anh viết thêm code cho ExcelMiner, con Bot này sẽ ghi chú lại giúp anh không bị quên "file này làm gì".
+
+Triển khai ExcelMiner với hàm compress_for_ai để bắt đầu "vét" 211 sheets mà không lo tốn token.
