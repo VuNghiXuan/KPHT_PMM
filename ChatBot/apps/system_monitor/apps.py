@@ -4,3 +4,4 @@ from django.apps import AppConfig
 class SystemMonitorConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.system_monitor'
+    verbose_name = 'Giám sát hệ thống '

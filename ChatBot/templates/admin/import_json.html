@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div class="module" style="padding: 20px;">
+    <h2><span class="icon">🧠</span> Nạp tri thức từ AI vào hệ thống</h2>
+    <p>Sau khi AI đã định nghĩa các thuật ngữ trong file JSON, anh hãy tải file đó lên đây.</p>
+    <hr>
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="margin: 20px 0;">
+            <label><b>Chọn file JSON kết quả:</b></label><br><br>
+            <input type="file" name="json_file" accept=".json" required>
+        </div>
+        <input type="hidden" name="apply" value="1">
+
+        <div class="submit-row">
+            <input type="submit" value="Bắt đầu nạp tri thức" class="default" style="float: left;">
+            <a href="." class="button cancel-link" style="margin-left: 10px;">Hủy bỏ</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

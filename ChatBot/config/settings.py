@@ -113,13 +113,24 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
+
+# USE_I18N = True
+
+# USE_TZ = True
+
+# 1. Chuyển ngôn ngữ sang Tiếng Việt
+LANGUAGE_CODE = 'vi'
+
+# 2. Chuyển múi giờ về Việt Nam (GMT+7)
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
 
 USE_I18N = True
 
-USE_TZ = True
+# 3. Để Django sử dụng múi giờ local đã cấu hình ở trên khi lưu vào DB
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
