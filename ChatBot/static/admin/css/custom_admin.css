@@ -1,0 +1,120 @@
+/* ==========================================================================
+   custom_admin.css - GIAO DIỆN DJANGO ADMIN CLASSIC CHO KPHT
+   Nguyên tắc: Tương phản tuyệt đối - Dễ đọc - Chuyên nghiệp
+   ========================================================================== */
+
+/* --- 1. THANH TIÊU ĐỀ TRÊN CÙNG (NAVBAR) --- */
+/* Nền tối (Xanh Petrol) -> Chữ sáng (Vàng/Trắng) */
+.main-header {
+    background-color: #417690 !important;
+    border-bottom: none !important;
+}
+
+.main-header .nav-link,
+.brand-link,
+.brand-link .brand-text {
+    color: #ffca28 !important;
+    /* Vàng nhạt nổi bật trên nền xanh */
+}
+
+/* --- 2. THANH ĐIỀU HƯỚNG (BREADCRUMBS) --- */
+/* Nền sáng (Xám trắng) -> Chữ tối (Xanh Petrol đậm) */
+.content-header {
+    background-color: #f8f9fa !important;
+    /* Trả về nền sáng cho thoáng */
+    padding: 10px 0 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Xử lý lỗi tàng hình trong ảnh: Ép chữ về màu tối */
+.breadcrumb-item,
+.breadcrumb-item a,
+.breadcrumb-item.active {
+    color: #417690 !important;
+    /* Chữ tối trên nền sáng */
+    font-weight: 200 !important;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline !important;
+    color: #2b5063 !important;
+}
+
+/* --- 3. SIDEBAR (THANH MENU BÊN TRÁI) --- */
+/* Nền tối -> Chữ sáng */
+.main-sidebar {
+    background-color: #343a40 !important;
+    /* Màu xám đen chuyên nghiệp */
+}
+
+.nav-header {
+    background-color: #417690 !important;
+    /* Tiêu đề nhóm xanh Petrol */
+    color: #ffffff !important;
+    font-weight: bold !important;
+    text-transform: uppercase;
+}
+
+.nav-sidebar .nav-link {
+    color: #ced4da !important;
+    /* Chữ xám sáng trên nền tối */
+}
+
+.nav-sidebar .nav-link.active {
+    background-color: #417690 !important;
+    /* Highlight mục đang chọn */
+    color: #ffffff !important;
+}
+
+/* --- 4. BẢNG DỮ LIỆU (RESULT LIST) --- */
+/* Tiêu đề bảng: Nền xám nhẹ -> Chữ xanh Petrol tối */
+#result_list thead th {
+    background-color: #f1f3f5 !important;
+    border-bottom: 2px solid #417690 !important;
+}
+
+#result_list thead th a,
+#result_list thead th {
+    color: #417690 !important;
+    /* Khử màu xanh lục */
+    font-weight: 200 !important;
+}
+
+/* Nội dung hàng: Nền trắng -> Chữ đen/xanh đậm */
+#result_list tbody td,
+#result_list tbody th a {
+    color: #333333 !important;
+    font-weight: 200;
+}
+
+/* --- 5. NÚT BẤM (BUTTONS) --- */
+/* Nền xanh Petrol -> Chữ trắng tinh */
+.btn-primary,
+.btn-success,
+.btn-info,
+.addlink,
+#result_list .field-luồng_công_việc a {
+    background-color: #417690 !important;
+    border: 1px solid #2b5063 !important;
+    color: #ffffff !important;
+    /* Tương phản trắng/xanh */
+    font-weight: bold !important;
+    text-transform: uppercase;
+    font-size: 11px !important;
+    padding: 5px 12px !important;
+    border-radius: 4px !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover {
+    background-color: #2b5063 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* --- 6. CÁC TRẠNG THÁI ĐẶC BIỆT --- */
+/* Chữ đỏ cho "Chờ định nghĩa" nổi bật trên nền trắng */
+.text-danger,
+#result_list td span.text-danger {
+    color: #d9534f !important;
+    font-weight: 500 !important;
+}

@@ -4,7 +4,7 @@ import traceback
 from openpyxl.cell.cell import MergedCell
 from apps.system_monitor.models import DataType
 from .models import ExcelSheet, DataField
-from apps.ai_knowledge.models import BusinessTermDraft
+from apps.ai_knowledge.models import KnowledgeDraft
 
 class ExcelMinerService:
     def __init__(self):

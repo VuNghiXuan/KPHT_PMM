@@ -1,0 +1,86 @@
+/* ==========================================================================
+   FILE CSS TÙY CHỈNH CHO HỆ THỐNG KPHT
+   Mục tiêu: Đen/Trắng/Xám, Gọn gàng, Ép phẳng giao diện
+   ========================================================================== */
+
+/* --- KHU VỰC 1: TRIỆT TIÊU MÀU XANH LÁ, CAM, VÀNG (TRẠNG THÁI AI) --- */
+/* Xử lý các chữ "Đã chỉnh sửa", "Chờ gửi AI", "Chờ duyệt" và tiêu đề xanh lục */
+.text-success,
+.text-warning,
+.text-info,
+.text-primary,
+.text-danger,
+#result_list td.field-trạng_thái,
+#result_list td.field-status,
+#result_list td.field-phân_loại_AI,
+#result_list td.field-colored_status,
+.changelist-form-container .text-success,
+.changelist-form-container .text-warning {
+    color: #000000 !important;
+    /* ÉP VỀ ĐEN */
+    font-weight: 500 !important;
+    /* ĐẬM */
+}
+
+/* KHỬ MÀU XANH LỤC CỦA TIÊU ĐỀ CỘT (TABLE HEADERS) */
+#result_list thead th,
+#result_list thead th a,
+.table thead th {
+    color: #000000 !important;
+    /* Chữ tiêu đề đen */
+    background-color: #f8f9fa !important;
+    /* Nền xám rất nhạt */
+    font-weight: 500 !important;
+    text-transform: none !important;
+}
+
+/* --- KHU VỰC 2: LIÊN KẾT (LINKS) --- */
+/* Xử lý các link tên Quy trình, Thuật ngữ thô... vốn là màu xanh */
+#result_list tbody th a,
+#result_list tbody td a,
+#result_list tbody td a:hover,
+.breadcrumb a {
+    color: #000000 !important;
+    font-weight: 500 !important;
+    text-decoration: underline !important;
+}
+
+/* --- KHU VỰC 3: ÉP PHẲNG THANH TÌM KIẾM & BỘ LỌC --- */
+.changelist-form-container #changelist-search input,
+.changelist-form-container #changelist-search button,
+#changelist-filter select,
+.actions select {
+    height: 32px !important;
+    border: 1px solid #333333 !important;
+    border-radius: 0px !important;
+    font-size: 13px !important;
+}
+
+/* --- KHU VỰC 4: CÁC NÚT BẤM (CHẠY AI, TINH CHỈNH) --- */
+.btn-warning,
+.btn-info,
+.btn-success,
+.btn-primary,
+.field-execution_actions a,
+.addlink {
+    background-color: #212529 !important;
+    border-color: #212529 !important;
+    color: #ffffff !important;
+    padding: 2px 12px !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    border-radius: 0px !important;
+}
+
+.btn-warning:hover,
+.btn-info:hover,
+.btn-success:hover,
+.btn-primary:hover {
+    background-color: #000000 !important;
+}
+
+/* --- KHU VỰC 5: SIDEBAR (THANH BÊN) --- */
+.nav-sidebar .nav-link.active {
+    background-color: #495057 !important;
+    color: #ffffff !important;
+}

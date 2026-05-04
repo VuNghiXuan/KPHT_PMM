@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin', # Cài đặt quản lý các apps của Django
     # 1. Đăng ký các app cấu tạo
     'django.contrib.admin',
     'django.contrib.auth',
@@ -137,6 +138,16 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Anh thêm dòng này để Django biết chỗ tìm file static của anh
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Đây là nơi tập hợp tất cả static khi anh chạy lệnh collectstatic (dùng cho deploy)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# python manage.py collectstatic --noinput
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -144,3 +155,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Import cấu hình Jazzmin từ file riêng
+try:
+    from .jazzmin_conf import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS
+except ImportError:
+    JAZZMIN_SETTINGS = {}
+    JAZZMIN_UI_TWEAKS = {}

@@ -63,8 +63,29 @@ class AIGateway:
             print(f"❌ Lỗi khởi tạo Model {self.provider}: {str(e)}")
             return None
 
-    def process_ai_knowledge(self, prompt):
-        # Thử provider ưu tiên trước
+    def process_ai_knowledge(self, prompt, use_ollama=False):
+        """
+        Xử lý gọi AI. 
+        Nếu use_ollama=True: Ép dùng Ollama (dùng cho chạy hàng loạt).
+        Nếu use_ollama=False: Ưu tiên Groq, tự động fallback sang Ollama nếu dính Rate Limit.
+        """
+        # Nếu được yêu cầu dùng Ollama ngay từ đầu (Bulk action)
+        if use_ollama:
+            original_provider = self.provider
+            self.provider = "Ollama"
+            model = self.get_model()
+            try:
+                print(f"🤖 Đang chạy chế độ hàng loạt: Sử dụng Ollama...")
+                response = model.invoke(prompt)
+                # Trả provider về trạng thái cũ sau khi xong để không ảnh hưởng các hàm khác
+                self.provider = original_provider
+                return response.content if hasattr(response, 'content') else ""
+            except Exception as e:
+                print(f"❌ Lỗi Ollama khi chạy hàng loạt: {str(e)}")
+                self.provider = original_provider
+                return None
+
+        # Chế độ chạy đơn lẻ (Ưu tiên Groq)
         model = self.get_model()
         if not model: return None
 
@@ -79,7 +100,7 @@ class AIGateway:
             if "429" in error_msg and self.provider == "Groq":
                 print(f"⚠️ Groq hết hạn mức (Rate Limit). Tự động chuyển sang Ollama chạy local...")
                 self.provider = "Ollama"
-                model = self.get_model() # Khởi tạo lại model Ollama
+                model = self.get_model() 
                 if model:
                     try:
                         response = model.invoke(prompt)

@@ -1,232 +1,138 @@
 from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.shortcuts import redirect
-
-from django.http import HttpResponse
+from django.urls import reverse
+from django.db import transaction
+from django.utils.safestring import mark_safe # Dùng cái này cho chắc ăn
 import json
 
 from .models import ExcelProject, ExcelSheet, DataField
-from django.urls import reverse
 
 @admin.register(ExcelProject)
 class ExcelProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'uploaded_at', 'stats_view', 'next_steps')
-    actions = [
-        # 'fast_delete',                 # Xoá nhanh dữ liệu
-        'preview_ai_payload',         # Bước 0: Xem thử Blueprint
-        # 'collect_terms_to_draft',     # Bước 1: Nhặt từ thô vào nháp
-        'generate_blueprint_drafts'   # Bước 2: Chuẩn bị bản thảo quy trình
-    ]
+    actions = ['preview_ai_payload', 'generate_blueprint_drafts', 'safe_clear_data']
 
-    def next_steps(self, obj):
-        """Tạo các nút bấm điều hướng nhanh theo luồng công việc"""
-        # 1. Link tới trang soạn thảo quy trình (đã lọc theo project này)
-        process_draft_url = reverse('admin:ai_knowledge_businessprocessdraft_changelist') + f"?project__id__exact={obj.id}"
-        
-        # 2. Link tới trang sàng lọc thuật ngữ
-        term_draft_url = reverse('admin:ai_knowledge_businesstermdraft_changelist') + f"?project__id__exact={obj.id}"
-
-        return format_html(
-            '<a class="button" style="background: #447e9b; color: white; margin-right: 5px;" href="{}">📝 Soạn quy trình</a>'
-            '<a class="button" style="background: #70bf2b; color: white;" href="{}">🔍 Duyệt thuật ngữ</a>',
-            process_draft_url, term_draft_url
-        )
-    next_steps.short_description = "Luồng công việc"
-
+    # --- HIỂN THỊ THỐNG KÊ ---
     def stats_view(self, obj):
-        """
-        Hiển thị thống kê dữ liệu tối ưu hóa cho SQLite.
-        Sử dụng đếm trực tiếp trên queryset của object để tránh lỗi 'too many SQL variables'.
-        """
-        # Đếm số lượng sheet trực tiếp từ relation
         sheet_count = obj.sheets.count()
-        
-        # Tối ưu: Truy vấn field thông qua relate_name (ví dụ: fields) của ExcelSheet 
-        # Hoặc dùng trực tiếp filtering trên DataField như cũ nhưng đảm bảo dùng filter chính xác
-        from .models import DataField
-        
-        # Đếm tổng số cell trong project
         field_count = DataField.objects.filter(sheet__project_id=obj.id).count()
+        unlabeled = DataField.objects.filter(sheet__project_id=obj.id, label__isnull=True).exclude(value="").count()
         
-        # Đếm số cell chưa có label và không rỗng
-        # Lưu ý: Kiểm tra xem anh dùng 'label' hay 'smart_label' tùy theo bản cập nhật database mới nhất
-        unlabeled = DataField.objects.filter(
-            sheet__project_id=obj.id, 
-            label__isnull=True
-        ).exclude(value="").count()
+        status_color = "#f44336" if unlabeled > 0 else "#4caf50"
         
-        color = "red" if unlabeled > 0 else "green"
-        
-        return format_html(
-            "<b>{}</b> Sheets | <b>{}</b> Cells | <span style='color:{}; font-weight:bold;'>{}</span> Chờ định nghĩa",
-            sheet_count, field_count, color, unlabeled
-        )
-    stats_view.short_description = "Thống kê dữ liệu"
+        html = f"""
+        <div style="line-height: 1.6;">
+            📂 Sheets: <b>{sheet_count}</b><br>
+            🔢 Cells: <b>{field_count:,}</b><br>
+            ⚠️ Chờ duyệt: <span style="color:{status_color}; font-weight:bold;">{unlabeled:,}</span>
+        </div>
+        """
+        return mark_safe(html)
+    stats_view.short_description = "Sức khỏe dữ liệu"
 
-    @admin.action(description='🔍 0. Xem trước dữ liệu sẽ gửi AI (Dry Run)')
+    # --- ĐIỀU HƯỚNG NHANH ---
+    def next_steps(self, obj):
+        try:
+            base_url = reverse('admin:ai_knowledge_knowledgedraft_changelist')
+            p_url = f"{base_url}?project__id__exact={obj.id}&category__exact=PROCESS"
+            t_url = f"{base_url}?project__id__exact={obj.id}&category__exact=TERM"
+            
+            html = (
+                f'<a class="button" style="background:#447e9b;color:white;padding:2px 8px;display:inline-block;border-radius:4px;text-decoration:none;" href="{p_url}">📝 Quy trình</a> '
+                f'<a class="button" style="background:#70bf2b;color:white;padding:2px 8px;display:inline-block;border-radius:4px;text-decoration:none;" href="{t_url}">🔍 Thuật ngữ</a>'
+            )
+            return mark_safe(html)
+        except:
+            return mark_safe('<span style="color: gray;">Chờ cấu hình...</span>')
+    next_steps.short_description = "Hành động"
+
+    # --- KÍCH HOẠT TỰ ĐỘNG HÓA KHI SAVE ---
+    def save_model(self, request, obj, form, change):
+        # 1. Lưu Project trước để FileField có path thực tế trên ổ cứng
+        super().save_model(request, obj, form, change)
+        
+        # 2. Kiểm tra đúng tên trường là file_path (theo code excel_miner.py của anh)
+        if obj.file_path and (not change or 'file_path' in form.changed_data):
+            try:
+                from .excel_miner import ExcelMinerService
+                miner = ExcelMinerService()
+                
+                # Gọi hàm process_project
+                success, message = miner.process_project(obj)
+                
+                if success:
+                    self.message_user(request, f"Hệ thống KPHT đã bóc tách xong: {message}", messages.SUCCESS)
+                else:
+                    # Nếu có lỗi (ví dụ file sai định dạng), hiển thị traceback ra màn hình admin
+                    self.message_user(request, f"Lỗi nghiệp vụ: {message}", messages.ERROR)
+            except Exception as e:
+                self.message_user(request, f"Lỗi hệ thống khi gọi Miner: {str(e)}", messages.ERROR)
+
+    # --- CÁC ACTIONS GIỮ NGUYÊN ---
+    @admin.action(description='🔍 Bước 0: Xem Blueprint (Dry Run)')
     def preview_ai_payload(self, request, queryset):
-        # Local Import để né lỗi khởi động
         from .letter_AI import ExcelKnowledgeArchitect
         architect = ExcelKnowledgeArchitect()
-        
         for project in queryset:
             blueprint = architect.generate_system_blueprint(project)
-            summary_msg = [f"=== BẢN TIN BLUEPRINT: {project.name} ==="]
-            
-            for sheet in blueprint.get("structure", []):
-                sheet_name = sheet["sheet_name"]
-                # Lọc đúng những gì AI sẽ thực sự đọc
-                important = [
-                    e for e in sheet["elements"] 
-                    if e["group"] in ["ACTION_TRIGGER", "CRITICAL_INPUT_VALIDATION", "SECTION_HEADER"]
-                ]
-                
-                count = len(important)
-                sample = json.dumps(important[:2], ensure_ascii=False, indent=2)
-                summary_msg.append(f"📍 Sheet: {sheet_name} | Gửi: {count} ô quan trọng.\nMẫu: {sample}\n")
+            print(f"--- DEBUG BLUEPRINT: {project.name} ---")
+            print(json.dumps(blueprint, indent=2, ensure_ascii=False)[:1000] + "...")
+        self.message_user(request, "Đã xuất Blueprint ra Console.", messages.INFO)
 
-            full_log = "\n".join(summary_msg)
-            print(full_log) 
-            self.message_user(request, f"Dự án '{project.name}': Đã trích xuất {len(blueprint['structure'])} sheets vào Console để anh check.", messages.SUCCESS)
-
-    @admin.action(description='📥 1. Gom thuật ngữ thô vào Bản thảo')
-    def collect_terms_to_draft(self, request, queryset):
+    @admin.action(description='📝 Bước 1: Soạn bản thảo (Drafting)')
+    def generate_blueprint_drafts(self, request, queryset):
         from .letter_AI import ExcelKnowledgeArchitect
         architect = ExcelKnowledgeArchitect()
         total_created = 0
-        for project in queryset:
-            count = architect.collect_terms_to_draft(project)
-            total_created += count
-        
-        self.message_user(request, f"Đã nhặt {total_created} thuật ngữ thô. Anh qua mục 'Sàng lọc thuật ngữ (Draft)' để xem nhé.", messages.SUCCESS)
-
-    @admin.action(description='📝 2. Chuẩn bị bản thảo quy trình (Chưa tốn Token)')
-    def generate_blueprint_drafts(self, request, queryset):
-        """
-        Hành động Admin: Duyệt qua các Project được chọn, 
-        tách từng Sheet thành một bản thảo (Draft) riêng biệt.
-        """
-        from django.shortcuts import redirect
-        from django.urls import reverse
-        from .letter_AI import ExcelKnowledgeArchitect
-        
-        architect = ExcelKnowledgeArchitect()
-        total_sheets_created = 0
-        last_project_id = None
-
+        last_pid = None
         try:
             for project in queryset:
-                # Gọi hàm Architect để bóc tách từng sheet
-                # Hàm này giờ trả về số lượng sheet thành công
                 count = architect.create_draft_processes_from_blueprint(project)
-                total_sheets_created += count
-                last_project_id = project.id
-            
-            if total_sheets_created > 0:
-                self.message_user(
-                    request, 
-                    f"Thành công: Đã soạn xong bản thảo cho {total_sheets_created} Sheets từ {queryset.count()} dự án. "
-                    "Hệ thống đang chuyển anh đến trang Soạn thảo quy trình...", 
-                    messages.SUCCESS
-                )
-            else:
-                self.message_user(
-                    request, 
-                    "Không có bản thảo nào được tạo (có thể do các Sheet không chứa dữ liệu quan trọng).", 
-                    messages.WARNING
-                )
-
-            # Tự động chuyển hướng đến danh sách bản thảo của Project cuối cùng được chọn
-            if last_project_id:
-                url = reverse('admin:ai_knowledge_businessprocessdraft_changelist') + f"?project__id__exact={last_project_id}"
-                return redirect(url)
-
+                total_created += count
+                last_pid = project.id
+            if total_created > 0:
+                self.message_user(request, f"Đã tạo {total_created} bản thảo.", messages.SUCCESS)
+                return redirect(reverse('admin:ai_knowledge_knowledgedraft_changelist') + f"?project__id__exact={last_pid}")
         except Exception as e:
-            self.message_user(
-                request, 
-                f"Lỗi hệ thống khi tạo bản thảo: {str(e)}", 
-                messages.ERROR
-            )
-    
-    def delete_queryset(self, request, queryset):
-        """Ghi đè để tránh lỗi 'too many SQL variables' khi xóa dự án lớn"""
-        from .models import DataField, ExcelSheet
-        
+            self.message_user(request, f"Lỗi: {str(e)}", messages.ERROR)
+
+    @admin.action(description="🗑️ Xóa sạch dữ liệu")
+    def safe_clear_data(self, request, queryset):
+        from apps.ai_knowledge.models import KnowledgeDraft
         for project in queryset:
-            # 1. Xóa DataField trước theo từng sheet để giảm tải
-            sheets = project.sheets.all()
-            for sheet in sheets:
-                DataField.objects.filter(sheet=sheet).delete()
-            
-            # 2. Xóa các bản nháp liên quan
-            from apps.ai_knowledge.models import BusinessProcessDraft, BusinessTermDraft
-            BusinessProcessDraft.objects.filter(project=project).delete()
-            BusinessTermDraft.objects.filter(project=project).delete()
-            
-            # 3. Cuối cùng mới xóa Project (Sẽ kéo theo xóa Sheets vì Cascade)
-            project.delete()
-            
-        self.message_user(request, "Đã xóa sạch dự án và các dữ liệu liên quan một cách an toàn.", messages.SUCCESS)
+            with transaction.atomic():
+                DataField.objects.filter(sheet__project=project).delete()
+                KnowledgeDraft.objects.filter(project=project).delete()
+                project.delete()
+        self.message_user(request, "Đã dọn dẹp sạch sẽ.", messages.SUCCESS)
 
-    @admin.action(description="🗑️ Xóa nhanh (Không tính toán)")
-    def fast_delete(self, request, queryset):
-        for obj in queryset:
-            # Xóa trực tiếp thông qua DB (Bypass cơ chế thu thập thông tin của Admin)
-            obj.delete()
-        self.message_user(request, "Đã thực hiện xóa nhanh.")
-
-# --- Các phần quản lý Sheet và Field giữ nguyên như anh đã viết ---
-
+# --- QUẢN LÝ SHEETS ---
 @admin.register(ExcelSheet)
 class ExcelSheetAdmin(admin.ModelAdmin):
-    list_display = ('name', 'project', 'sheet_index')
-    list_filter = ('project',)
-    ordering = ('project', 'sheet_index')
+    list_display = ('name', 'project', 'sheet_index', 'category')
+    list_filter = ('project', 'category')
+    search_fields = ('name',)
 
-class FunctionalGroupFilter(admin.SimpleListFilter):
-    title = 'Nhóm chức năng'
-    parameter_name = 'func_group'
-    def lookups(self, request, model_admin):
-        return (
-            ('ACTION_TRIGGER', 'Nút bấm / Lệnh'),
-            ('SECTION_HEADER', 'Tiêu đề khối'),
-            ('DATA_ENTRY', 'Ô nhập liệu'),
-            ('CRITICAL_INPUT_VALIDATION', 'Ràng buộc quan trọng'),
-        )
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(metadata__ui_context__functional_group=self.value())
-        return queryset
-
+# --- QUẢN LÝ DỮ LIỆU Ô (Nơi anh gắn nhãn nghiệp vụ) ---
 @admin.register(DataField)
 class DataFieldAdmin(admin.ModelAdmin):
-    list_display = ('sheet', 'cell_address', 'display_value', 'is_verified', 'get_functional_group')
-    list_filter = ('sheet__project', 'sheet__name', FunctionalGroupFilter)
+    list_display = ('cell_address', 'get_sheet_name', 'display_value', 'label_status', 'is_verified')
+    list_filter = ('sheet__project', 'is_verified', 'ui_type')
     list_editable = ('is_verified',)
-    readonly_fields = ('metadata_view',)
-    search_fields = ('value', 'cell_address', 'label')
+    search_fields = ('value', 'label', 'cell_address')
+
+    def get_sheet_name(self, obj):
+        return obj.sheet.name
+    get_sheet_name.short_description = "Sheet"
 
     def display_value(self, obj):
-        if not obj.value: return "-"
-        return obj.value[:50] + "..." if len(obj.value) > 50 else obj.value
+        val = str(obj.value or "")
+        return val[:40] + "..." if len(val) > 40 else val
+    display_value.short_description = "Giá trị gốc"
 
-    def get_functional_group(self, obj):
-        try:
-            group = obj.metadata.get('ui_context', {}).get('functional_group', '-')
-            color_map = {
-                'ACTION_TRIGGER': '#ff9800', # Cam
-                'SECTION_HEADER': '#2196f3', # Xanh dương
-                'CRITICAL_INPUT_VALIDATION': '#f44336' # Đỏ
-            }
-            color = color_map.get(group, '#4caf50') # Mặc định xanh lá
-            return format_html('<span style="color: {}; font-weight: bold;">{}</span>', color, group)
-        except:
-            return "-"
-    get_functional_group.short_description = "Phân loại AI"
-
-    def metadata_view(self, obj):
-        return format_html(
-            '<pre style="background: #272822; color: #f8f8f2; padding: 10px; border-radius: 5px; font-size: 11px;">{}</pre>', 
-            json.dumps(obj.metadata, indent=2, ensure_ascii=False)
-        )
-    metadata_view.short_description = "Cấu trúc Blueprint"
+    def label_status(self, obj):
+        if obj.label:
+            return mark_safe(f'<span style="color: #2196f3;">🏷️ {obj.label}</span>')
+        return mark_safe('<span style="color: #9e9e9e;">(Chưa gắn nhãn)</span>')
+    label_status.short_description = "Định danh nghiệp vụ"

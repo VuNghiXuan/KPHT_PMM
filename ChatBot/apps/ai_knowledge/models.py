@@ -1,18 +1,12 @@
 from django.db import models
 
-# --- NHÓM 1: TRI THỨC CHÍNH THỨC (Dùng để Chatbot trả lời) ---
+# --- NHÓM 1: TRI THỨC HỆ THỐNG (CORE KNOWLEDGE) ---
 
 class BusinessTerm(models.Model):
-    """Từ điển nghiệp vụ đã chuẩn hóa 100%."""
+    """Từ điển nghiệp vụ chuẩn hóa."""
     term = models.CharField("Thuật ngữ", max_length=255, unique=True)
     definition = models.TextField("Định nghĩa nghiệp vụ")
     context = models.TextField("Ngữ cảnh sử dụng", null=True, blank=True)
-    source_field = models.ForeignKey(
-        'excel_miner.DataField', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True
-    )
     is_common = models.BooleanField("Thuật ngữ phổ biến", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -38,88 +32,71 @@ class BusinessProcess(models.Model):
     def __str__(self):
         return self.name
 
-# --- NHÓM 2: CỬA NGÕ TIẾP NHẬN (DRAFT AREA) ---
+class SystemGuide(BusinessProcess): 
+    """Proxy model để hiển thị hướng dẫn vận hành riêng trên Admin."""
+    class Meta:
+        proxy = True
+        verbose_name = "📖 HƯỚNG DẪN VẬN HÀNH"
+        verbose_name_plural = "📖 HƯỚNG DẪN VẬN HÀNH"
 
-class BusinessProcessDraft(models.Model):
-    """Nơi AI soạn thảo quy trình từ Blueprint để anh 'gọt giũa'."""
-    project = models.ForeignKey('excel_miner.ExcelProject', on_delete=models.CASCADE)
-    sheet_name = models.CharField("Thuộc Sheet", max_length=255)
-    process_name = models.CharField("Tên quy trình dự kiến", max_length=255)
-    draft_content = models.TextField("Nội dung bản thảo (Markdown)")
-    logic_mapping = models.JSONField("Bản đồ ngữ cảnh UI", null=True, blank=True)
-    status = models.CharField("Trạng thái", max_length=20, default='PENDING', choices=[
-        ('PENDING', 'Chờ gởi AI'),
-        ('REVISED', 'Đã chỉnh sửa'),
-        ('APPROVED', 'Đã duyệt nạp')
-    ])
+# --- NHÓM 2: CỬA NGÕ TIẾP NHẬN & DRAFT (DYNAMICS) ---
+
+class KnowledgeDraft(models.Model):
+    """
+    Bản kiến thức AI nháp.
+    Dùng trường 'category' để phân loại thay vì tạo nhiều bảng.
+    """
+    CATEGORY_CHOICES = [('PROCESS', 'Quy trình'), ('TERM', 'Thuật ngữ'), ('LOGIC', 'Quy tắc Logic')]
+    STATUS_CHOICES = [('PENDING', 'Chờ xử lý'), ('AI_PROCESSED', 'AI đã viết'), ('APPROVED', 'Đã duyệt nạp')]
+
+    project = models.ForeignKey('excel_miner.ExcelProject', on_delete=models.CASCADE, related_name='drafts')
+    category = models.CharField("Loại bản thảo", max_length=20, choices=CATEGORY_CHOICES, default='PROCESS')
+    
+    title = models.CharField("Tiêu đề/Thuật ngữ", max_length=255)
+    content = models.TextField("Nội dung (Markdown/JSON)")
+    
+    # Lưu vết metadata (Sheet gốc, ô dữ liệu...)
+    origin_metadata = models.JSONField("Nguồn gốc dữ liệu", null=True, blank=True)
+    
+    status = models.CharField("Trạng thái", max_length=20, default='PENDING', choices=STATUS_CHOICES)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Bản thảo quy trình"
-        verbose_name_plural = "3. Soạn thảo quy trình (Draft)"
-        unique_together = ('project', 'sheet_name') # Tránh tạo trùng bản thảo cho cùng 1 sheet
+        verbose_name = "Bản thảo tri thức"
+        verbose_name_plural = "3. Sàng lọc & Soạn thảo (Draft Area)"
 
     def __str__(self):
-        return f"{self.sheet_name} - {self.process_name}"
-
-class BusinessTermDraft(models.Model):
-    """Nơi lưu thuật ngữ thô từ Excel hoặc từ AI bóc tách ra."""
-    project = models.ForeignKey('excel_miner.ExcelProject', on_delete=models.CASCADE)
-    process_draft = models.ForeignKey(
-        BusinessProcessDraft, 
-        on_delete=models.SET_NULL, 
-        null=True, blank=True, 
-        related_name='related_terms'
-    )
-    term = models.CharField("Thuật ngữ thô", max_length=500)
-    sheet_name = models.CharField("Tên Sheet gốc", max_length=255)
-    context = models.TextField("Vị trí/Ngữ cảnh trong Excel", null=True, blank=True)
-    ui_type = models.CharField("Phân loại UI", max_length=100, null=True, blank=True)
-    definition = models.TextField("AI Dự đoán định nghĩa", null=True, blank=True)
-    suggested_code = models.CharField("Mã Code", max_length=100, null=True, blank=True)
-    status = models.CharField("Trạng thái", max_length=20, default='PENDING', choices=[
-        ('PENDING', 'Chờ duyệt'),
-        ('SENT', 'Đang đợi AI'),
-        ('DONE', 'Đã duyệt')
-    ])
-
-    class Meta:
-        verbose_name = "Bản nháp thuật ngữ"
-        verbose_name_plural = "4. Sàng lọc thuật ngữ (Draft)"
-        unique_together = ('project', 'term', 'sheet_name')
-
-    def __str__(self):
-        return self.term
-
-# --- NHÓM 3: BỘ NÃO ĐIỀU HƯỚNG & LOGIC ---
-
-class IntentRouter(models.Model):
-    """Điều hướng câu hỏi khách hàng đến đúng module xử lý."""
-    intent_name = models.CharField("Mã ý định", max_length=100, unique=True)
-    display_name = models.CharField("Tên ý định", max_length=255, null=True)
-    keywords = models.TextField("Từ khóa nhận diện (Phân cách bằng dấu phẩy)")
-    target_app = models.CharField("App xử lý", max_length=50)
-    hit_count = models.IntegerField("Số lượt hỏi", default=0)
-
-    class Meta:
-        verbose_name = "Định tuyến AI"
-        verbose_name_plural = "5. Bộ định tuyến AI (Router)"
+        return f"[{self.get_category_display()}] {self.title}"
 
 class BusinessLogicRule(models.Model):
-    """Lưu trữ các công thức tính toán bóc tách từ quy trình."""
-    process_draft = models.ForeignKey(
-        BusinessProcessDraft, 
-        on_delete=models.CASCADE, 
-        related_name='logic_rules_draft'
-    )
+    """Quy tắc Logic bóc tách - Kết nối trực tiếp với bản thảo hợp nhất."""
+    draft = models.ForeignKey(KnowledgeDraft, on_delete=models.CASCADE, related_name='logic_rules', null=True, 
+        blank=True)
     rule_name = models.CharField("Tên công thức", max_length=255)
-    formula = models.TextField("Công thức (Excel/Python style)")
-    variables = models.JSONField("Các biến số cần nạp", help_text="Ví dụ: ['weight', 'purity']")
-    explanation = models.TextField("Giải thích bình dân", null=True, blank=True)
+    formula = models.TextField("Công thức (Python Style)")
+    variables = models.JSONField("Biến số", help_text="Ví dụ: ['weight', 'purity']")
+    explanation = models.TextField("Giải thích", null=True, blank=True)
 
     class Meta:
         verbose_name = "Quy tắc Logic"
-        verbose_name_plural = "6. Quy tắc Logic (Bóc tách từ AI)"
+        verbose_name_plural = "4. Quy tắc Logic bóc tách"
+
+# --- NHÓM 3: CẤU HÌNH AI (AI CONFIG) ---
+
+class AIPromptTemplate(models.Model):
+    TASK_CHOICES = [
+        ('USER_GUIDE', 'Viết hướng dẫn sử dụng'),
+        ('GEN_CODE', 'Viết Code Logic'),
+        ('UI_SCRIPT', 'Kịch bản giao diện'),
+    ]
+    name = models.CharField("Tên nhiệm vụ", max_length=255)
+    task_type = models.CharField("Loại nhiệm vụ", max_length=50, choices=TASK_CHOICES)
+    system_prompt = models.TextField("System Prompt")
+    template_content = models.TextField("Template (Dùng {{context}})")
+    
+    class Meta:
+        verbose_name = "Mẫu Prompt AI"
+        verbose_name_plural = "5. Cấu hình Prompt AI"
 
     def __str__(self):
-        return self.rule_name
+        return self.name
