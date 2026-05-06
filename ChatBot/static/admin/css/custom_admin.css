@@ -1,10 +1,8 @@
 /* ==========================================================================
    custom_admin.css - GIAO DIỆN DJANGO ADMIN CLASSIC CHO KPHT
-   Nguyên tắc: Tương phản tuyệt đối - Dễ đọc - Chuyên nghiệp
    ========================================================================== */
 
 /* --- 1. THANH TIÊU ĐỀ TRÊN CÙNG (NAVBAR) --- */
-/* Nền tối (Xanh Petrol) -> Chữ sáng (Vàng/Trắng) */
 .main-header {
     background-color: #417690 !important;
     border-bottom: none !important;
@@ -14,60 +12,95 @@
 .brand-link,
 .brand-link .brand-text {
     color: #ffca28 !important;
-    /* Vàng nhạt nổi bật trên nền xanh */
 }
 
 /* --- 2. THANH ĐIỀU HƯỚNG (BREADCRUMBS) --- */
-/* Nền sáng (Xám trắng) -> Chữ tối (Xanh Petrol đậm) */
 .content-header {
     background-color: #f8f9fa !important;
-    /* Trả về nền sáng cho thoáng */
     padding: 10px 0 !important;
     border-bottom: 1px solid #dee2e6 !important;
 }
 
-/* Xử lý lỗi tàng hình trong ảnh: Ép chữ về màu tối */
 .breadcrumb-item,
 .breadcrumb-item a,
 .breadcrumb-item.active {
     color: #417690 !important;
-    /* Chữ tối trên nền sáng */
     font-weight: 200 !important;
 }
 
-.breadcrumb-item a:hover {
-    text-decoration: underline !important;
-    color: #2b5063 !important;
-}
+/* --- 3. SIDEBAR (KHỚP 100% THEO HÌNH ẢNH & ÉP RỚT CHỮ) --- */
 
-/* --- 3. SIDEBAR (THANH MENU BÊN TRÁI) --- */
-/* Nền tối -> Chữ sáng */
+/* Nền tổng thể Sidebar trắng xám nhẹ */
+.bg-body-secondary,
 .main-sidebar {
-    background-color: #343a40 !important;
-    /* Màu xám đen chuyên nghiệp */
+    background-color: #f8f9fa !important;
 }
 
-.nav-header {
+/* Tiêu đề nhóm (AUTHENTICATION, TICKETS...) - ÉP RỚT CHỮ */
+.nav-header,
+.sidebar-menu>.nav-header {
     background-color: #417690 !important;
-    /* Tiêu đề nhóm xanh Petrol */
     color: #ffffff !important;
     font-weight: bold !important;
     text-transform: uppercase;
+    white-space: normal !important;
+    /* Ép rớt dòng */
+    word-break: break-word !important;
+    /* Bẻ từ nếu quá dài */
+    height: auto !important;
+    padding: 8px 12px !important;
+    display: block !important;
+    margin-top: 5px;
+    line-height: 1.2 !important;
 }
 
-.nav-sidebar .nav-link {
-    color: #ced4da !important;
-    /* Chữ xám sáng trên nền tối */
+/* Cấu trúc Link Menu - ÉP RỚT CHỮ */
+.sidebar-menu .nav-link {
+    white-space: normal !important;
+    /* Quan trọng: Gỡ bỏ nowrap của AdminLTE */
+    word-break: break-word !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    /* Icon nằm ở đầu dòng chữ đầu tiên */
+    padding: 8px 12px !important;
+    color: #417690 !important;
+    border-bottom: 1px solid #eee;
+    height: auto !important;
+    /* Cho phép giãn chiều cao theo nội dung */
 }
 
-.nav-sidebar .nav-link.active {
-    background-color: #417690 !important;
-    /* Highlight mục đang chọn */
-    color: #ffffff !important;
+/* Xử lý riêng cho thẻ P chứa text của Menu */
+.sidebar-menu .nav-link p {
+    margin: 0 !important;
+    padding-left: 8px;
+    line-height: 1.4 !important;
+    text-overflow: unset !important;
+    /* Xóa dấu 3 chấm */
+    overflow: visible !important;
+    display: inline-block !important;
+    /* Đảm bảo text nhận diện đúng diện tích rớt dòng */
+    width: 100% !important;
+}
+
+/* TRẠNG THÁI ACTIVE - Màu vàng kem nhẹ như hình {98DDEEBC-E1B3-4095-9F39-27DE51952913}.png */
+.nav-sidebar .nav-link.active,
+.sidebar-menu .nav-link.active {
+    background-color: #ffffcc !important;
+    color: #417690 !important;
+    font-weight: bold !important;
+    box-shadow: none !important;
+}
+
+/* Icon cố định chiều rộng để không bị chữ ép dẹp */
+.sidebar-menu .nav-link i,
+.sidebar-menu .nav-link .nav-icon {
+    flex-shrink: 0 !important;
+    width: 20px !important;
+    margin-top: 2px !important;
+    color: #999;
 }
 
 /* --- 4. BẢNG DỮ LIỆU (RESULT LIST) --- */
-/* Tiêu đề bảng: Nền xám nhẹ -> Chữ xanh Petrol tối */
 #result_list thead th {
     background-color: #f1f3f5 !important;
     border-bottom: 2px solid #417690 !important;
@@ -76,28 +109,15 @@
 #result_list thead th a,
 #result_list thead th {
     color: #417690 !important;
-    /* Khử màu xanh lục */
     font-weight: 200 !important;
 }
 
-/* Nội dung hàng: Nền trắng -> Chữ đen/xanh đậm */
-#result_list tbody td,
-#result_list tbody th a {
-    color: #333333 !important;
-    font-weight: 200;
-}
-
 /* --- 5. NÚT BẤM (BUTTONS) --- */
-/* Nền xanh Petrol -> Chữ trắng tinh */
 .btn-primary,
 .btn-success,
-.btn-info,
-.addlink,
-#result_list .field-luồng_công_việc a {
+.addlink {
     background-color: #417690 !important;
-    border: 1px solid #2b5063 !important;
     color: #ffffff !important;
-    /* Tương phản trắng/xanh */
     font-weight: bold !important;
     text-transform: uppercase;
     font-size: 11px !important;
@@ -105,16 +125,23 @@
     border-radius: 4px !important;
 }
 
-.btn-primary:hover,
-.btn-success:hover {
-    background-color: #2b5063 !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-}
-
 /* --- 6. CÁC TRẠNG THÁI ĐẶC BIỆT --- */
-/* Chữ đỏ cho "Chờ định nghĩa" nổi bật trên nền trắng */
-.text-danger,
-#result_list td span.text-danger {
+.text-danger {
     color: #d9534f !important;
     font-weight: 500 !important;
+}
+
+/* --- 7. CÁC TRẠNG THÁI ĐẶC BIỆT --- */
+a {
+    color: #447e9b !important;
+    /* Dùng màu xanh tối cho đồng bộ */
+    text-decoration: none;
+    /* Mặc định không gạch chân cho sạch */
+}
+
+a:hover {
+    text-decoration: underline;
+    /* Chỉ gạch chân khi di chuột vào */
+    color: #2b5063 !important;
+    /* Đậm hơn một chút khi hover */
 }

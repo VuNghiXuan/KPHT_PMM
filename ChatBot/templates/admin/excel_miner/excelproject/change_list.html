@@ -1,0 +1,14 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+<li>
+    {# Thay class historylink bằng addlink để lấy style chuẩn của Django Admin #}
+    <a href="{{ guide_url }}" class="addlink"
+        style="background: #447e9b !important; border-color: #35637a !important; color: white !important; font-weight: bold; margin-right: 10px; text-transform: uppercase; padding: 10px 15px;">
+        <span style="margin-right: 6px;">🗺️</span> BẢN ĐỒ QUY TRÌNH HỆ THỐNG
+    </a>
+</li>
+
+{# Nút "Thêm" mặc định sẽ xuất hiện sau nút của anh nhờ dòng này #}
+{{ block.super }}
+{% endblock %}

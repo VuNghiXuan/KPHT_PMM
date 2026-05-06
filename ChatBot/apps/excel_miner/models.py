@@ -37,31 +37,63 @@ class ExcelProject(models.Model):
             transaction.on_commit(lambda: self.automate_workflow())
 
     def automate_workflow(self):
-        """Kích hoạt luồng Miner & Architect."""
+        """
+        Kích hoạt luồng bóc tách dữ liệu (Miner) và xây dựng tri thức (Architect).
+        Đã tối ưu để tránh treo UI và đảm bảo tính toàn vẹn dữ liệu.
+        """
+        from django.db import transaction
+        
+        # 1. Cập nhật trạng thái ngay lập tức để người dùng thấy trên Dashboard
+        # Sử dụng .filter().update() để tránh gọi lại hàm save() gây lặp vô tận
+        ExcelProject.objects.filter(pk=self.pk).update(status='PROCESSING')
+        logger.info(f"Bắt đầu bóc tách dự án: {self.name} (ID: {self.pk})")
+
         try:
-            # Cập nhật trạng thái để UI hiển thị cho anh biết
-            ExcelProject.objects.filter(pk=self.pk).update(status='PROCESSING')
-            
+            # Import muộn (Lazy Import) để tránh vòng lặp tham chiếu (circular import)
             from .excel_miner import ExcelMinerService
             from .letter_AI import ExcelKnowledgeArchitect
-            
-            # 1. Miner bóc tách cấu trúc ô
-            miner = ExcelMinerService()
-            miner.process_project(self)
-            
-            # 2. Architect soạn thảo nội dung (Quy trình, Thuật ngữ tiệm vàng)
-            architect = ExcelKnowledgeArchitect()
-            architect.create_draft_processes_from_blueprint(self)
-            
+
+            # Sử dụng transaction.atomic để đảm bảo nếu Miner hoặc Architect lỗi thì không để lại dữ liệu rác
+            with transaction.atomic():
+                # BƯỚC 1: Miner - Quét toàn bộ các Sheet và ô dữ liệu
+                # Bước này sẽ nạp dữ liệu vào ExcelSheet và DataField
+                miner = ExcelMinerService()
+                success_miner, message_miner = miner.process_project(self)
+                
+                if not success_miner:
+                    raise Exception(f"Lỗi Miner: {message_miner}")
+
+                # BƯỚC 2: Architect - Tổng hợp các ô thành quy trình (Business Process)
+                # Dựa trên các công thức và ghi chú đã bóc tách để tạo KnowledgeDraft
+                architect = ExcelKnowledgeArchitect()
+                success_architect = architect.create_draft_processes_from_blueprint(self)
+                
+                if not success_architect:
+                    # Tùy vào Architect trả về gì, ở đây giả định trả về True/False
+                    raise Exception("Lỗi Architect: Không thể chuyển đổi dữ liệu thành bản thảo tri thức.")
+
+            # 2. Hoàn tất thành công
             ExcelProject.objects.filter(pk=self.pk).update(status='COMPLETED')
-            logger.info(f"Dự án {self.name} đã được xử lý tự động thành công.")
-            
+            logger.info(f"Dự án {self.name} đã xử lý xong. Miner: {message_miner}")
+
         except Exception as e:
+            # 3. Xử lý khi có lỗi: Cập nhật trạng thái và ghi log chi tiết
             ExcelProject.objects.filter(pk=self.pk).update(status='FAILED')
-            logger.error(f"Lỗi tự động hóa dự án {self.name}: {str(e)}", exc_info=True)
-    
+            
+            # Ghi lại traceback đầy đủ để anh Xuân dễ debug khi code Miner bị lỗi
+            import traceback
+            error_msg = f"Lỗi tự động hóa tại dự án {self.name}: {str(e)}\n{traceback.format_exc()}"
+            logger.error(error_msg)
+            
+            # Nếu anh có trường 'error_log' trong Model, nên lưu error_msg vào đó để xem trực tiếp trên Admin
+            # self.error_log = error_msg
+            # self.save(update_fields=['error_log'])
+
     def __str__(self):
-        return f"{self.name} ({self.get_status_display()})"
+        # Hiển thị tên dự án kèm trạng thái tiếng Việt trong trang Admin
+        status_map = dict([('PENDING', 'Chờ'), ('PROCESSING', 'Đang chạy'), ('COMPLETED', 'Xong'), ('FAILED', 'Lỗi')])
+        display_status = status_map.get(self.status, self.status)
+        return f"{self.name} [{display_status}]"
 
 # --- Signal dọn dẹp file khi xóa Project ---
 @receiver(models.signals.post_delete, sender=ExcelProject)
@@ -139,3 +171,17 @@ class DataField(models.Model):
         prefix = f"[{self.cell_address}]"
         name = self.smart_label or self.label or 'Unnamed'
         return f"{prefix} {name}: {str(self.value)[:30]}"
+    
+
+class ExcelTableRegion(models.Model):
+    """Gom nhóm các ô thành từng bảng nghiệp vụ riêng biệt trong 1 sheet."""
+    sheet = models.ForeignKey(ExcelSheet, on_delete=models.CASCADE, related_name='regions')
+    name = models.CharField("Tên vùng bảng", max_length=255) # VD: "Chi tiết giao vàng"
+    coordinates = models.CharField("Tọa độ vùng", max_length=50) # VD: "A15:M20"
+    region_type = models.CharField(max_length=50, choices=[('GRID', 'Bảng dữ liệu'), ('FORM', 'Cụm nhập liệu')])
+    
+    def __str__(self):
+        return f"{self.sheet.name} > {self.name}"
+
+# Trong DataField, thêm liên kết này:
+# region = models.ForeignKey(ExcelTableRegion, on_delete=models.SET_NULL, null=True, blank=True)

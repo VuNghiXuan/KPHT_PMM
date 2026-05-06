@@ -1,102 +1,145 @@
 from django.db import models
 
-# --- NHÓM 1: TRI THỨC HỆ THỐNG (CORE KNOWLEDGE) ---
+# --- NHÓM 1: ĐỊNH NGHĨA NGHIỆP VỤ (HỆ ĐIỀU HÀNH) ---
+class BusinessTask(models.Model):
+    TASK_CHOICES = [
+        ('EXTRACT', 'Bóc tách dữ liệu (Excel/PDF/Img)'),
+        ('LOGIC_GEN', 'Soạn thảo quy trình vận hành'),
+        ('CHAT_GUIDE', 'Định hướng hội thoại Chatbot'),
+    ]
 
-class BusinessTerm(models.Model):
-    """Từ điển nghiệp vụ chuẩn hóa."""
-    term = models.CharField("Thuật ngữ", max_length=255, unique=True)
-    definition = models.TextField("Định nghĩa nghiệp vụ")
-    context = models.TextField("Ngữ cảnh sử dụng", null=True, blank=True)
-    is_common = models.BooleanField("Thuật ngữ phổ biến", default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField("Tên nghiệp vụ", max_length=255)
+    slug = models.SlugField("Mã định danh (Slug)", unique=True, help_text="Dùng để khớp với file JSON và Router")
+    task_type = models.CharField("Loại nhiệm vụ", max_length=50, choices=TASK_CHOICES, default='EXTRACT')
+    knowledge_base = models.TextField("Kho tri thức đúc kết", blank=True)
+    
+    # Gom AIPromptTemplate vào đây để quản lý tập trung
+    system_prompt = models.TextField("System Instruction", help_text="Vai trò và luật chơi của AI")
+    user_prompt_template = models.TextField("User Prompt Template", help_text="Dùng {{data}} hoặc {{context}} để truyền nội dung")
+    
+    # Học tăng cường (Reinforcement Learning)
+    learning_notes = models.TextField("Ghi chú tri thức (AI tự đúc kết)", blank=True, null=True)
+    
+    is_active = models.BooleanField("Đang hoạt động", default=True)
+    priority = models.IntegerField("Độ ưu tiên", default=0)
 
     class Meta:
-        verbose_name = "Thuật ngữ chính thức"
-        verbose_name_plural = "1. Từ điển nghiệp vụ (Đã duyệt)"
+        verbose_name = "Nghiệp vụ điều hướng"
+        verbose_name_plural = "Nghiệp vụ điều hướng"
+        ordering = ['-priority', 'name']
+
+    def compose_letter(self, input_data, input_type="Excel"):
+        """
+        Hàm này tự động nhận diện nguồn dữ liệu (Excel, PDF, Hình ảnh, hoặc Chat)
+        để trộn vào bức thư gửi AI.
+        """
+        # Tự động điều chỉnh lời dẫn dựa trên loại file anh đưa vào
+        intro_map = {
+            'Excel': f"Dữ liệu bóc tách từ bảng tính Excel: {input_data}",
+            'PDF': f"Nội dung văn bản trích xuất từ file PDF: {input_data}",
+            'Image': f"Thông tin nhận diện từ hình ảnh/hóa đơn: {input_data}",
+            'Text': f"Yêu cầu trực tiếp từ người dùng: {input_data}"
+        }
+        
+        context_input = intro_map.get(input_type, f"Dữ liệu đầu vào: {input_data}")
+
+        template = f"""
+        ### SYSTEM INSTRUCTION:
+        {self.system_prompt}
+
+        ### NGHIỆP VỤ: {self.get_task_type_display()}
+        {context_input}
+
+        ### KHO TRI THỨC ĐÃ HỌC (CONTEXT):
+        {self.learning_notes if self.learning_notes else "Chưa có dữ liệu học tập."}
+
+        ### YÊU CẦU:
+        {self.user_prompt_template.replace('{{data}}', 'Dữ liệu trên')}
+        """
+        return template
 
     def __str__(self):
-        return self.term
+        return f"{self.name} [{self.slug}]"
 
-class BusinessProcess(models.Model):
-    """Quy trình & Công thức vận hành chính thức."""
-    name = models.CharField("Tên quy trình", max_length=255)
-    description = models.TextField("Mô tả quy trình (Markdown)", null=True, blank=True)
-    steps = models.JSONField("Danh sách bước (JSON)", null=True, blank=True)
-    logic_rules = models.TextField("Công thức / Logic tổng quát", null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+
+# --- NHÓM 2: XỬ LÝ & ĐỐI SOÁT (DYNAMICS) ---
+class KnowledgeChunk(models.Model):
+    task = models.ForeignKey(BusinessTask, on_delete=models.CASCADE)
+    content = models.TextField("Nội dung đoạn")
+    
+    # Thêm trường này để dễ đối soát
+    chunk_type = models.CharField("Loại chunk", max_length=20, choices=[
+        ('SHEET', 'Bảng tính'),
+        ('PARA', 'Đoạn văn'),
+        ('IMAGE_ZONE', 'Vùng ảnh')
+    ], default='SHEET')
+    
+    metadata = models.JSONField("Thông tin gốc (Vị trí sheet/trang)")
+    vector_id = models.CharField(max_length=255, blank=True)
     
     class Meta:
-        verbose_name = "Quy trình nghiệp vụ"
-        verbose_name_plural = "2. Quản lý quy trình (Chính thức)"
-
-    def __str__(self):
-        return self.name
-
-class SystemGuide(BusinessProcess): 
-    """Proxy model để hiển thị hướng dẫn vận hành riêng trên Admin."""
-    class Meta:
-        proxy = True
-        verbose_name = "📖 HƯỚNG DẪN VẬN HÀNH"
-        verbose_name_plural = "📖 HƯỚNG DẪN VẬN HÀNH"
-
-# --- NHÓM 2: CỬA NGÕ TIẾP NHẬN & DRAFT (DYNAMICS) ---
+        verbose_name = "Mảnh ghép tri thức"
+        verbose_name_plural = "Mảnh ghép tri thức"
 
 class KnowledgeDraft(models.Model):
-    """
-    Bản kiến thức AI nháp.
-    Dùng trường 'category' để phân loại thay vì tạo nhiều bảng.
-    """
-    CATEGORY_CHOICES = [('PROCESS', 'Quy trình'), ('TERM', 'Thuật ngữ'), ('LOGIC', 'Quy tắc Logic')]
-    STATUS_CHOICES = [('PENDING', 'Chờ xử lý'), ('AI_PROCESSED', 'AI đã viết'), ('APPROVED', 'Đã duyệt nạp')]
-
-    project = models.ForeignKey('excel_miner.ExcelProject', on_delete=models.CASCADE, related_name='drafts')
-    category = models.CharField("Loại bản thảo", max_length=20, choices=CATEGORY_CHOICES, default='PROCESS')
+    task = models.ForeignKey(BusinessTask, on_delete=models.CASCADE, related_name='drafts', null=True, blank=True)
+    # Kết nối với Project bên excel_miner
+    term = models.CharField("Thuật ngữ/Tiêu đề", max_length=255, blank=True)
+    project_id = models.IntegerField("ID dự án gốc", default=0) 
+    category = models.CharField("Phân loại", max_length=50, default='TERM')
+    content = models.TextField("Nội dung AI soạn thảo")
+    origin_metadata = models.JSONField("Dữ liệu thô", default=dict, blank=True)
+    source_chunks = models.ManyToManyField(KnowledgeChunk, blank=True, verbose_name="Nguồn dữ liệu bóc tách")
     
-    title = models.CharField("Tiêu đề/Thuật ngữ", max_length=255)
-    content = models.TextField("Nội dung (Markdown/JSON)")
+    status = models.CharField("Trạng thái", max_length=20, choices=[
+        ('PENDING', 'Chờ duyệt'),
+        ('CONFLICT', 'Phát hiện mâu thuẫn'),
+        ('APPROVED', 'Đã thống nhất'),
+    ], default='PENDING')
     
-    # Lưu vết metadata (Sheet gốc, ô dữ liệu...)
-    origin_metadata = models.JSONField("Nguồn gốc dữ liệu", null=True, blank=True)
-    
-    status = models.CharField("Trạng thái", max_length=20, default='PENDING', choices=STATUS_CHOICES)
-    updated_at = models.DateTimeField(auto_now=True)
+    conflict_details = models.TextField("Chi tiết mâu thuẫn", blank=True, null=True, help_text="AI tự liệt kê các điểm khác biệt so với tri thức cũ")
+    version = models.IntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Bản thảo tri thức"
-        verbose_name_plural = "3. Sàng lọc & Soạn thảo (Draft Area)"
+        verbose_name_plural = "Bản thảo tri thức"
 
-    def __str__(self):
-        return f"[{self.get_category_display()}] {self.title}"
 
-class BusinessLogicRule(models.Model):
-    """Quy tắc Logic bóc tách - Kết nối trực tiếp với bản thảo hợp nhất."""
-    draft = models.ForeignKey(KnowledgeDraft, on_delete=models.CASCADE, related_name='logic_rules', null=True, 
-        blank=True)
-    rule_name = models.CharField("Tên công thức", max_length=255)
-    formula = models.TextField("Công thức (Python Style)")
-    variables = models.JSONField("Biến số", help_text="Ví dụ: ['weight', 'purity']")
-    explanation = models.TextField("Giải thích", null=True, blank=True)
+# --- NHÓM 3: KHO TRI THỨC SẠCH (DÀNH CHO CHATBOT) ---
+class BusinessTerm(models.Model):
+    term = models.CharField("Thuật ngữ", max_length=255, unique=True)
+    definition = models.TextField("Định nghĩa nghiệp vụ")
+    is_active = models.BooleanField(default=True)
 
     class Meta:
-        verbose_name = "Quy tắc Logic"
-        verbose_name_plural = "4. Quy tắc Logic bóc tách"
+        verbose_name = "Từ điển nghiệp vụ"
+        verbose_name_plural = "Từ điển nghiệp vụ"
 
-# --- NHÓM 3: CẤU HÌNH AI (AI CONFIG) ---
+class BusinessProcess(models.Model):
+    task = models.ForeignKey(BusinessTask, on_delete=models.SET_NULL, null=True)
+    name = models.CharField("Tên quy trình/công thức", max_length=255)
+    description = models.TextField("Mô tả chi tiết", null=True, blank=True)
+    logic_rules = models.JSONField("Công thức máy tính (JSON)", null=True, blank=True)
+    is_published = models.BooleanField("Cho phép Chatbot sử dụng", default=False)
+    updated_at = models.DateTimeField(auto_now=True)
 
-class AIPromptTemplate(models.Model):
-    TASK_CHOICES = [
-        ('USER_GUIDE', 'Viết hướng dẫn sử dụng'),
-        ('GEN_CODE', 'Viết Code Logic'),
-        ('UI_SCRIPT', 'Kịch bản giao diện'),
-    ]
-    name = models.CharField("Tên nhiệm vụ", max_length=255)
-    task_type = models.CharField("Loại nhiệm vụ", max_length=50, choices=TASK_CHOICES)
-    system_prompt = models.TextField("System Prompt")
-    template_content = models.TextField("Template (Dùng {{context}})")
-    
     class Meta:
-        verbose_name = "Mẫu Prompt AI"
-        verbose_name_plural = "5. Cấu hình Prompt AI"
+        verbose_name = "Quy trình chính thức"
+        verbose_name_plural = "Quy trình chính thức"
 
-    def __str__(self):
-        return self.name
+
+# --- NHÓM 4: VÒNG LẶP HỌC TẬP (REINFORCEMENT LEARNING) ---
+class CorrectionLedger(models.Model):
+    """Lưu vết sửa lỗi để cập nhật ngược lại learning_notes của BusinessTask"""
+    task = models.ForeignKey(BusinessTask, on_delete=models.CASCADE)
+    draft = models.ForeignKey(KnowledgeDraft, on_delete=models.CASCADE)
+    original_value = models.TextField("AI bóc tách sai")
+    corrected_value = models.TextField("Chủ tiệm sửa lại đúng")
+    reason = models.CharField("Lý do thay đổi", max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Nhật ký sửa lỗi (Học tăng cường)"
+        verbose_name_plural = "Nhật ký sửa lỗi (Học tăng cường)"
+

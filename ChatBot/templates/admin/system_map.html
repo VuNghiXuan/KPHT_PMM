@@ -1,0 +1,194 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+<link rel="stylesheet" href="{% static 'admin/css/chatbot_map.css' %}">
+<style>
+    /* Bổ sung một chút style cho nội dung dài */
+    .detail-step {
+        margin-bottom: 25px;
+        padding: 15px;
+        border-left: 4px solid var(--soft-blue);
+        background: #fff;
+    }
+
+    .step-header {
+        font-weight: bold;
+        color: var(--dark-navy);
+        font-size: 1.1em;
+        display: flex;
+        align-items: center;
+    }
+
+    .step-header span {
+        background: var(--dark-navy);
+        color: white;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 10px;
+        font-size: 0.8em;
+    }
+
+    .sub-section {
+        margin-top: 15px;
+        font-weight: 600;
+        color: #d63384;
+    }
+
+    ul.guide-list {
+        padding-left: 20px;
+    }
+
+    ul.guide-list li {
+        margin-bottom: 8px;
+        list-style-type: square;
+    }
+
+    .badge-logic {
+        background: #ff4757;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-body">
+    <div class="guide-header">
+        <h1>HƯỚNG DẪN VẬN HÀNH HỆ THỐNG CHATBOT</h1>
+        <p>Tài liệu đặc tả quy trình từ <b>Khai thác File (Miner)</b> đến <b>Tối ưu Tri thức (Architect)</b> và <b>Học
+                tăng cường (Monitor)</b></p>
+    </div>
+
+    <div class="tabs">
+        <!-- =========================================================================
+             TAB 1: GIAI ĐOẠN MINER - KHAI THÁC DỮ LIỆU GỐC
+             ========================================================================= -->
+        <input type="radio" name="tabs" id="tabone" checked="checked" style="display:none">
+        <label for="tabone">📦 GĐ 1: EXCEL MINER</label>
+        <div class="tab-content">
+            <h2 class="section-title">Quy trình bóc tách thực thể và Logic nghiệp vụ tiệm vàng</h2>
+
+            <div class="detail-step">
+                <div class="step-header"><span>1</span> Nhập dữ liệu đầu vào (Input Layer)</div>
+                <p>Thực hiện upload file Excel tại Model <b>ExcelProject</b>. Đây là "mỏ quặng" chứa toàn bộ
+                    tri thức của tiệm từ cách tính bù lỗ, công nợ vàng đến phân loại nhà cung cấp.</p>
+                <div class="sub-section">Nhiệm vụ của Models:</div>
+                <ul class="guide-list">
+                    <li><b>ExcelProject:</b> Quản lý vòng đời file. Trạng thái <code>PENDING</code> kích hoạt hàm
+                        <code>automate_workflow</code> để bắt đầu chuỗi xử lý tự động.
+                    </li>
+                    <li><b>ExcelSheet:</b> Phân loại các khu vực nghiệp vụ. AI sẽ ưu tiên các sheet có tên chứa "Quy
+                        trình", "Bán hàng", "Tính tuổi".</li>
+                    <li><b>DataField:</b> Lưu trữ nguyên tử dữ liệu. Quan trọng nhất là trường <code>formula</code>
+                        (công thức Excel) và <code>color_code</code>.</li>
+                </ul>
+            </div>
+
+            <div class="detail-step">
+                <div class="step-header"><span>2</span> Phân tích tầng sâu (Deep Extraction)</div>
+                <p>Hệ thống không chỉ đọc chữ, mà phải hiểu **mối quan hệ**. Nếu ô A1 là "Vàng 610" và ô B1 có công thức
+                    tính toán, <b>ExcelMinerService</b> sẽ tự động liên kết chúng lại thành một cặp Thực thể - Logic.
+                </p>
+                <div class="box box-note">
+                    <b>Nội dung chú ý:</b> Các ô có màu đỏ hoặc vàng (Color Coding) thường là các ô nhập liệu quan trọng
+                    hoặc ô chứa hằng số về "tuổi công nợ". Miner sẽ đánh dấu <code>is_required=True</code> để AI biết
+                    đây là dữ liệu không thể thiếu.
+                </div>
+            </div>
+
+            <div class="detail-step">
+                <div class="step-header"><span>3</span> Xử lý mâu thuẫn dữ liệu</div>
+                <p>Nếu trong file có hai bảng tính cùng tính "Tiền công" nhưng công thức khác nhau, hệ thống sẽ ghi log
+                    cảnh báo mâu thuẫn logic. Cần kiểm tra lại tại <b>DataField</b> để xác định bảng nào là
+                    chuẩn xác trước khi đẩy sang tầng Architect.</p>
+            </div>
+        </div>
+
+        <!-- =========================================================================
+             TAB 2: GIAI ĐOẠN ARCHITECT - CHUẨN HÓA TRI THỨC AI
+             ========================================================================= -->
+        <input type="radio" name="tabs" id="tabtwo" style="display:none">
+        <label for="tabtwo">🧠 GĐ 2: KNOWLEDGE ARCHITECT</label>
+        <div class="tab-content">
+            <h2 class="section-title">Xây dựng bộ não và chuyển đổi ngôn ngữ máy sang ngôn ngữ nghiệp vụ</h2>
+
+            <div class="detail-step">
+                <div class="step-header"><span>1</span> Chuyển đổi Blueprint sang Draft</div>
+                <p>Sau khi Miner hoàn tất, <b>ExcelKnowledgeArchitect</b> sẽ gọi AI để "đọc" đống công thức thô và viết
+                    lại thành văn bản quy trình tiếng Việt có cấu trúc.</p>
+                <div class="sub-section">Nhiệm vụ của Models:</div>
+                <ul class="guide-list">
+                    <li><b>KnowledgeDraft:</b> Chứa nội dung quy trình dưới dạng Markdown. Đây là nơi đọc và
+                        sửa lại lời văn của AI cho giống cách nói chuyện thực tế tại tiệm vàng.</li>
+                    <li><b>BusinessLogicRule:</b> Tách riêng các công thức tính toán tài chính. Ví dụ:
+                        <code>(Tuổi mua * Trọng lượng) - Tiền công = Giá trị thanh toán</code>.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="detail-step">
+                <div class="step-header"><span>2</span> Tối ưu tri thức (Knowledge Expansion)</div>
+                <p>Để Chatbot thông minh hơn, tại mỗi bản thảo (Draft), anh cần bổ sung phần <b>"Tình huống mở
+                        rộng"</b>. Ví dụ: "Nếu khách không mang theo hóa đơn cũ thì tính tuổi vàng như thế nào?". Việc
+                    này giúp AI không bị lúng túng khi gặp khách hàng thực tế.</p>
+                <div class="box box-future">
+                    <b>Học tăng cường:</b> Khi anh sửa một bước trong <b>KnowledgeDraft</b>, hệ thống sẽ tự động cập
+                    nhật lại các Agent liên quan để chúng không dùng kiến thức cũ.
+                </div>
+            </div>
+
+            <div class="detail-step">
+                <div class="step-header"><span>3</span> Sửa lỗi logic mâu thuẫn</div>
+                <p>Mâu thuẫn thường xảy ra ở phần "Quy đổi tuổi vàng" giữa các nhà cung cấp như APJ hay Gold Kara. Cần
+                    sửa trực tiếp tại <b>BusinessLogicRule</b>. Khi sửa ở đây, Chatbot sẽ thay đổi cách tính
+                    toán ngay lập tức mà không cần code lại hệ thống.</p>
+            </div>
+        </div>
+
+        <!-- =========================================================================
+             TAB 3: GIAI ĐOẠN MONITOR - GIÁM SÁT & TIẾN HÓA
+             ========================================================================= -->
+        <input type="radio" name="tabs" id="tabthree" style="display:none">
+        <label for="tabthree">🛰️ GĐ 3: SYSTEM MONITOR</label>
+        <div class="tab-content">
+            <h2 class="section-title">Giám sát hành vi, Phân tích ý định và Tự học</h2>
+
+            <div class="detail-step">
+                <div class="step-header"><span>1</span> Lưu vết và Phân tích Ý định (Intent Store)</div>
+                <p>Mọi câu hỏi của khách hàng và câu trả lời của Chatbot đều được lưu tại <b>IntentStore</b>. Đây là mỏ
+                    vàng để anh thực hiện "Học tăng cường" (Reinforcement Learning).</p>
+                <div class="sub-section">Cơ chế tiến hóa:</div>
+                <ul class="guide-list">
+                    <li><b>Gắn nhãn (Labeling):</b> Admin hoặc Tester sẽ đánh dấu câu trả lời là
+                        <code>THÀNH CÔNG</code> hoặc <code>SAI LOGIC</code>.
+                    </li>
+                    <li><b>Sửa lỗi trực tiếp:</b> Nếu AI trả lời sai về giá vàng, anh sửa câu trả lời đúng ngay tại
+                        IntentStore. AI sẽ lấy câu sửa của anh làm "mẫu chuẩn" cho các lần sau.</li>
+                </ul>
+            </div>
+
+            <div class="detail-step">
+                <div class="step-header"><span>2</span> Giám sát cấu trúc hệ thống (Project Structure)</div>
+                <p>Mô hình <b>ProjectStructure</b> giúp AI hiểu chính bản thân mã nguồn của nó. Khi cần thay
+                    đổi code xử lý Database, AI sẽ quét lại cấu trúc để biết cách hỗ trợ lập trình viên debug nhanh hơn.
+                </p>
+            </div>
+
+            <div class="detail-step">
+                <div class="step-header"><span>3</span> Nội dung mở rộng cho Chatbot</div>
+                <p>Để chatbot đạt trình độ chuyên gia, anh nên định kỳ kiểm tra các câu hỏi "Không xác định"
+                    (Unidentified Intents). Đây là những thứ khách quan tâm nhưng hệ thống chưa có dữ liệu. Anh chỉ cần
+                    tạo một <b>KnowledgeDraft</b> mới cho các câu hỏi này, chatbot sẽ tự động thông minh lên sau 5 phút.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
