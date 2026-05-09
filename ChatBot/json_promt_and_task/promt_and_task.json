@@ -1,6 +1,6 @@
 [
   {
-    "model": "ai_knowledge.aiprompttemplate",
+    "model": "app_knowledge.aiprompttemplate",
     "fields": {
       "name": "Biên Tập Hướng Dẫn Sử Dụng",
       "task_type": "USER_GUIDE",
@@ -11,7 +11,7 @@
     }
   },
   {
-    "model": "ai_knowledge.aiprompttemplate",
+    "model": "app_knowledge.aiprompttemplate",
     "fields": {
       "name": "Viết Code Logic Nghiệp Vụ",
       "task_type": "CODE_GEN",
@@ -22,7 +22,7 @@
     }
   },
   {
-    "model": "ai_knowledge.aiprompttemplate",
+    "model": "app_knowledge.aiprompttemplate",
     "fields": {
       "name": "Bóc Tách Thuật Ngữ & Quy Tắc",
       "task_type": "EXTRACT_LOGIC",

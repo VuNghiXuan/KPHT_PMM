@@ -2,7 +2,7 @@ JAZZMIN_SETTINGS = {
     "site_header": "TRANG QUẢN TRỊ HỆ THỐNG",
     "site_brand": "AI & Gold",
     "site_logo": None,
-    "welcome_sign": "Hệ thống Quản trị Tri thức & Nghiệp vụ KPHT",
+    "welcome_sign": "Hệ thống Quản trị Tri thức & Nghiệp vụ ngành kim hoàn",
     "copyright": "VuNghiXuan",
     "user_avatar": None,
     "show_sidebar": True,
@@ -14,17 +14,17 @@ JAZZMIN_SETTINGS = {
             "name": "TRI THỨC AI",
             "icon": "fas fa-brain",
             "models": [
-                "ai_knowledge.KnowledgeDraft",    # Bảng trung tâm mới (Thay cho Term & Process)
-                "ai_knowledge.BusinessLogicRule", # Bảng chứa công thức tính vàng
-                "ai_knowledge.AIPromptTemplate",  # Quản lý các mẫu Prompt cho AI
+                "app_knowledge.KnowledgeDraft",    # Bảng trung tâm mới (Thay cho Term & Process)
+                "app_knowledge.BusinessLogicRule", # Bảng chứa công thức tính vàng
+                "app_knowledge.AIPromptTemplate",  # Quản lý các mẫu Prompt cho AI
             ],
         },
         {
             "name": "DỮ LIỆU EXCEL",
             "icon": "fas fa-file-excel",
             "models": [
-                "excel_miner.ExcelProject",
-                "excel_miner.ExcelSheet",
+                "app_miner.ExcelProject",
+                "app_miner.ExcelSheet",
             ],
         },
         {
@@ -41,10 +41,10 @@ JAZZMIN_SETTINGS = {
     "icons": {
         "auth.user": "fas fa-user-shield",
         "auth.group": "fas fa-users-cog",
-        "ai_knowledge.KnowledgeDraft": "fas fa-lightbulb", # Icon bóng đèn cho tri thức nháp
-        "ai_knowledge.BusinessLogicRule": "fas fa-microchip",
-        "ai_knowledge.AIPromptTemplate": "fas fa-terminal",
-        "excel_miner.ExcelProject": "fas fa-project-diagram",
+        "app_knowledge.KnowledgeDraft": "fas fa-lightbulb", # Icon bóng đèn cho tri thức nháp
+        "app_knowledge.BusinessLogicRule": "fas fa-microchip",
+        "app_knowledge.AIPromptTemplate": "fas fa-terminal",
+        "app_miner.ExcelProject": "fas fa-project-diagram",
         "gold_management.GoldTransaction": "fas fa-exchange-alt",
         "gold_management.Supplier": "fas fa-city",
     },

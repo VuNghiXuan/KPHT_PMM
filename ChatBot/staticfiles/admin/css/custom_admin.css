@@ -1,86 +1,264 @@
 /* ==========================================================================
-   FILE CSS TÙY CHỈNH CHO HỆ THỐNG KPHT
-   Mục tiêu: Đen/Trắng/Xám, Gọn gàng, Ép phẳng giao diện
+   custom_admin.css - GIAO DIỆN DJANGO ADMIN CLASSIC CHO KPHT
    ========================================================================== */
 
-/* --- KHU VỰC 1: TRIỆT TIÊU MÀU XANH LÁ, CAM, VÀNG (TRẠNG THÁI AI) --- */
-/* Xử lý các chữ "Đã chỉnh sửa", "Chờ gửi AI", "Chờ duyệt" và tiêu đề xanh lục */
-.text-success,
-.text-warning,
-.text-info,
-.text-primary,
-.text-danger,
-#result_list td.field-trạng_thái,
-#result_list td.field-status,
-#result_list td.field-phân_loại_AI,
-#result_list td.field-colored_status,
-.changelist-form-container .text-success,
-.changelist-form-container .text-warning {
-    color: #000000 !important;
-    /* ÉP VỀ ĐEN */
-    font-weight: 500 !important;
-    /* ĐẬM */
+/* --- 1. THANH TIÊU ĐỀ TRÊN CÙNG (NAVBAR) --- */
+.main-header {
+    background-color: #417690 !important;
+    border-bottom: none !important;
 }
 
-/* KHỬ MÀU XANH LỤC CỦA TIÊU ĐỀ CỘT (TABLE HEADERS) */
-#result_list thead th,
-#result_list thead th a,
-.table thead th {
-    color: #000000 !important;
-    /* Chữ tiêu đề đen */
+.main-header .nav-link,
+.brand-link,
+.brand-link .brand-text {
+    color: #ffca28 !important;
+}
+
+/* --- 2. THANH ĐIỀU HƯỚNG (BREADCRUMBS) --- */
+.content-header {
     background-color: #f8f9fa !important;
-    /* Nền xám rất nhạt */
-    font-weight: 500 !important;
-    text-transform: none !important;
+    padding: 10px 0 !important;
+    border-bottom: 1px solid #dee2e6 !important;
 }
 
-/* --- KHU VỰC 2: LIÊN KẾT (LINKS) --- */
-/* Xử lý các link tên Quy trình, Thuật ngữ thô... vốn là màu xanh */
-#result_list tbody th a,
-#result_list tbody td a,
-#result_list tbody td a:hover,
-.breadcrumb a {
-    color: #000000 !important;
-    font-weight: 500 !important;
-    text-decoration: underline !important;
+.breadcrumb-item,
+.breadcrumb-item a,
+.breadcrumb-item.active {
+    color: #417690 !important;
+    font-weight: 200 !important;
 }
 
-/* --- KHU VỰC 3: ÉP PHẲNG THANH TÌM KIẾM & BỘ LỌC --- */
-.changelist-form-container #changelist-search input,
-.changelist-form-container #changelist-search button,
-#changelist-filter select,
-.actions select {
-    height: 32px !important;
-    border: 1px solid #333333 !important;
-    border-radius: 0px !important;
-    font-size: 13px !important;
+/* --- 3. SIDEBAR (KHỚP 100% THEO HÌNH ẢNH & ÉP RỚT CHỮ) --- */
+
+/* Nền tổng thể Sidebar trắng xám nhẹ */
+.bg-body-secondary,
+.main-sidebar {
+    background-color: #f8f9fa !important;
 }
 
-/* --- KHU VỰC 4: CÁC NÚT BẤM (CHẠY AI, TINH CHỈNH) --- */
-.btn-warning,
-.btn-info,
-.btn-success,
+/* Tiêu đề nhóm (AUTHENTICATION, TICKETS...) - ÉP RỚT CHỮ */
+.nav-header,
+.sidebar-menu>.nav-header {
+    background-color: #417690 !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+    text-transform: uppercase;
+    white-space: normal !important;
+    /* Ép rớt dòng */
+    word-break: break-word !important;
+    /* Bẻ từ nếu quá dài */
+    height: auto !important;
+    padding: 8px 12px !important;
+    display: block !important;
+    margin-top: 5px;
+    line-height: 1.2 !important;
+}
+
+/* Cấu trúc Link Menu - ÉP RỚT CHỮ */
+.sidebar-menu .nav-link {
+    white-space: normal !important;
+    /* Quan trọng: Gỡ bỏ nowrap của AdminLTE */
+    word-break: break-word !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    /* Icon nằm ở đầu dòng chữ đầu tiên */
+    padding: 8px 12px !important;
+    color: #417690 !important;
+    border-bottom: 1px solid #eee;
+    height: auto !important;
+    /* Cho phép giãn chiều cao theo nội dung */
+}
+
+/* Xử lý riêng cho thẻ P chứa text của Menu */
+.sidebar-menu .nav-link p {
+    margin: 0 !important;
+    padding-left: 8px;
+    line-height: 1.4 !important;
+    text-overflow: unset !important;
+    /* Xóa dấu 3 chấm */
+    overflow: visible !important;
+    display: inline-block !important;
+    /* Đảm bảo text nhận diện đúng diện tích rớt dòng */
+    width: 100% !important;
+}
+
+/* TRẠNG THÁI ACTIVE - Màu vàng kem nhẹ như hình {98DDEEBC-E1B3-4095-9F39-27DE51952913}.png */
+.nav-sidebar .nav-link.active,
+.sidebar-menu .nav-link.active {
+    background-color: #ffffcc !important;
+    color: #417690 !important;
+    font-weight: bold !important;
+    box-shadow: none !important;
+}
+
+/* Icon cố định chiều rộng để không bị chữ ép dẹp */
+.sidebar-menu .nav-link i,
+.sidebar-menu .nav-link .nav-icon {
+    flex-shrink: 0 !important;
+    width: 20px !important;
+    margin-top: 2px !important;
+    color: #999;
+}
+
+/* --- 4. BẢNG DỮ LIỆU (RESULT LIST) --- */
+#result_list thead th {
+    background-color: #f1f3f5 !important;
+    border-bottom: 2px solid #417690 !important;
+}
+
+#result_list thead th a,
+#result_list thead th {
+    color: #417690 !important;
+    font-weight: 200 !important;
+}
+
+/* --- 5. NÚT BẤM (BUTTONS) --- */
 .btn-primary,
-.field-execution_actions a,
+.btn-success,
 .addlink {
-    background-color: #212529 !important;
-    border-color: #212529 !important;
+    background-color: #417690 !important;
     color: #ffffff !important;
-    padding: 2px 12px !important;
+    font-weight: bold !important;
+    text-transform: uppercase;
     font-size: 11px !important;
-    text-transform: uppercase !important;
-    border-radius: 0px !important;
+    padding: 5px 12px !important;
+    border-radius: 4px !important;
 }
 
-.btn-warning:hover,
-.btn-info:hover,
-.btn-success:hover,
-.btn-primary:hover {
-    background-color: #000000 !important;
+/* --- 6. CÁC TRẠNG THÁI ĐẶC BIỆT --- */
+.text-danger {
+    color: #d9534f !important;
+    font-weight: 500 !important;
 }
 
-/* --- KHU VỰC 5: SIDEBAR (THANH BÊN) --- */
-.nav-sidebar .nav-link.active {
-    background-color: #495057 !important;
-    color: #ffffff !important;
+/* --- 7. CÁC TRẠNG THÁI ĐẶC BIỆT --- */
+a {
+    color: #447e9b !important;
+    /* Dùng màu xanh tối cho đồng bộ */
+    text-decoration: none;
+    /* Mặc định không gạch chân cho sạch */
+}
+
+a:hover {
+    text-decoration: underline;
+    /* Chỉ gạch chân khi di chuột vào */
+    color: #2b5063 !important;
+    /* Đậm hơn một chút khi hover */
+}
+
+/* ==========================================================================
+   8. KPHT CUSTOM DASHBOARD & WIDGETS
+   ========================================================================== */
+
+/* Container Dashboard trong danh sách (Dùng cho dashboard_view) */
+.kpht-dashboard {
+    width: 280px;
+    background: #ffffff !important;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.kpht-status-title {
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: #417690;
+}
+
+/* Lưới hiển thị các thẻ chỉ số */
+.kpht-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* Thẻ chỉ số con (Cards) */
+.kpht-card {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 4px solid #ccc;
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.kpht-card.logic {
+    border-left-color: #ffca28;
+    /* Màu vàng đồng bộ navbar */
+}
+
+.kpht-card.link {
+    border-left-color: #417690;
+    /* Màu xanh logo KPHT */
+}
+
+.kpht-card small {
+    color: #666;
+    font-size: 10px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.kpht-card b {
+    font-size: 15px;
+    color: #417690;
+}
+
+/* Stack nút bấm (Dùng cho next_steps) */
+.kpht-btn-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 130px;
+}
+
+/* Base style cho nút trong stack */
+.kpht-btn-stack .button,
+.kpht-btn-stack a.button {
+    display: block !important;
+    text-align: center !important;
+    color: #fff !important;
+    padding: 5px 8px !important;
+    border-radius: 4px !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    text-transform: uppercase;
+    border: none !important;
+    transition: opacity 0.2s;
+}
+
+/* Màu riêng cho từng loại nút (Thay thế inline style trong Python) */
+.kpht-btn-stack .button.btn-logic {
+    background: #447e9b !important;
+}
+
+.kpht-btn-stack .button.btn-ask {
+    background: #e91e63 !important;
+}
+
+.kpht-btn-stack a.button:hover {
+    opacity: 0.8;
+    text-decoration: none !important;
+}
+
+/* Thống kê sức khỏe dữ liệu (Dùng cho stats_view) */
+.kpht-stats {
+    line-height: 1.6;
+    font-size: 12px;
+    color: #444;
+}
+
+/* Code block hiển thị Metadata JSON (Dùng cho DataField) */
+.kpht-metadata-pre {
+    background: #272822 !important;
+    color: #f8f8f2 !important;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #3e3e3e;
 }

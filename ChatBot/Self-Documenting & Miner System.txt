@@ -1,75 +1,76 @@
-NỘI DUNG FILE: HTJ_SYSTEM_DEVELOPMENT_PLAN.txt
-1. CẤU TRÚC DỰ ÁN (DJANGO ARCHITECTURE)
+1. Cấu trúc các App (Ứng dụng) cần có
+app_miner (Bóc tách): Chuyên đọc file Excel, PDF, Hình ảnh.
 
-Project Name: htj_gold_bot
+app_knowledge (Tri thức - GraphRAG): Lưu trữ mối quan hệ giữa các con số và văn bản nghiệp vụ. Kết nối trực tiếp với Neo4j.
 
-Apps:
+app_coach (Huấn luyện & Học tăng cường): Giao diện để AI hỏi anh khi nó "mông lung" và lưu nhật ký sửa lỗi.
 
-excel_miner: Chuyên trách "vét" và quản lý file Excel (211 sheets).
+app_chat_agent (Điều phối): Tiếp nhận câu hỏi, nhận định nghiệp vụ và phản hồi.
 
-knowledge: Chuyên về AI, RAG, lưu trữ tri thức nghiệp vụ vàng.
+2. Các Model và Trường dữ liệu (Đọc kỹ từng ý)
+A. Nhóm Quản lý Tài liệu (App Miner)
+Model ExcelProject: Quản lý file tổng.
 
-system_monitor: Chuyên quét cấu trúc code, tự động làm tài liệu.
+Model ExcelSheet: Quản lý từng sheet. (Trong hình của anh, đây là sheet "Phân loại trả NCC").
 
-core: Cấu hình hệ thống (Settings, URL).
+Model ExcelTableRegion:
 
-2. CHIẾN LƯỢC VÉT CẠN EXCEL (EXCEL MINER)
+Trường: name (Bảng TAB1, TAB2...), coordinates (Vùng tọa độ), region_type (Header, List, Popup).
 
-Nguyên tắc: Đọc song song data_only=False (lấy công thức) và data_only=True (lấy giá trị thực).
+Công dụng: Giúp AI hiểu giao diện có 3 khu vực chính: Thông tin chung, Chi tiết giao, và Phân loại chi tiết.
 
-Xử lý thông minh: - Giải quyết ô gộp (Merged Cells) bằng cách lấy giá trị từ ô gốc.
+B. Nhóm Định nghĩa Nghiệp vụ (App Knowledge - Neo4j)
+Đây là phần để chatbot "hiểu" chứ không chỉ "đọc".
 
-Nhận diện vùng đỏ/màu sắc để đánh dấu ô đối soát nghiệp vụ.
+Model BusinessTerm (Từ điển):
 
-Quét Data Validation (Dropdown) để lấy danh mục thợ, loại vàng.
+Trường: term (TLV giao, TLV sau phân loại, Tỷ giá...), definition (Định nghĩa), formula_logic (Cách tính).
 
-Giải pháp chống "ngáo" Token (Compression): - Không gửi 20,000 dòng dữ liệu cho AI.
+Công dụng: Khi AI thấy "TLV", nó biết đây là "Trọng lượng vàng". Nếu nó không biết, nó sẽ kích hoạt trạng thái "Mông lung" để hỏi anh Vũ.
 
-Chỉ gửi: Toàn bộ Header + Ô có công thức + Nút bấm + 2 dòng dữ liệu mẫu tiêu biểu.
+Model BusinessProcess (Quy trình):
 
-3. HỆ THỐNG TỰ ĐỘNG QUẢN LÝ CODE (SYSTEM MONITOR)
+Trường: process_name, steps (JSON: B1 nhập kho, B2 phân loại...), required_fields (Các trường bắt buộc).
 
-Công nghệ: Sử dụng thư viện ast (Python Abstract Syntax Tree).
+Công dụng: AI nhìn vào hình thấy nút "NHẬP KHO", nó biết đây là bước cuối. Nó sẽ hướng dẫn người dùng: "Anh/Chị chưa chọn Nhà cung cấp ở TAB2 nên chưa thể Nhập kho".
 
-Chức năng:
+C. Nhóm Học tăng cường (App Coach)
+Model CorrectionLedger:
 
-Quét toàn bộ thư mục dự án để bốc tách File, Class, Function.
+Trường: user_query, ai_response, admin_correction (Anh Vũ sửa lại), status (Đã học/Chưa học).
 
-Lấy Docstring (ghi chú trong code) làm dữ liệu đầu vào cho AI.
+Công dụng: Tự học tăng cường. Khi anh sửa một ý, AI sẽ cập nhật vào learning_notes của nghiệp vụ đó.
 
-Cơ chế Đối soát (Reconciliation): - Phát hiện file mới: Tự động thêm vào DB.
+Model ConflictDetector:
 
-Phát hiện file thừa/đã xóa: Đánh dấu is_active=False trong DB để quản lý lịch sử.
+Trường: source_a, source_b, discrepancy (Điểm mâu thuẫn).
 
-AI Integration: Gửi tên hàm và docstring cho AI để nó viết mô tả chức năng (Description) bằng tiếng Việt chuẩn nghiệp vụ vàng.
+Công dụng: Ví dụ Sheet 1 ghi "Vàng 610 là 15k", Sheet 2 ghi "Vàng 610 là 16k", nó sẽ báo: "Anh Vũ ơi, hai chỗ này đang đá nhau, em nên nghe theo cái nào?".
 
-4. CẤU TRÚC DATABASE (DATABASE SCHEMA)
+3. Quy trình để Chatbot trở thành "Chuyên gia tư vấn"
+Bước 1: Nhận diện nghiệp vụ (Intent Detection)
+Khi người dùng mở màn hình như trong ảnh, hoặc hỏi "Làm sao trả hàng NCC?", AI sẽ truy vấn Neo4j. Neo4j sẽ trả về: "Đây là nghiệp vụ PLTNCCN (Phân loại trả NCC)".
 
-ExcelProject / ExcelSheet / DataField: Lưu "xác" file Excel và logic ô.
+Bước 2: Hướng dẫn người dùng nhập liệu
+AI sẽ đối chiếu giữa Dữ liệu thực tế (ô trống) và Quy trình chuẩn (BusinessProcess):
 
-ProjectStructure: Lưu bản đồ file, class, hàm của dự án.
+AI nói: "Anh đang ở TAB2, anh cần chọn 'Loại hàng NCC' (Đúc, Bông...) trước khi nhấn 'Nhập kho' nhé."
 
-VectorKnowledge: Lưu tri thức đã được AI đúc kết và anh Vũ duyệt.
+Bước 3: Xử lý khi "Mông lung" (Hỏi lại Admin)
+Nếu người dùng nhập một thuật ngữ mới (ví dụ: "Vàng bộng loại 2") mà trong 300 sheet chưa có định nghĩa:
 
-SheetProcess: Lưu hướng dẫn sử dụng từng sheet (SOP).
+AI nói: "Em chưa rõ 'Vàng bộng loại 2' tính phí hao hụt thế nào. Anh Vũ có thể giải thích giúp em không?"
 
-5. DANH SÁCH CÔNG NGHỆ (TECH STACK)
+Anh trả lời xong, AI lưu vào BusinessTerm. Từ đó về sau nó tự biết trả lời khách.
 
-Backend: Django (Quản trị dữ liệu chặt chẽ).
+Bước 4: Phát hiện mâu thuẫn và gợi ý hỏi thêm
+Sau khi người dùng nhập xong TAB1, AI tự tính toán lại:
 
-AI Engine: Gemini 1.5 Pro / Groq (Llama 3).
+AI báo cáo: "Tiền hao hụt em tính ra là -2,799,265, khớp với Excel. Anh có muốn hỏi thêm về cách hệ thống tự tính 'Tỷ giá sau phân loại' không?"
 
-Excel Lib: openpyxl (Đọc sâu cấu trúc).
+4. Anh Vũ nên làm gì ngay bây giờ?
+Dùng Neo4j làm "Xương sống": Đừng chỉ lưu vào SQL. Mỗi khi bóc 1 sheet, hãy tạo các Node: (Nghiệp vụ) -> (Thuật ngữ) -> (Công thức).
 
-Background Task: Celery + Redis (Để quét 211 sheets mà không treo web).
+Tạo luồng "Hỏi - Đáp - Lưu": Xây dựng một bảng UncertaintyLog. Cái gì AI không chắc, nó ghi vào đó. Anh chỉ cần vào Admin "duyệt" một lần, tri thức đó thành vĩnh viễn.
 
-GUI: Streamlit (Cho giao diện chat và duyệt tri thức nhanh).
-
-💡 Lời nhắn riêng cho anh Vũ:
-Để bắt đầu, anh nên thực hiện theo thứ tự:
-
-Dựng khung Django theo cấu trúc thư mục tui đã gửi.
-
-Chạy con Bot ProjectWatcher đầu tiên để nó tự làm tài liệu cho chính nó. Mỗi khi anh viết thêm code cho ExcelMiner, con Bot này sẽ ghi chú lại giúp anh không bị quên "file này làm gì".
-
-Triển khai ExcelMiner với hàm compress_for_ai để bắt đầu "vét" 211 sheets mà không lo tốn token.
+Xây dựng Agentic RAG: Cho phép AI tự chạy các hàm kiểm tra chéo (Cross-check) giữa 300 sheet để tìm mâu thuẫn trước khi anh kịp nhận ra.

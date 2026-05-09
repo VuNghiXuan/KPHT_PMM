@@ -23,6 +23,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Anh có thể thêm các path cho apps của mình ở đây
+    path('guide/', include('apps.chatbot_guide.urls', namespace='chatbot_guide')),
 ]
 
 # THÊM ĐOẠN NÀY VÀO CUỐI: 

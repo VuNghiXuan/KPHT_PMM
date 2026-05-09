@@ -37,6 +37,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'jazzmin', # Cài đặt quản lý các apps của Django
     # 1. Đăng ký các app cấu tạo
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,9 +46,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # 2. Đăng ký các app mới
-    'apps.excel_miner',
-    'apps.ai_knowledge',
-    'apps.system_monitor',
+    'apps.chatbot_guide', #Apps ghi chú các phần học làm ChatBot
+    'markdownx', # Trình bày nội dung học bằng pip install django-markdownx
+    'apps.app_miner',
+    'apps.app_knowledge',
+    'apps.app_coach',
 
 ]
 
@@ -84,13 +87,22 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20, # Tăng lên 20 giây để SQLite đợi nhau
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
