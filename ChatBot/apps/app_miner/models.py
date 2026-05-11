@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class ExcelProject(models.Model):
     """
-    Quản lý file Excel tổng. Đây là điểm khởi đầu, ví dụ: 'Báo cáo KPHT Tháng 4'.
+    Quản lý file Excel tổng. Điểm khởi đầu của quy trình.
     """
     name = models.CharField("Tên Dự Án/Tiệm Vàng", max_length=255, db_index=True)
     file_path = models.FileField("File Excel Gốc", upload_to='excels/%Y/%m/')
@@ -28,14 +28,13 @@ class ExcelProject(models.Model):
         verbose_name_plural = "1. Dự án Excel"
 
     def __str__(self):
-        # Hiển thị tên dự án kèm trạng thái trên Admin
         return f"{self.name} [{self.get_status_display()}]"
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         super().save(*args, **kwargs)
         if is_new:
-            # Sau khi lưu file thành công, kích hoạt nhạc trưởng bóc tách dữ liệu
+            # Kích hoạt Miner bóc tách sau khi commit DB
             transaction.on_commit(lambda: self.automate_workflow())
 
     def automate_workflow(self):
@@ -47,49 +46,68 @@ class ExcelProject(models.Model):
 
 class ExcelSheet(models.Model):
     """
-    Lưu thông tin từng Sheet riêng lẻ (VD: Sheet 'Mua Vào', 'Bán Ra').
+    Lưu thông tin từng Sheet. Gom tri thức tổng hợp tại đây.
     """
-    project = models.ForeignKey(ExcelProject, on_delete=models.CASCADE, related_name='sheets', verbose_name="Dự án")
-    name = models.CharField("Tên Sheet", max_length=255)
-    category = models.CharField("Phân loại nghiệp vụ", max_length=100, blank=True, null=True, help_text="VD: Thu mua, Cầm đồ...")
+    project = models.ForeignKey('ExcelProject', on_delete=models.CASCADE, related_name='sheets', verbose_name="Dự án")
+    name = models.CharField("Tên Sheet gốc", max_length=255)
+    category = models.CharField("Phân loại nghiệp vụ", max_length=100, blank=True, null=True)
+    description = models.TextField("Mô tả nghiệp vụ AI soạn", blank=True, null=True)
+    
+    # Cấu trúc JSON mới để gom: { "logic": [], "ui": [], "data": [], "trash": [] }
+    metadata = models.JSONField("Metadata Tổng Hợp (Đã phân loại)", default=dict, blank=True)
+    
+    confidence_score = models.FloatField("Độ tin cậy (Cosine)", default=0.0)
+    
+    # Theo dõi tiến độ tinh chế của từng sheet
+    refine_status = models.CharField(
+        "Trạng thái tinh chế",
+        max_length=20,
+        default='PENDING',
+        choices=[('PENDING', 'Chờ AI'), ('EXTRACTED', 'Đã vét thô'), ('REFINED', 'Đã tinh chế')]
+    )
 
     class Meta:
         verbose_name = "2. Danh mục Sheet"
         verbose_name_plural = "2. Danh mục Sheet"
 
     def __str__(self):
-        return f"Sheet: {self.name} (Dự án: {self.project.name})"
+        return f"Sheet: {self.name} ({self.category or 'Chưa phân loại'})"
 
 class ExcelTableRegion(models.Model):
-    """
-    Xác định các vùng dữ liệu trong Sheet (VD: Vùng A1:D10 là thông tin khách hàng).
-    """
     sheet = models.ForeignKey(ExcelSheet, on_delete=models.CASCADE, related_name='regions', verbose_name="Sheet")
     name = models.CharField("Tên Vùng", max_length=255)
-    coordinates = models.CharField("Tọa độ (Range)", max_length=50, help_text="Ví dụ: A1:M20")
-    region_type = models.CharField("Loại vùng", max_length=50, default='FORM', help_text="FORM (nhập liệu) hoặc LIST (danh sách)")
+    coordinates = models.CharField("Tọa độ (Range)", max_length=50)
+    region_type = models.CharField("Loại vùng", max_length=50, default='FORM')
 
     class Meta:
         verbose_name = "3. Vùng Nghiệp Vụ"
         verbose_name_plural = "3. Vùng Nghiệp Vụ"
 
-    def __str__(self):
-        return f"{self.name} [{self.coordinates}] - {self.sheet.name}"
-
 class DataField(models.Model):
     """
-    Lưu chi tiết từng ô Excel (Địa chỉ, Giá trị, Công thức).
-    Đây là 'nguyên tử' tri thức để Agent học.
+    Nguyên tử tri thức. Đã được phân loại thô để giảm nhiễu.
     """
+    FIELD_TYPE_CHOICES = [
+        ('LOGIC', 'Công thức/Tính toán'),
+        ('UI', 'Giao diện (Nút/Nhãn rác)'),
+        ('DATA', 'Dữ liệu nghiệp vụ'),
+        ('TRASH', 'Dữ liệu thừa/Trống'),
+    ]
+
     sheet = models.ForeignKey(ExcelSheet, on_delete=models.CASCADE, related_name='fields', verbose_name="Sheet")
-    region = models.ForeignKey(ExcelTableRegion, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vùng dữ liệu")
-    cell_address = models.CharField("Địa chỉ ô", max_length=10) # VD: B15
-    label = models.CharField("Nhãn AI/Nghiệp vụ", max_length=255, null=True, blank=True)
-    value = models.TextField("Giá trị hiển thị", null=True, blank=True)
-    formula = models.TextField("Công thức gốc", null=True, blank=True)
-    color_code = models.CharField("Mã màu ô", max_length=20, default="FFFFFF")
-    is_required = models.BooleanField("Bắt buộc nhập", default=False)
-    metadata = models.JSONField("Dữ liệu máy học", default=dict, help_text="Chứa logic phụ và liên kết xuyên sheet")
+    region = models.ForeignKey(ExcelTableRegion, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    field_type = models.CharField("Phân loại Field", max_length=10, choices=FIELD_TYPE_CHOICES, default='DATA')
+    
+    cell_address = models.CharField("Địa chỉ ô", max_length=10)
+    label = models.CharField("Nhãn nghiệp vụ", max_length=255, null=True, blank=True)
+    value = models.TextField("Giá trị", null=True, blank=True)
+    formula = models.TextField("Công thức", null=True, blank=True)
+    
+    # Dùng cho AI vẽ Graph logic
+    parent_cells = models.ManyToManyField('self', symmetrical=False, related_name='child_cells', blank=True)
+    
+    metadata = models.JSONField("Dữ liệu máy học", default=dict)
 
     class Meta:
         verbose_name = "4. Chi tiết Ô"
@@ -97,30 +115,9 @@ class DataField(models.Model):
         unique_together = ('sheet', 'cell_address')
 
     def __str__(self):
-        return f"{self.cell_address}: {self.label or 'N/A'} ({self.sheet.name})"
-
-class UncertaintyLog(models.Model):
-    """
-    Nhật ký tự học: Những điều AI chưa rõ từ Excel sẽ đẩy về đây để anh Vũ giải đáp.
-    """
-    project = models.ForeignKey(ExcelProject, on_delete=models.CASCADE, verbose_name="Dự án")
-    question = models.TextField("Câu hỏi AI")
-    admin_answer = models.TextField("Câu trả lời của anh Vũ", null=True, blank=True)
-    is_learned = models.BooleanField("Đã nạp tri thức", default=False)
-    updated_at = models.DateTimeField("Cập nhật cuối", auto_now=True)
-
-    class Meta:
-        verbose_name = "5. Nhật ký AI tự học"
-        verbose_name_plural = "5. Nhật ký AI tự học"
-
-    def __str__(self):
-        status = "Đã giải quyết" if self.is_learned else "Chờ trả lời"
-        return f"Câu hỏi {self.id}: {status}"
+        return f"[{self.field_type}] {self.cell_address}: {self.label or 'N/A'}"
 
 @receiver(models.signals.post_delete, sender=ExcelProject)
 def auto_delete_file(sender, instance, **kwargs):
-    """
-    Tự động xóa file vật lý trên ổ cứng khi xóa Dự án trên Admin.
-    """
     if instance.file_path and os.path.isfile(instance.file_path.path):
         os.remove(instance.file_path.path)

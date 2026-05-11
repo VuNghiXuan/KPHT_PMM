@@ -1,25 +1,37 @@
 import os
-import json
-import re
+import tiktoken
 from dotenv import load_dotenv
 # Dùng ChatOllama thay vì Ollama để đồng bộ interface với Groq/Gemini
-from langchain_community.chat_models import ChatOllama
-from langchain_groq import ChatGroq
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 load_dotenv()
 
 class AIGateway:
-    def __init__(self, token_count=0):
-        self.token_count = token_count
+    def __init__(self, input_text=""):
+        # 1. Tính toán token trước khi khởi tạo provider
+        self.token_count = self._count_tokens(input_text)
         self.provider = self._choose_provider()
         print(f"--- 🤖 Khởi tạo AI Gateway | Provider: {self.provider} | Tokens: {self.token_count} ---")
-        
+    
+    def _count_tokens(self, text):
+        """Đếm token để quyết định dùng Local hay Cloud"""
+        if not text: return 0
+        encoding = tiktoken.get_encoding("cl100k_base") # Chuẩn cho GPT-4/Groq
+        return len(encoding.encode(text))
+    
     def _choose_provider(self):
-        # Ưu tiên Ollama nếu dữ liệu quá lớn (tiết kiệm chi phí/vượt giới hạn)
-        if self.token_count > 8000:
+        # Nếu token > 6000 (gần ngưỡng giới hạn của Groq free), ép dùng Ollama
+        if self.token_count > 6000:
             return "Ollama"
-        return os.getenv("DEFAULT_PROVIDER", "Groq")
+        return os.getenv("DEFAULT_PROVIDER", "Ollama") # Mặc định dùng Ollama như anh muốn
+
+    def get_chunks(self, text, chunk_size=4000):
+        """Chia nhỏ dữ liệu nếu quá lớn"""
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=200
+        )
+        return text_splitter.split_text(text)
 
     def get_model(self):
         """

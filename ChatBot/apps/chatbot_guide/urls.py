@@ -5,6 +5,6 @@ from . import views
 app_name = 'chatbot_guide'
 
 urlpatterns = [
-    path('', views.guide_view, name='home'), 
+    path('', views.guide_view, name='index'), 
     path('<int:entry_id>/', views.guide_view, name='detail'),
 ]

@@ -1,6 +1,6 @@
 import re
 import unicodedata
-import markdown
+import markdown as md
 from django import template
 from django.utils.safestring import mark_safe
 
@@ -11,8 +11,12 @@ register = template.Library()
 def markdown_format(text):
     if not text:
         return ""
-    # Các extensions này giúp hỗ trợ code block và bảng biểu chuẩn đét
-    html = markdown.markdown(text, extensions=['extra', 'codehilite', 'toc'])
+    
+    # Thêm extension 'nl2br' để tự động chuyển dấu xuống dòng thành <br>
+    # Thêm 'sane_lists' để danh sách (bullet points) hiển thị chuẩn hơn
+    extensions = ['extra', 'codehilite', 'nl2br', 'sane_lists']
+    
+    html = md.markdown(text, extensions=extensions)
     return mark_safe(html)
 
 

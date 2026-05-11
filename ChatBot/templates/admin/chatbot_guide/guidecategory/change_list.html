@@ -1,0 +1,110 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+<li>
+    <a href="{{ view_all_url }}" class="custom-admin-btn wiki-btn" target="_blank">
+        <i class="fa fa-eye"></i> XEM WIKI
+    </a>
+</li>
+
+<li>
+    <a href="import-csv/" class="custom-admin-btn import-csv-btn">
+        <i class="fa fa-file-import"></i> NHẬP CSV
+    </a>
+</li>
+
+<li>
+    {% url cl.opts|admin_urlname:'add' as add_url %}
+    <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink custom-admin-btn">
+        {% blocktrans with cl.opts.verbose_name as name %}Thêm {{ name }}{% endblocktrans %}
+    </a>
+</li>
+
+<style>
+    /* TỔNG THỂ THANH CÔNG CỤ: Ép hàng ngang, căn giữa */
+    .object-tools {
+        display: flex !important;
+        gap: 8px !important;
+        float: right !important;
+        margin-top: -3px !important;
+        list-style: none !important;
+    }
+
+    .object-tools li {
+        height: auto !important;
+        background: none !important;
+        /* Khử dấu chấm hoặc icon mặc định của li */
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* CLASS CHUNG CHO CÁC NÚT: Đồng bộ chiều cao 35px */
+    .custom-admin-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        height: 35px !important;
+        /* Chiều cao tiêu chuẩn giúp thẳng hàng với thanh Search */
+        padding: 0 15px !important;
+        border-radius: 4px !important;
+        font-weight: 600 !important;
+        font-size: 11px !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.2s ease;
+        color: #fff !important;
+        border: none !important;
+        text-decoration: none !important;
+        box-sizing: border-box !important;
+    }
+
+    .custom-admin-btn i {
+        margin-right: 6px;
+        font-size: 13px;
+    }
+
+    /* MÀU SẮC TIÊU CHUẨN THEO TỪNG LOẠI NÚT */
+    .wiki-btn {
+        background-color: #102833 !important;
+        /* Xanh đậm tiệp màu Header Admin */
+    }
+
+    .wiki-btn:hover {
+        background-color: #2b5063 !important;
+    }
+
+    .import-csv-btn {
+        background-color: #28a745 !important;
+        /* Xanh lá (Success) */
+    }
+
+    .import-csv-btn:hover {
+        background-color: #1e7e34 !important;
+    }
+
+    /* Nút ADD mặc định (Màu xanh Teal của Django) */
+    .addlink {
+        background-color: #79aec8 !important;
+        padding-left: 15px !important;
+    }
+
+    .addlink:hover {
+        background-color: #608fa6 !important;
+    }
+
+    /* Ghi đè Icon Plus cho nút Add để đồng bộ với FontAwesome */
+    .addlink::before {
+        content: "\f067" !important;
+        font-family: "Font Awesome 5 Free", "Font Awesome 6 Free" !important;
+        font-weight: 900 !important;
+        margin-right: 6px !important;
+        color: white !important;
+    }
+
+    /* FIX LỖI THẲNG HÀNG TRÊN TRÌNH DUYỆT (Optional) */
+    #changelist-search {
+        margin-bottom: 15px !important;
+    }
+</style>
+{% endblock %}

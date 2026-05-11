@@ -1,5 +1,5 @@
 /* ==========================================================================
-   custom_admin.css - GIAO DIỆN DJANGO ADMIN CLASSIC CHO KPHT
+   custom_admin.css - GIAO DIỆN DJANGO ADMIN CLASSIC CHO Ứng Dụng Vàng
    ========================================================================== */
 
 /* --- 1. THANH TIÊU ĐỀ TRÊN CÙNG (NAVBAR) --- */
@@ -147,7 +147,7 @@ a:hover {
 }
 
 /* ==========================================================================
-   8. KPHT CUSTOM DASHBOARD & WIDGETS
+   8. Ứng Dụng Vàng CUSTOM DASHBOARD & WIDGETS
    ========================================================================== */
 
 /* Container Dashboard trong danh sách (Dùng cho dashboard_view) */
@@ -190,7 +190,7 @@ a:hover {
 
 .kpht-card.link {
     border-left-color: #417690;
-    /* Màu xanh logo KPHT */
+    /* Màu xanh logo Ứng Dụng Vàng */
 }
 
 .kpht-card small {

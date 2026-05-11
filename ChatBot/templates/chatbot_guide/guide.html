@@ -1,250 +1,227 @@
 {% extends 'base.html' %}
 {% load guide_filters %}
 
-{% block title %}Wiki Tri Thức HTJ - {{ current_entry.title|default:"Tổng quan" }}{% endblock %}
-
 {% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
 <style>
     :root {
         --django-primary: #79aec8;
         --django-secondary: #417690;
         --django-header: #102833;
         --django-link: #447e9b;
-        --django-bg: #f8f8f8;
+        --django-bg: #f4f7f9;
     }
 
-    /* Tinh chỉnh Font hệ thống Django Admin */
     body {
         background-color: var(--django-bg);
-        font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+        font-family: 'Inter', sans-serif;
     }
 
-    /* Sidebar Sidebar Style */
+    /* Đảm bảo Icon FontAwesome hiển thị đúng */
+    .fas,
+    .far,
+    .fa {
+        font-family: "Font Awesome 6 Free" !important;
+        font-weight: 900 !important;
+        display: inline-block;
+        font-style: normal;
+        font-variant: normal;
+        text-rendering: auto;
+        -webkit-font-smoothing: antialiased;
+    }
+
     .django-sidebar {
         background: #fff;
-        border-right: 1px solid #ccc !important;
-        padding: 0 !important;
+        border-right: 1px solid #dee2e6;
+        height: 100vh;
+        position: sticky;
+        top: 0;
         z-index: 1000;
     }
 
     .sidebar-header {
         background: var(--django-secondary);
         color: #fff;
-        padding: 12px 15px;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        letter-spacing: 0.5px;
-    }
-
-    .cat-title {
-        background: #f1f1f1;
-        padding: 8px 15px;
-        border-bottom: 1px solid #ddd;
-        color: #666;
-        font-weight: bold;
+        padding: 15px;
         font-size: 0.75rem;
+        letter-spacing: 1px;
     }
 
     .nav-link-django {
-        padding: 8px 20px;
-        color: var(--django-link);
-        border-bottom: 1px solid #eee;
+        padding: 10px 20px;
+        color: #555;
         font-size: 0.85rem;
         transition: all 0.2s;
+        border-left: 3px solid transparent;
         text-decoration: none;
         display: block;
     }
 
     .nav-link-django:hover {
-        background: #fdfdfd;
-        color: #003366;
+        background: #f8f9fa;
+        color: var(--django-link);
     }
 
     .nav-link-django.active {
-        background: var(--django-primary) !important;
-        color: white !important;
-        font-weight: bold;
-    }
-
-    /* Main Content Area */
-    .breadcrumb-django {
-        background: #79aec8;
-        color: #fff;
-        padding: 8px 25px;
-        font-size: 0.8rem;
+        background: #e9f2f7;
+        color: var(--django-secondary);
+        font-weight: 600;
+        border-left: 3px solid var(--django-secondary);
     }
 
     .content-card {
-        border: 1px solid #ccc;
-        margin-top: 20px;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         background: #fff;
+        overflow: hidden;
+        min-height: 600px;
     }
 
     .content-header {
         background: var(--django-header);
         color: #fff;
-        padding: 12px 25px;
+        padding: 15px 25px;
     }
 
-    /* Định dạng nội dung Markdown */
     .guide-content {
+        line-height: 1.8;
         color: #333;
-        line-height: 1.6;
+        font-size: 1rem;
     }
 
-    .guide-content h1,
-    .guide-content h2 {
-        color: #666;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 5px;
-        margin-top: 25px;
-        font-size: 1.4rem;
-        font-weight: bold;
+    .guide-content h3 {
+        color: var(--django-secondary);
+        margin-top: 30px;
+        font-weight: 700;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
     }
 
-    .guide-content pre {
-        background: #272b33;
-        color: #abb2bf;
-        padding: 15px;
-        border-left: 5px solid var(--django-primary);
-        overflow-x: auto;
-        border-radius: 0;
+    .guide-content ul,
+    .guide-content ol {
+        margin-bottom: 20px;
     }
 
-    .btn-django {
-        background: var(--django-secondary);
-        color: white;
-        border-radius: 2px;
-        font-size: 0.85rem;
-        border: none;
+    /* Code block styling */
+    pre[class*="language-"] {
+        border-radius: 8px !important;
+        padding: 1.5em !important;
+        margin: 20px 0 !important;
+        font-size: 0.9rem !important;
     }
 
-    .btn-django:hover {
-        background: #36637a;
-        color: #fff;
+    /* Hiệu ứng cho trang trống */
+    .empty-state {
+        padding: 80px 20px;
+        text-align: center;
+        color: #6c757d;
     }
 
-    /* Ép màu highlight kể cả khi bị trùng lặp style */
-    .guide-content mark,
-    .guide-content span[style*="background-color"] {
-        background-color: #ffeb3b !important;
-        /* Màu vàng sáng */
-        color: #000000 !important;
-        /* Chữ đen cho rõ */
-        padding: 2px 4px;
-        border-radius: 3px;
-        display: inline-block;
-        line-height: 1;
+    .empty-state i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
     }
 </style>
-
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid p-0">
-    <div class="row g-0">
-        <!-- SIDEBAR -->
-        <nav class="col-md-3 col-lg-2 d-md-block django-sidebar"
-            style="height: 92vh; overflow-y: auto; position: sticky; top: 0;">
-            <div class="sidebar-header">
-                <i class="fa fa-sitemap me-2"></i>Cấu trúc tài liệu
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-3 col-lg-2 d-none d-md-block django-sidebar p-0">
+            <div class="sidebar-header text-uppercase fw-bold">
+                <i class="fas fa-project-diagram me-2"></i> Kiến trúc HTJ
             </div>
-
-            {% for cat in categories %}
-            <div class="category-block">
-                <div class="cat-title">
-                    <i class="fa {{ cat.icon }} me-1"></i> {{ cat.name|upper }}
+            <div class="overflow-auto" style="height: calc(100vh - 50px);">
+                {% for cat in categories %}
+                <div class="py-2 px-3 bg-light text-muted small fw-bold border-bottom">
+                    <i class="far fa-folder-open me-1"></i> {{ cat.name|upper }}
                 </div>
-                <div class="nav flex-column">
-                    {% for entry in cat.entries.all %}
-                    <a class="nav-link nav-link-django {% if entry.id == current_entry.id %}active{% endif %}"
-                        href="{% url 'chatbot_guide:detail' entry.id %}">
-                        {{ entry.title }}
-                    </a>
-                    {% endfor %}
-                </div>
+                {% for entry in cat.entries.all %}
+                <a href="{% url 'chatbot_guide:detail' entry.id %}"
+                    class="nav-link nav-link-django {% if current_entry and entry.id == current_entry.id %}active{% endif %}">
+                    {{ entry.title }}
+                </a>
+                {% endfor %}
+                {% endfor %}
             </div>
-            {% endfor %}
         </nav>
 
-        <!-- NỘI DUNG CHÍNH -->
-        <main class="col-md-9 ms-sm-auto col-lg-10">
-            <div class="breadcrumb-django shadow-sm">
-                Trang chủ &rsaquo; Hướng dẫn &rsaquo;
-                {% if current_entry %}
-                {{ current_entry.category.name }} &rsaquo; <strong>{{ current_entry.title }}</strong>
-                {% else %}
-                Tổng quan hệ thống
-                {% endif %}
-            </div>
-
-            <div class="px-4 py-3">
-                <!-- Search Bar -->
-                <div class="d-flex justify-content-end mb-3">
-                    <form action="{% url 'chatbot_guide:home' %}" method="GET" class="w-50">
-                        <div class="input-group border shadow-sm bg-white">
-                            <input type="text" name="q" class="form-control border-0 shadow-none"
-                                placeholder="Tìm quy trình, mã lỗi..." value="{{ query|default:'' }}">
-                            <button class="btn btn-django px-3" type="submit">Tìm nhanh</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="content-card">
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/guide/" style="color: var(--django-link);">Wiki</a></li>
                     {% if current_entry %}
-                    <!-- Header bài viết -->
-                    <div class="content-header d-flex justify-content-between align-items-center">
-                        <h2 class="m-0 h6 fw-bold text-uppercase">{{ current_entry.title }}</h2>
-                        <span class="small opacity-75">
-                            <i class="fa fa-clock me-1"></i>Cập nhật: {{ current_entry.updated_at|date:"d/m/Y" }}
-                        </span>
-                    </div>
-
-                    <div class="p-4">
-                        <!-- Yêu cầu / Prerequisites -->
-                        {% if current_entry.prerequisites %}
-                        <div
-                            style="background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; margin-bottom: 25px; font-size: 0.9rem; color: #856404;">
-                            <i class="fa fa-exclamation-triangle me-2"></i>
-                            <strong>Yêu cầu:</strong> {{ current_entry.prerequisites }}
-                        </div>
-                        {% endif %}
-
-                        <!-- Nội dung Markdown -->
-                        <div class="guide-content">
-                            {% if query %}
-                            {# Khi có search: Render Markdown trước rồi mới Highlight #}
-                            {{ current_entry.content|markdown|highlight:query }}
-                            {% else %}
-                            {# Khi không search: Chỉ render Markdown bình thường #}
-                            {{ current_entry.content|markdown }}
-                            {% endif %}
-                        </div>
-
-                        <!-- Ghi chú tương lai -->
-                        {% if current_entry.future_notes %}
-                        <div class="mt-5 p-3"
-                            style="background: #f0f7fa; border: 1px solid #d1e9f2; border-left: 4px solid var(--django-secondary);">
-                            <strong style="color: var(--django-secondary); font-size: 0.85rem;">
-                                <i class="fa fa-rocket me-2"></i>Ghi chú phát triển (KPHT):
-                            </strong>
-                            <p class="mb-0 small text-muted mt-1">{{ current_entry.future_notes }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-
+                    <li class="breadcrumb-item active">{{ current_entry.title }}</li>
                     {% else %}
-                    <!-- Màn hình chào khi chưa chọn bài -->
-                    <div class="p-5 text-center">
-                        <i class="fa fa-book fa-4x mb-3 text-light"></i>
-                        <h2 style="color: #bbb; font-weight: 300;">Vui lòng chọn bài hướng dẫn từ danh mục bên trái</h2>
-                        <p class="text-muted small">Dữ liệu trích xuất từ hệ thống quản lý tri thức ChatBot HTJ.</p>
-                    </div>
+                    <li class="breadcrumb-item active">Tổng quan</li>
                     {% endif %}
+                </ol>
+            </nav>
+
+            <div class="content-card">
+                {% if current_entry %}
+                <div class="content-header d-flex justify-content-between align-items-center">
+                    <h1 class="h5 m-0 fw-bold">{{ current_entry.title }}</h1>
+                    <span class="badge bg-light text-dark shadow-sm">
+                        <i class="far fa-calendar-alt me-1"></i> {{ current_entry.updated_at|date:"d/m/Y" }}
+                    </span>
                 </div>
+                <div class="p-4 p-md-5">
+                    <div class="guide-content">
+                        {# Sử dụng filter markdown để render nội dung từ CSV #}
+                        {{ current_entry.content|markdown }}
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-book-reader"></i>
+                    <h3 class="fw-bold">Chào mừng anh Vũ đến với Wiki HTJ</h3>
+                    <p class="mb-1">Hệ thống quản lý tri thức và hướng dẫn vận hành Agentic RAG.</p>
+                    <p class="small text-muted">Vui lòng chọn một chuyên mục ở sidebar bên trái để xem chi tiết.</p>
+
+                    <div class="mt-4 p-3 border rounded bg-light mx-auto" style="max-width: 500px;">
+                        <div class="d-flex align-items-center justify-content-center text-danger fw-bold">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span>LƯU Ý HỆ THỐNG</span>
+                        </div>
+                        <ul class="list-unstyled mt-2 small text-danger">
+                            <li class="mb-1">• Nội dung bài học có thể chưa được tải lên hệ thống (Vui lòng kiểm tra
+                                file CSV).</li>
+                            <li>• Hoặc bài học hiện đang trong trạng thái chờ Admin phê duyệt (is_reviewed = False).
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4">
+                        <span class="badge rounded-pill bg-secondary opacity-50">v1.2.0 - System Architect</span>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </main>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer
+    crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cypher.min.js" defer
+    crossorigin="anonymous"></script>
+
+<script>
+    // Đảm bảo PrismJS highlight lại nội dung sau khi load xong trang
+    document.addEventListener('DOMContentLoaded', (event) => {
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAll();
+        }
+    });
+</script>
 {% endblock %}

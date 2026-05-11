@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="padding: 20px; background: white; border: 1px solid #ccc;">
+    <h3>Chọn file CSV để nhập tài liệu</h3>
+    <p class="text-muted">Định dạng: Order, Title, Category, Content</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="csv_file" accept=".csv" required style="margin-bottom: 20px; display: block;">
+        <button type="submit" class="button" style="background: #28a745; color: white;">Bắt đầu tải lên</button>
+        <a href=".." class="button" style="background: #666; color: white;">Quay lại</a>
+    </form>
+</div>
+{% endblock %}

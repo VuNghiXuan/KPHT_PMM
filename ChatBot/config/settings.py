@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.app_miner',
     'apps.app_knowledge',
     'apps.app_coach',
+    'import_export',      # Thư viện import/export
 
 ]
 

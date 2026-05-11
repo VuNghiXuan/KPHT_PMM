@@ -1,0 +1,93 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module"
+        style="padding: 25px; background: white; border: 1px solid #ccc; border-radius: 4px; max-width: 600px; margin: 20px auto;">
+        <h2 style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #417690;">
+            <i class="fa fa-file-import"></i> NHẬP DỮ LIỆU TỪ CSV
+        </h2>
+
+        <div
+            style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #28a745; border-radius: 2px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #333; font-size: 13px;">Cấu trúc file yêu cầu
+                (Header):</p>
+            <code
+                style="display: block; background: #e9ecef; padding: 8px; border-radius: 4px; color: #d63384; font-family: Consolas, monospace;">
+                Order, Title, Category, Content
+            </code>
+            <p style="font-size: 11px; color: #666; margin-top: 8px; font-style: italic;">
+                * Hệ thống sẽ tự tạo Danh mục nếu tên trong cột Category chưa tồn tại.
+            </p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="margin-bottom: 30px;">
+                <label for="csv_file" style="display: block; margin-bottom: 12px; font-weight: 600; color: #444;">Chọn
+                    file CSV từ máy tính:</label>
+                <input type="file" name="csv_file" id="csv_file" accept=".csv" required
+                    style="border: 1px solid #ccc; padding: 10px; width: 100%; box-sizing: border-box; border-radius: 4px; background: #fff;">
+            </div>
+
+            <div class="submit-row"
+                style="margin: 0; padding: 20px 0 0 0; background: none; border-top: 1px solid #eee; display: flex; gap: 10px;">
+                <button type="submit" class="custom-btn btn-save">
+                    <i class="fa fa-upload"></i> BẮT ĐẦU TẢI LÊN
+                </button>
+                <a href=".." class="custom-btn btn-cancel">
+                    HỦY BỎ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* CSS đồng bộ tuyệt đối với dàn nút ở trang danh sách */
+    .custom-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        height: 35px !important;
+        /* Chiều cao 35px thần thánh */
+        padding: 0 20px !important;
+        border-radius: 4px !important;
+        font-weight: 600 !important;
+        font-size: 11px !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-decoration: none !important;
+        border: none !important;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: white !important;
+    }
+
+    /* Màu xanh lá cho nút Submit */
+    .btn-save {
+        background-color: #28a745 !important;
+    }
+
+    .btn-save:hover {
+        background-color: #1e7e34 !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Màu xám cho nút Hủy */
+    .btn-cancel {
+        background-color: #6c757d !important;
+    }
+
+    .btn-cancel:hover {
+        background-color: #545b62 !important;
+        color: white !important;
+    }
+
+    .custom-btn i {
+        margin-right: 8px;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+<link rel="stylesheet" href="{% static 'admin/css/chatbot_map.css' %}">
+<style>
+    /* Style tối ưu cho hiển thị đa tầng của anh Vũ */
+    .detail-step {
+        margin-bottom: 25px;
+        padding: 15px;
+        border-left: 4px solid #007bff;
+        background: #f8f9fa;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .step-header {
+        font-weight: bold;
+        color: #002d58;
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .step-header span {
+        background: #002d58;
+        color: white;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 12px;
+        font-size: 0.9em;
+    }
+
+    .sub-section {
+        margin-top: 15px;
+        font-weight: 700;
+        color: #d63384;
+        text-transform: uppercase;
+        font-size: 0.85em;
+    }
+
+    .box-ai-logic {
+        background: #fff3f3;
+        border: 1px dashed #ff4757;
+        padding: 12px;
+        margin-top: 10px;
+        border-radius: 6px;
+    }
+
+    .badge-status {
+        background: #28a745;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75em;
+        margin-left: 10px;
+    }
+
+    .graph-node {
+        color: #6f42c1;
+        font-weight: bold;
+    }
+
+    /* Màu cho các thực thể Graph */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-body">
+    <div class="guide-header">
+        <h1>HỆ THỐNG TRI THỨC VÀNG HIỆP THÀNH (HTJ)</h1>
+        <p>Kiến trúc <b>GraphRAG</b>: Kết nối 300+ Sheet Excel và Tự động hóa nghiệp vụ</p>
+    </div>
+
+    <div class="tabs">
+        <input type="radio" name="tabs" id="tabone" checked="checked" style="display:none">
+        <label for="tabone">📦 1. EXCEL MINER</label>
+        <div class="tab-content">
+            <h2 class="section-title">Bóc tách thô và Định vị Vùng nghiệp vụ</h2>
+            <div class="detail-step">
+                <div class="step-header"><span>1</span> Quét đa tầng (300+ Sheets)</div>
+                <p>Hệ thống tự động phân loại Sheet dựa trên <b>Category</b>. Các nghiệp vụ như "Trả hàng NCC" (như hình
+                    anh gửi) được định vị qua các <b>ExcelTableRegion</b>.</p>
+                <div class="sub-section">Cấu trúc dữ liệu:</div>
+                <ul class="guide-list">
+                    <li><b>DataField:</b> Lưu <code>formula</code> để hiểu logic tính toán (VD: Hao hụt, Tỷ giá).</li>
+                    <li><b>depends_on:</b> Tạo sợi dây liên kết giữa các ô để đẩy lên Neo4j.</li>
+                </ul>
+            </div>
+        </div>
+
+        <input type="radio" name="tabs" id="tabtwo" style="display:none">
+        <label for="tabtwo">🕸️ 2. GRAPHRAG & LOGIC</label>
+        <div class="tab-content">
+            <h2 class="section-title">Kết nối 300 Sheet thành mạng lưới Tri thức</h2>
+            <div class="detail-step">
+                <div class="step-header"><span>1</span> Neo4j Synchronization <span class="badge-status">Quan
+                        trọng</span></div>
+                <p>Dữ liệu từ Excel không nằm yên trong SQL mà được đẩy lên <span class="graph-node">Neo4j</span> để tạo
+                    mối quan hệ.</p>
+                <div class="box-ai-logic">
+                    <b>Logic hiểu nghiệp vụ:</b> Nếu khách hỏi về "TAB2 - Phân loại", AI sẽ lần theo mối quan hệ
+                    <code>CALCULATED_FROM</code> để tìm ngược về dữ liệu gốc ở TAB1.
+                </div>
+            </div>
+            <div class="detail-step">
+                <div class="step-header"><span>2</span> Phân tích tài liệu nghiệp vụ ngoại vi</div>
+                <p>Đọc các file mô tả logic ngành vàng bên ngoài để gán vào các Node <b>BusinessTerm</b>. Giúp AI hiểu
+                    các thuật ngữ chuyên môn như "Vàng thỏi", "Tuổi công nợ".</p>
+            </div>
+        </div>
+
+        <input type="radio" name="tabs" id="tabthree" style="display:none">
+        <label for="tabthree">🤖 3. AGENT & SELF-LEARNING</label>
+        <div class="tab-content">
+            <h2 class="section-title">Học tăng cường và Xử lý mâu thuẫn</h2>
+            <div class="detail-step">
+                <div class="step-header"><span>1</span> Nhận diện "Mông lung" (Uncertainty)</div>
+                <p>Khi gặp thuật ngữ lạ, AI sẽ ghi vào <b>UncertaintyLog</b> và hỏi Admin. Khi anh Vũ trả lời, tri thức
+                    này được lưu vĩnh viễn vào <b>CorrectionLedger</b>.</p>
+            </div>
+            <div class="detail-step">
+                <div class="step-header"><span>2</span> Phát hiện mâu thuẫn (Conflict Detector)</div>
+                <p>AI tự động so sánh logic giữa các Sheet. Nếu Sheet 1 và Sheet 300 có công thức tính tiền công khác
+                    nhau, hệ thống sẽ cảnh báo để anh Vũ tư vấn sửa lại.</p>
+                <div class="sub-section">Cơ chế gợi ý:</div>
+                <p>Dựa vào lịch sử nhập liệu, AI sẽ gợi ý người dùng hỏi thêm các câu liên quan (VD: "Anh đã nhập TAB1,
+                    có muốn em tính tiếp tiền phí ở TAB2 không?").</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
