@@ -1,0 +1,94 @@
+Vibecoding đang cực kỳ ưa chuộng giải pháp kết hợp giữa các AI Agent mã nguồn mở và mô hình chạy Local. Để có một trải nghiệm "mượt" như Claude 3.5 Sonnet mà không tốn một xu chi phí API, anh Vũ có thể thiết lập theo bộ Combo "hủy diệt" sau:
+
+1. "Bộ não" Local: DeepSeek-Coder-V2 hoặc Llama 3.1
+Để thay thế Claude 3.5 Sonnet, anh cần một mô hình có khả năng lập trình cực mạnh.
+
+DeepSeek-Coder-V2: Hiện đang là "vua" mã nguồn mở về code, khả năng suy luận và viết code không thua kém nhiều so với Claude hay GPT-4o.
+
+Công cụ chạy: Ollama (Anh đã dùng, cứ thế phát huy).
+
+Lệnh tải: ollama run deepseek-coder-v2 (Bản Lite nếu máy vừa phải, hoặc bản đầy đủ nếu anh có dàn GPU xịn).
+
+2. "Cánh tay" thực thi: Continue.dev hoặc Roo Code (Roo Cline)
+Đây là các Plugin quan trọng nhất để biến IDE (VS Code) của anh thành một môi trường Vibecoding.
+
+Roo Code (Tiền thân là Cline): Đây là công cụ Vibecoding mạnh nhất hiện nay trên VS Code. Nó là một Autonomous Agent - tức là anh ra lệnh bằng tiếng Việt, nó tự đọc file, tự sửa code, tự chạy terminal để test, và tự sửa lỗi cho đến khi xong thì thôi.
+
+Cách cấu hình:
+
+Cài đặt Extension Roo Code trên VS Code.
+
+Trong phần thiết lập (Settings) của Roo Code, chọn Provider là Ollama.
+
+Chọn Model là deepseek-coder-v2 (hoặc Llama 3).
+
+3. "Trình duyệt thông minh" Local: Open WebUI
+Nếu anh muốn có một giao diện chat giống hệt Claude hay ChatGPT để thảo luận về các sheet Excel của Kim Phát Hiệp Thành:
+
+Sử dụng Open WebUI (chạy qua Docker). Giao diện này cực kỳ chuyên nghiệp, hỗ trợ RAG (nạp tài liệu Excel/PDF vào để AI học bối cảnh) rất tốt.
+
+Sơ đồ thiết lập hệ thống Vibecoding Local của anh Vũ:
+Tại sao bộ Combo này lại "ngon" cho dự án của anh?
+Quyền riêng tư tuyệt đối: Toàn bộ dữ liệu kinh doanh, công thức tính tuổi vàng, lãi suất của tiệm Kim Phát Hiệp Thành không bao giờ rời khỏi máy của anh.
+
+Tương tác với File: Roo Code có thể đọc trực tiếp các file Python xử lý Excel mà anh đang viết. Anh chỉ cần ra lệnh: "Roo ơi, hãy viết lại hàm auto_assign_data_type sao cho ưu tiên bắt các sheet có chữ 'Sáp' vào nhóm thợ gia công", nó sẽ tự mở file ra sửa cho anh.
+
+Không giới hạn: Claude hay ChatGPT đều có giới hạn tin nhắn mỗi giờ. Với Ollama + DeepSeek, anh có thể "Vibe" cả ngày lẫn đêm cho 211 sheet mà không lo hết lượt.
+
+Lưu ý nhỏ để "Vibe" cho mượt:
+Vì anh đang chạy Local, cấu hình máy (RAM và GPU) là yếu tố quyết định "độ thông minh". Nếu máy anh có khoảng 32GB RAM trở lên và card đồ họa NVIDIA (8GB VRAM+), DeepSeek-Coder sẽ chạy cực bay, phản hồi gần như tức thì.
+
+---------------
+Vibecoding và Agentic Workflow rồi đó.
+
+Thay vì anh phải ngồi "code tay" từng dòng Django hay Python, anh chuyển sang đóng vai trò Giám đốc điều hành (CEO) hoặc Kiến trúc sư trưởng. Anh chỉ cần đưa ra "Vibe" (ý tưởng và yêu cầu), còn các "nhân viên AI" sẽ tự bàn bạc và làm việc với nhau.
+
+Cụ thể, mô hình anh đang mô tả được gọi là Multi-Agent System (Hệ thống đa đại lý).
+
+Cách vận hành "Xưởng phần mềm AI" của anh:
+Thằng A (Business Analyst - Qwen2.5:7b): * Nhiệm vụ: Đọc 211 sheet Excel, hiểu nghiệp vụ tiệm vàng (vàng quy tuổi, tiền công, thợ chà nhám...).
+
+Đầu ra: Viết ra một bản mô tả quy trình (Workflow) cực kỳ chi tiết bằng tiếng Việt.
+
+Thằng B (Coder - Qwen2.5-Coder:7b):
+
+Nhiệm vụ: Nhận bản quy trình từ thằng A.
+
+Đầu ra: Viết code Django, tạo Model, viết Logic tính toán, sinh ra các file .py.
+
+Vòng lặp tự hoàn thiện (Self-Correction):
+
+Anh dùng một công cụ như Roo Code (Cline). Thằng này sẽ đóng vai trò "Quản lý dự án".
+
+Nó sẽ cầm code của thằng B cho chạy thử. Nếu lỗi (Error), nó sẽ tự quăng lỗi đó lại cho thằng B bắt sửa.
+
+Nó cứ làm thế cho đến khi phần mềm chạy đúng bối cảnh mà thằng A đã vẽ ra.
+
+Tại sao cách này của anh lại "khủng khủng"?
+Tốc độ: Một mình anh làm 211 sheet có khi mất cả tháng. Hệ thống này có thể "nhai" hết đống đó trong vài tiếng đồng hồ.
+
+Sự nhất quán: AI không biết mệt. Nó sẽ áp dụng đúng 1 logic phân loại cho tất cả các sheet, không bị tình trạng "đầu voi đuôi chuột".
+
+Tri thức hóa: Quy trình mà thằng A viết ra chính là tài liệu đào tạo cho nhân viên Kim Phát Hiệp Thành sau này. Anh vừa có phần mềm, vừa có luôn bộ hướng dẫn sử dụng (Manual).
+
+Bước tiếp theo anh nên làm:
+Để hiện thực hóa việc "tự trao đổi" này mà không cần anh phải copy-paste thủ công, anh có thể tìm hiểu thêm về LangGraph (một thư viện của LangChain). Nó giúp anh vẽ sơ đồ:
+Hỏi BA -> Chuyển cho Coder -> Coder viết xong chuyển cho Tester -> Tester ok thì lưu file.
+Anh đang đi đúng lộ trình của một System Architect thời đại AI rồi đấy. Anh muốn em demo thử một đoạn "Promt" để kích hoạt cuộc đối thoại giữa 2 thằng này không?
+--------------
+Chiến thuật "tằm ăn dâu":
+
+Giai đoạn 1 (BA): Cho thằng Qwen-General đọc Metadata của 10 sheet đầu tiên. Anh đọc bản quy trình nó viết ra. Thấy "ổn", anh mới cho đi tiếp.
+
+Giai đoạn 2 (Coder): Thằng Qwen-Coder dựa trên quy trình đó viết code. Anh dùng Unit Test (anh có thể bảo AI viết luôn Test case) để kiểm tra.
+
+Giai đoạn 3 (Loop): Nếu Test pass, cho nó quét tiếp 200 sheet còn lại.
+
+Chiến thuật thực tế: "Vừa chạy vừa xếp hàng" (The Hybrid Path)
+Thay vì dừng dự án, anh hãy dành ra đúng 1 ngày để thiết lập "xưởng sản xuất" mini ngay trong dự án hiện tại:
+
+Bước 1 (1 tiếng): Cài đặt Roo Code (Cline) hoặc Continue vào VS Code.
+
+Bước 2 (30 phút): Kết nối nó với Ollama (chọn qwen2.5-coder:7b).
+
+Bước 3 (Thực thi): Thay vì tự viết hàm refine_draft tiếp theo, anh hãy mở Roo Code lên và gõ: "Roo ơi, đây là cấu trúc dự án của tôi. Hãy dựa vào file KnowledgeService hiện có, viết thêm một hàm để tự động bóc tách công thức tính tiền công thợ từ Metadata."

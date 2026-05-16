@@ -1,0 +1,116 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+<li>
+    <a href="/guide/" class="custom-admin-btn wiki-btn" target="_blank">
+        <i class="fa fa-eye"></i> XEM WIKI
+    </a>
+</li>
+
+<li>
+    <a href="import-csv/" class="custom-admin-btn import-csv-btn">
+        <i class="fa fa-file-import"></i> NHẬP CSV
+    </a>
+</li>
+
+<li>
+    {% url cl.opts|admin_urlname:'add' as add_url %}
+    <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink custom-admin-btn">
+        Thêm bài mới
+    </a>
+</li>
+
+<style>
+    /* TỔNG THỂ THANH CÔNG CỤ */
+    .object-tools {
+        display: flex !important;
+        gap: 10px !important;
+        float: right !important;
+        margin-top: -3px !important;
+    }
+
+    .object-tools li {
+        background: none !important;
+        padding: 0 !important;
+    }
+
+    /* THANH TÌM KIẾM VÀ ACTIONS (ÉP THẲNG HÀNG) */
+    #changelist-search,
+    .actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        height: 35px !important;
+        margin-bottom: 15px !important;
+    }
+
+    /* ÉP TẤT CẢ INPUT, SELECT, BUTTON CAO 35PX */
+    #changelist-search input[type="text"],
+    #changelist-search select,
+    .actions select,
+    .actions button,
+    .custom-admin-btn {
+        height: 35px !important;
+        line-height: 35px !important;
+        box-sizing: border-box !important;
+        border-radius: 4px !important;
+        font-size: 12px !important;
+        margin: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        padding: 0 15px !important;
+    }
+
+    /* MÀU SẮC TIÊU CHUẨN */
+    .custom-admin-btn {
+        font-weight: bold !important;
+        text-transform: uppercase;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    .wiki-btn {
+        background-color: #102833 !important;
+    }
+
+    /* Xanh đen */
+    .import-csv-btn {
+        background-color: #28a745 !important;
+    }
+
+    /* Xanh lá */
+    .addlink {
+        background-color: #79aec8 !important;
+    }
+
+    /* Xanh Teal Django */
+
+    /* CHỈNH Ô TÌM KIẾM CHO ĐẸP */
+    #changelist-search input[type="text"] {
+        border: 1px solid #ccc !important;
+        width: 300px !important;
+    }
+
+    #changelist-search input[type="submit"] {
+        background: #417690 !important;
+        color: white !important;
+        border: none !important;
+        font-weight: bold !important;
+        height: 35px !important;
+        padding: 0 20px !important;
+        border-radius: 4px !important;
+        cursor: pointer;
+    }
+
+    /* KHỬ ICON MẶC ĐỊNH CỦA DJANGO ĐỂ KHÔNG BỊ LỆCH */
+    .addlink::before {
+        display: none !important;
+    }
+
+    .addlink::after {
+        content: " +";
+        font-size: 16px;
+    }
+</style>
+{% endblock %}

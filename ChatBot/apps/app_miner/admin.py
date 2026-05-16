@@ -61,30 +61,36 @@ class ExcelProjectAdmin(admin.ModelAdmin):
 
     # --- 3. Phím tắt thao tác nhanh ---
     def next_steps(self, obj):
-        # Link lọc danh sách Sheet
-        sheet_url = reverse('admin:app_miner_excelsheet_changelist') + f"?project__id__exact={obj.id}"
-        # Link tới các câu hỏi AI (Đã sửa theo App và Model mới)
+        # 1. Link lọc danh sách (Giữ nguyên hoặc trỏ thẳng sang KnowledgeDraft cho tiện)
+        draft_url = reverse('admin:app_knowledge_knowledgedraft_changelist') + f"?project__id__exact={obj.id}"
         log_url = reverse('admin:app_knowledge_learninglog_changelist') + f"?project__id__exact={obj.id}"
         
-        # Lấy số lượng thực tế từ annotate
-        sheet_count = getattr(obj, 'total_sheets_count', 0)
+        # 2. Lấy số lượng thực tế từ Database
+        # Anh nên import KnowledgeDraft ở đầu file để dùng chỗ này
+        from apps.app_knowledge.models import KnowledgeDraft
+        
+        total = KnowledgeDraft.objects.filter(project=obj).count()
+        done = KnowledgeDraft.objects.filter(project=obj, status='AI_READY').count()
+
+        # 3. Đổi màu nút dựa trên tiến độ (Tùy chọn cho oai)
+        bg_color = "#27ae60" if done == total and total > 0 else "#2c3e50"
         
         return mark_safe(f"""
             <div style="display:flex; gap:8px; align-items:center;">
                 <a class="button" 
-                   style="background: #2c3e50 !important; color: #fff !important; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 11px; text-transform: uppercase; text-decoration: none;" 
-                   href="{sheet_url}">
-                   📄 Xem {sheet_count} Sheets
+                    style="background: {bg_color} !important; color: #fff !important; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 11px; text-transform: uppercase; text-decoration: none;" 
+                    href="{draft_url}">
+                    📄 Tri thức: {done}/{total} Sheets
                 </a>
                 
                 <a class="button" 
-                   style="background: #e74c3c !important; color: #fff !important; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 11px; text-transform: uppercase; text-decoration: none;" 
-                   href="{log_url}">
-                   ❓ AI Hỏi bài
+                    style="background: #e74c3c !important; color: #fff !important; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 11px; text-transform: uppercase; text-decoration: none;" 
+                    href="{log_url}">
+                    ❓ AI Hỏi bài
                 </a>
             </div>
         """)
-    next_steps.short_description = "Điều khiển"
+    next_steps.short_description = "Tinh chế nghiệp vụ" # Đổi tên cột cho sát nghĩa
 
     @admin.action(description="🔄 Chạy lại Miner (Quét & Gom Metadata)")
     def re_run_miner(self, request, queryset):

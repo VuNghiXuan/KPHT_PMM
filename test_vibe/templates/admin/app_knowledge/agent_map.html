@@ -1,0 +1,150 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<style>
+    /* Chỉ định nghĩa các ruleset có thuộc tính để tránh lỗi "empty rulesets" */
+
+    #map-container {
+        width: 100%;
+        height: 82vh;
+        background-color: #0f0f0f;
+        border: 1px solid #333;
+        position: relative;
+        overflow: hidden;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #map-container:active {
+        cursor: grabbing;
+    }
+
+    #toolbar {
+        position: absolute;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: flex;
+        gap: 10px;
+        background: rgba(25, 25, 25, 0.9);
+        padding: 8px 20px;
+        border-radius: 30px;
+        border: 1px solid #444;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    #toolbar .btn-tool {
+        background: #333 !important;
+        color: #eee !important;
+        border: 1px solid #555 !important;
+        padding: 6px 16px !important;
+        border-radius: 20px !important;
+        cursor: pointer;
+        font-size: 14px !important;
+        transition: 0.2s;
+    }
+
+    #toolbar .btn-tool:hover {
+        color: #f1c40f !important;
+        background: #444 !important;
+    }
+
+    #mermaid-canvas svg {
+        max-width: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+    }
+
+    /* Định nghĩa chữ riêng biệt cho các Node trong sơ đồ */
+    #mermaid-canvas .node div,
+    #mermaid-canvas .node foreignObject div {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        max-width: 180px;
+        text-align: center;
+        line-height: 1.4 !important;
+        font-size: 14px !important;
+        color: #ffffff !important;
+    }
+</style>
+
+<div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="margin: 0; color: #f1c40f;">🗺️ Toàn cảnh quy trình: {{ project.name }}</h2>
+    <a href="javascript:history.back()" style="color: #888; text-decoration: none;">✕ Thoát</a>
+</div>
+
+<div id="map-container">
+    <div id="toolbar">
+        <button class="btn-tool" id="zoom-in">➕ Phóng to</button>
+        <button class="btn-tool" id="zoom-out">➖ Thu nhỏ</button>
+        <button class="btn-tool" id="reset">🔄 Căn giữa</button>
+    </div>
+
+    <div id="raw-mermaid-data" style="display: none;">{{ mermaid_graph|safe }}</div>
+    <div class="mermaid" id="mermaid-canvas" style="width: 100%; height: 100%;"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+<script>
+    let rawContent = document.getElementById('raw-mermaid-data').textContent.trim();
+    if (!rawContent.startsWith('graph')) {
+        rawContent = 'graph TD\n' + rawContent;
+    }
+
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'loose',
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true,
+            curve: 'basis',
+            rankSpacing: 50,
+            nodeSpacing: 40
+        }
+    });
+
+    const initZoom = (svgElement) => {
+        const panZoom = svgPanZoom(svgElement, {
+            zoomEnabled: true,
+            controlIconsEnabled: false,
+            fit: true,
+            center: true,
+            minZoom: 0.001,
+            maxZoom: 50
+        });
+
+        setTimeout(() => {
+            panZoom.resize();
+            panZoom.fit();
+            panZoom.center();
+        }, 100);
+
+        document.getElementById('zoom-in').onclick = (e) => { e.preventDefault(); panZoom.zoomIn(); };
+        document.getElementById('zoom-out').onclick = (e) => { e.preventDefault(); panZoom.zoomOut(); };
+        document.getElementById('reset').onclick = (e) => {
+            e.preventDefault();
+            panZoom.fit();
+            panZoom.center();
+        };
+
+        window.addEventListener('resize', () => panZoom.resize());
+    };
+
+    const drawGraph = async () => {
+        const { svg } = await mermaid.render('rendered-svg', rawContent);
+        const canvas = document.getElementById('mermaid-canvas');
+        canvas.innerHTML = svg;
+        initZoom(canvas.querySelector('svg'));
+    };
+
+    drawGraph();
+</script>
+
+{% endblock %}
