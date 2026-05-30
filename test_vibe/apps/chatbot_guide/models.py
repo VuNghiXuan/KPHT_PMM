@@ -34,6 +34,10 @@ class GuideEntry(models.Model):
     
     future_notes = models.TextField("Mở rộng sau này", blank=True)
     order = models.FloatField("Thứ tự chèn", default=0.0)
+
+    is_system_generated = models.BooleanField("Bài viết hệ thống tự động", default=False)
+    system_app_label = models.CharField("App liên quan", max_length=50, blank=True, null=True)
+    
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

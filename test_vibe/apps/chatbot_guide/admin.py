@@ -1,3 +1,4 @@
+# apps/chatbot_guide/admin.py
 import csv
 import io
 from django.contrib import admin, messages
@@ -13,35 +14,49 @@ class GuideCategoryAdmin(admin.ModelAdmin):
     list_editable = ('order',)
     search_fields = ('name',)
     
-    # Nút Export nằm trong menu Action của Danh mục
     actions = ['export_all_data_to_csv']
 
     def icon_display(self, obj):
         return format_html('<i class="fa {}" style="font-size: 18px;"></i> &nbsp; {}', obj.icon, obj.icon)
     icon_display.short_description = "Biểu tượng"
 
-    # --- URLS TÙY CHỈNH CHO IMPORT ---
+    # --- URL TÙY CHỈNH CHO IMPORT & CÀN QUÉT KIẾN TRÚC ---
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path('import-csv/', self.admin_site.admin_view(self.import_csv_view), name='category-import-csv'),
+            path('generate-sys-map/', self.admin_site.admin_view(self.generate_system_map_view), name='generate-sys-map'),
         ]
         return custom_urls + urls
 
-    # --- NÚT BẤM TRÊN THANH CÔNG CỤ (CHỈ HIỆN Ở CATEGORY) ---
+    # --- ĐẨY BIẾN RA NGOÀI GIAO DIỆN THANH CÔNG CỤ ADMIN ---
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['view_all_url'] = reverse('chatbot_guide:index')
-        extra_context['show_import_button'] = True # Bật nút Import
+        extra_context['show_import_button'] = True 
+        extra_context['sys_map_url'] = reverse('admin:generate-sys-map')  # Nút bẻ luồng quét kiến trúc
         return super().changelist_view(request, extra_context=extra_context)
 
-    # --- LOGIC IMPORT (Nạp bài viết hàng loạt) ---
+    # --- LOGIC TRIGGER CÀN QUÉT MÃ NGUỒN ---
+    def generate_system_map_view(self, request):
+        from .services import WikiAutoGenerator
+        try:
+            entry = WikiAutoGenerator.generate_system_map_lesson()
+            self.message_user(
+                request, 
+                format_html("🚀 Đã càn quét toàn bộ mã nguồn! Bài học Wiki <b>'{}'</b> đã được đồng bộ mới nhất.", entry.title), 
+                messages.SUCCESS
+            )
+        except Exception as e:
+            self.message_user(request, f"💥 Thất bại khi quét kiến trúc: {str(e)}", messages.ERROR)
+            
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/admin/chatbot_guide/guidecategory/'))
+
+    # --- LOGIC IMPORT CSV ---
     def import_csv_view(self, request):
         if request.method == "POST" and request.FILES.get("csv_file"):
-            import csv, io
             file = request.FILES["csv_file"]
             decoded_file = file.read().decode('utf-8-sig')
-            # Thêm quotechar='"' để nó hiểu dấu phẩy nằm trong ngoặc kép là nội dung, không phải ngăn cột
             reader = csv.reader(io.StringIO(decoded_file), delimiter=',', quotechar='"')
             
             try:
@@ -50,8 +65,7 @@ class GuideCategoryAdmin(admin.ModelAdmin):
                 pass
 
             count = 0
-            for i, row in enumerate(reader, start=2): # Bắt đầu từ dòng 2 để log lỗi cho chuẩn
-                # Kiểm tra xem dòng có đủ ít nhất 4 cột không
+            for i, row in enumerate(reader, start=2):
                 if len(row) < 4:
                     print(f"Bỏ qua dòng {i} do thiếu cột: {row}")
                     continue
@@ -72,14 +86,13 @@ class GuideCategoryAdmin(admin.ModelAdmin):
             return redirect("..")
         return render(request, "admin/chatbot_guide/guidecategory/csv_upload.html")
 
-    # --- LOGIC EXPORT (Xuất toàn bộ bài học thuộc danh mục đã chọn) ---
+    # --- LOGIC EXPORT CSV ---
     def export_all_data_to_csv(self, request, queryset):
         response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
         response['Content-Disposition'] = 'attachment; filename=tat_ca_huong_dan.csv'
         writer = csv.writer(response)
         writer.writerow(['Order', 'Title', 'Category', 'Content'])
         
-        # Lấy tất cả bài viết thuộc các Danh mục đã tích chọn
         entries = GuideEntry.objects.filter(category__in=queryset)
         for obj in entries:
             writer.writerow([obj.order, obj.title, obj.category.name, obj.content])

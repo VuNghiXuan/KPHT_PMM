@@ -1,6 +1,6 @@
 ﻿Order,Title,Category,Content
 1,1. Tổng quan Chiến lược Hệ thống,XÂY DỰNG HỆ THỐNG CHATBOT,"### 🚀 Tầm nhìn Hệ thống Trợ lý Nghiệp vụ số HTJ
-Hệ thống được thiết kế đặc thù cho ngành kim hoàn Kim Phát Hiệp Thành, giải quyết bài toán cốt lõi: Chuyển đổi dữ liệu phi cấu trúc từ hơn 300 bảng tính Excel phức tạp thành tri thức số có thể truy vấn ngay lập tức. Thay vì nhân viên phải lật tìm thủ công từng trang tài liệu hay tra cứu giá vàng trong các file rời rạc, hệ thống sử dụng kiến trúc **Agentic RAG** (Retrieval-Augmented Generation) phối hợp cùng Đồ thị tri thức để mang lại phản hồi chính xác tuyệt đối và có tính logic cao.
+Hệ thống được thiết kế đặc thù cho ngành kim hoàn Ứng Dụng Vàng, giải quyết bài toán cốt lõi: Chuyển đổi dữ liệu phi cấu trúc từ hơn 300 bảng tính Excel phức tạp thành tri thức số có thể truy vấn ngay lập tức. Thay vì nhân viên phải lật tìm thủ công từng trang tài liệu hay tra cứu giá vàng trong các file rời rạc, hệ thống sử dụng kiến trúc **Agentic RAG** (Retrieval-Augmented Generation) phối hợp cùng Đồ thị tri thức để mang lại phản hồi chính xác tuyệt đối và có tính logic cao.
 Hệ thống được cấu thành từ 4 lớp module chiến lược:
 * **Miner (Bóc tách)**: Hoạt động như lớp giác quan, tự động thu thập và chuẩn hóa dữ liệu thô từ Excel và PDF.
 * **Knowledge (Đồ thị tri thức)**: Trái tim của hệ thống, nơi lưu trữ các node dữ liệu và mối quan hệ nghiệp vụ giữa các loại vàng và nhà cung cấp.
@@ -31,7 +31,7 @@ RETURN g.name, p.description, p.discount_rate
 ```"
 4,1.3 Module app_coach (Huấn luyện),XÂY DỰNG HỆ THỐNG CHATBOT,"### 👨‍🏫 Module Quản trị và Huấn luyện (app_coach)
 Trong môi trường kinh doanh vàng bạc, độ chính xác của thông tin là yếu tố sống còn. Module Coach được thiết kế như một 'bộ lọc' kiểm soát chất lượng tri thức trước khi AI được phép trả lời người dùng. 
-Khi hệ thống Agent nhận thấy một câu hỏi nằm ngoài vùng dữ liệu đã biết (trạng thái **Uncertainty**), nó sẽ tự động đẩy yêu cầu về Module Coach. Tại đây, Admin Vũ hoặc người quản lý có thể xem lại lịch sử truy vấn, thực hiện hiệu chỉnh (Correction) và phê duyệt nội dung. Quy trình này tạo ra một vòng lặp học tập liên tục (Feedback Loop), giúp AI ngày càng hoàn thiện kiến thức nghiệp vụ và hiểu sâu hơn về văn hóa phục vụ khách hàng tại Kim Phát Hiệp Thành."
+Khi hệ thống Agent nhận thấy một câu hỏi nằm ngoài vùng dữ liệu đã biết (trạng thái **Uncertainty**), nó sẽ tự động đẩy yêu cầu về Module Coach. Tại đây, Admin Vũ hoặc người quản lý có thể xem lại lịch sử truy vấn, thực hiện hiệu chỉnh (Correction) và phê duyệt nội dung. Quy trình này tạo ra một vòng lặp học tập liên tục (Feedback Loop), giúp AI ngày càng hoàn thiện kiến thức nghiệp vụ và hiểu sâu hơn về văn hóa phục vụ khách hàng tại Ứng Dụng Vàng."
 5,1.4 Module app_chat_agent (Điều phối),XÂY DỰNG HỆ THỐNG CHATBOT,"### 🤖 Module Điều phối Agent (app_chat_agent)
 Agent là 'người quản gia' thông minh, đóng vai trò giao diện ngôn ngữ tự nhiên giữa người dùng và hệ thống dữ liệu đồ sộ phía sau. Nhiệm vụ chính của Agent bao gồm 3 bước: 
 1. **Phân tích ý định (Intent Detection)**: Hiểu xem người dùng đang hỏi về giá vàng, quy trình cầm cố hay tìm kiếm vị trí cửa hàng.

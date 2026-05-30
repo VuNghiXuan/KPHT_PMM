@@ -1,6 +1,6 @@
 # CHIẾN LƯỢC PHÁT TRIỂN HỆ THỐNG TRI THỨC Ứng Dụng Vàng (CHATBOT_HTJ)
 
-Hệ thống này được định vị là một **"Trợ lý Nghiệp vụ số"** có khả năng hiểu sâu, hướng dẫn quy trình và tự học từ dữ liệu đặc thù của ngành vàng và xây dựng tại Kim Phát Hiệp Thành (HTJ/Ứng Dụng Vàng).
+Hệ thống này được định vị là một **"Trợ lý Nghiệp vụ số"** có khả năng hiểu sâu, hướng dẫn quy trình và tự học từ dữ liệu đặc thù của ngành vàng và xây dựng tại Ứng Dụng Vàng (HTJ/Ứng Dụng Vàng).
 
 ---
 

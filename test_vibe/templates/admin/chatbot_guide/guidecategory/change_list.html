@@ -9,6 +9,12 @@
 </li>
 
 <li>
+    <a href="{{ sys_map_url }}" class="custom-admin-btn sys-map-btn">
+        <i class="fa fa-sitemap"></i> CẬP NHẬT BẢN ĐỒ HỆ THỐNG
+    </a>
+</li>
+
+<li>
     <a href="import-csv/" class="custom-admin-btn import-csv-btn">
         <i class="fa fa-file-import"></i> NHẬP CSV
     </a>
@@ -74,6 +80,15 @@
         background-color: #2b5063 !important;
     }
 
+    /* TÙY CHỈNH STYLE CHO NÚT QUÉT BẢN ĐỒ HỆ THỐNG (Màu Cam Đậm Nổi Bật) */
+    .sys-map-btn {
+        background-color: #e67e22 !important;
+    }
+
+    .sys-map-btn:hover {
+        background-color: #d35400 !important;
+    }
+
     .import-csv-btn {
         background-color: #28a745 !important;
         /* Xanh lá (Success) */
@@ -102,7 +117,7 @@
         color: white !important;
     }
 
-    /* FIX LỖI THẲNG HÀNG TRÊN TRÌNH DUYỆT (Optional) */
+    /* FIX LỖI THẲNG HÀNG TRÊN TRÌNH DUYỆT */
     #changelist-search {
         margin-bottom: 15px !important;
     }

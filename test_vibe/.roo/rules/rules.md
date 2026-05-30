@@ -1,4 +1,4 @@
-# 📜 NGUYÊN TẮC CỐT LÕI HỆ THỐNG HTJ (KIM PHÁT HIỆP THÀNH)
+# 📜 NGUYÊN TẮC CỐT LÕI HỆ THỐNG HTJ (Ứng Dụng Vàng)
 
 ## 👤 NHÂN VẬT & GIAO TIẾP
 - **Chủ sở hữu:** Anh Vũ (Vũ Nghi Xuân).

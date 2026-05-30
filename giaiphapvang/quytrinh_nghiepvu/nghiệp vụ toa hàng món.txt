@@ -1,0 +1,15 @@
+Nội dung mô tả nghiệp vụ Toa hàng món NCC
+Đây là nghiệp vụ nhập dữ liệu toa hàng món theo NCC
+Công thức:
+1. Thành tiền ban đầu = số món * đơn giá
+2. Chi phí = Tổng các loại chi phí 
+3. Chiết khấu phân bổ: là chính sách giảm giá hoặc ưu đãi NCC cho loại hàng hoá hoặc theo 1 chương trình cụ thể 
+Giá món chiết khấu= Tổng tiền chiết khấu/ Tổng số món theo toa hàng
+
+Công thức phân bổ= Giá món chiết khấu * số món
+
+4. Tổng tiền: là chi phí bỏ ra 
+Tổng tiền = Thành tiền + Chi phí
+5. Đơn giá vốn = Tổng tiền - Chiết khấu phân bổ
+Ghi chú:
+Chi phí chứng từ là chi phí để có được hoá đơn GTGT hoặc các chứng từ khác

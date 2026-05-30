@@ -1,3 +1,4 @@
+# apps/chatbot_guide/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q, Prefetch
 from django.urls import reverse
@@ -15,6 +16,7 @@ def guide_view(request, entry_id=None):
     )
     
     current_entry = None
+    search_results = reviewed_entries.none()  # Khởi tạo giá trị rỗng mặc định để tránh lỗi UnboundLocal
 
     # 3. Ưu tiên 1: Click trực tiếp từ Sidebar
     if entry_id:

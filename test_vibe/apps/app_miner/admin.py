@@ -176,30 +176,33 @@ class DataSourceAdmin(admin.ModelAdmin):
         queryset.delete()
         self.message_user(request, "Đã dọn dẹp sạch sẽ kho dữ liệu thô.")
 
-    # Chèn hàm này vào bên trong class DataSourceAdmin nha anh Vũ
+    # Chèn hàm này vào bên trong class DataSourceAdmin
     def save_model(self, request, obj, form, change):
         """
-        Bắt sự kiện khi Sếp bấm 'Save' trên giao diện Admin.
-        Nếu là file mới tạo (chưa có ID) hoặc file bị thay đổi path, tự động kích hoạt Miner.
+        Bắt sự kiện khi anh Vũ bấm 'Save' trên giao diện Admin.
+        Nếu là file mới tạo hoặc file bị thay đổi path, tự động kích hoạt Miner tổng hợp.
         """
+        from django.contrib import messages  # Import để gọi được các thông báo success, error
+        
         # Kiểm tra xem file có bị thay đổi hoặc là file mới hoàn toàn không
         is_new_file = not obj.pk or 'file_path' in form.changed_data
         
-        # 1. Vẫn cho Django lưu thông tin file vào Database trước
+        # 1. Cho Django lưu thông tin file vào Database trước
         super().save_model(request, obj, form, change)
         
-        # 2. Nếu trúng điều kiện file mới, kích hoạt gọi luôn hàm xử lý ngầm
+        # 2. Nếu trúng điều kiện file mới, kích hoạt gọi luôn hàm xử lý ngầm bằng Class mới
         if is_new_file:
-            from .files_miner import ExcelMinerService # Thao tác import đúng tên file của anh
+            # Đổi sang tên class mới xử lý tổng hợp của anh Vũ
+            from .files_miner import DataMinerService 
             try:
                 # Kích hoạt chạy quy trình bóc tách tự động
-                success, message = ExcelMinerService.run_workflow(obj)
+                success, message = DataMinerService.run_workflow(obj)
                 if success:
-                    self.message_user(request, f"🚀 [Tự động] Đã kích hoạt khai thác thành công file: {obj.name}", messages.SUCCESS)
+                    self.message_user(request, f"🚀 [Tự động] Đã phân vùng và khai thác thành công nguồn tri thức: {obj.name}", messages.SUCCESS)
                 else:
                     self.message_user(request, f"⚠️ [Tự động] Khai thác thất bại: {message}", messages.WARNING)
             except Exception as e:
-                self.message_user(request, f"❌ Lỗi hệ thống khi chạy Miner: {str(e)}", messages.ERROR)
+                self.message_user(request, f"❌ Lỗi hệ thống khi kích hoạt Miner: {str(e)}", messages.ERROR)
                 
 @admin.register(DataEntry)
 class DataEntryAdmin(admin.ModelAdmin):

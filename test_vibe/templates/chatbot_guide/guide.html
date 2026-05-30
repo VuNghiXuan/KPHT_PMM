@@ -1,165 +1,660 @@
-{% extends 'base.html' %}
-{% load guide_filters %}
+<!DOCTYPE html>
+<html lang="vi">
 
-{% block extra_css %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if current_entry %}{{ current_entry.title }}{% else %}Wiki Kiến trúc HTJ{% endif %}</title>
 
-<style>
-    :root {
-        --django-primary: #79aec8;
-        --django-secondary: #417690;
-        --django-header: #102833;
-        --django-link: #447e9b;
-        --django-bg: #f4f7f9;
-    }
+    <!-- Google Fonts & Icon Stylesheets -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
 
-    /* KHÔNG định nghĩa body chung, chỉ định nghĩa nội dung bên trong wrapper */
-    .main-wrapper {
-        background-color: var(--django-bg);
-        font-family: 'Inter', sans-serif;
-    }
+    <style>
+        :root {
+            --django-primary: #79aec8;
+            --django-secondary: #417690;
+            --django-header: #102833;
+            --django-link: #447e9b;
+            --django-bg: #f4f7f9;
+            --mermaid-bg: #ffffff;
+        }
 
-    /* CHỈ định nghĩa Icon cho đúng các class của FontAwesome, tránh dùng !important bừa bãi */
-    .fas,
-    .far,
-    .fa {
-        font-family: "Font Awesome 6 Free" !important;
-        font-weight: 900 !important;
-    }
+        body {
+            background-color: var(--django-bg);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
 
-    /* Các thành phần Sidebar và Content Card giữ nguyên nhưng bọc trong class cha */
-    .django-sidebar {
-        background: #fff;
-        border-right: 1px solid #dee2e6;
-        height: calc(100vh - 56px);
-        /* Trừ đi chiều cao Navbar */
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-    }
+        /* Đồng bộ biểu tượng FontAwesome */
+        .fas,
+        .far,
+        .fa {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
 
-    /* Đảm bảo chữ trong bảng của Django Admin không bị bóp nhỏ */
-    .guide-content table {
-        width: 100% !important;
-        font-size: 14px !important;
-        margin: 20px 0;
-    }
+        /* Top Navbar chung toàn màn hình để hiện ô Search nổi bật */
+        .wiki-navbar {
+            background-color: var(--django-header);
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
 
-    /* Giữ nguyên các định nghĩa class khác của anh... */
-    .sidebar-header {
-        background: var(--django-secondary);
-        color: #fff;
-        padding: 15px;
-        font-size: 0.75rem;
-        letter-spacing: 1px;
-    }
+        .wiki-brand {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    /* Thêm đoạn này để ép cỡ chữ Wiki không bị nhỏ */
-    .guide-content {
-        line-height: 1.8;
-        color: #333;
-        font-size: 16px !important;
-        /* Ép cỡ chữ nội dung Wiki to rõ */
-    }
-</style>
+        /* Thiết kế khung Search ngay trên Header */
+        .wiki-top-search-form {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 20px;
+        }
 
-{% endblock %}
+        .search-input-group {
+            position: relative;
+            width: 100%;
+        }
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <nav class="col-md-3 col-lg-2 d-none d-md-block django-sidebar p-0">
-            <div class="sidebar-header text-uppercase fw-bold">
-                <i class="fas fa-project-diagram me-2"></i> Kiến trúc HTJ
-            </div>
-            <div class="overflow-auto" style="height: calc(100vh - 50px);">
-                {% for cat in categories %}
-                <div class="py-2 px-3 bg-light text-muted small fw-bold border-bottom">
-                    <i class="far fa-folder-open me-1"></i> {{ cat.name|upper }}
+        .search-input-group .form-control {
+            padding-left: 38px;
+            padding-right: 35px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.25s ease;
+        }
+
+        .search-input-group .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-input-group .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--django-primary);
+            box-shadow: 0 0 0 3px rgba(121, 174, 200, 0.25);
+            color: #fff;
+        }
+
+        .search-input-group .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .search-input-group .clear-search-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+            padding: 0;
+            cursor: pointer;
+            display: none;
+            transition: color 0.15s;
+        }
+
+        .search-input-group .clear-search-btn:hover {
+            color: #fff;
+        }
+
+        /* Sidebar bên trái điều hướng */
+        .django-sidebar {
+            background: #fff;
+            border-right: 1px solid #dee2e6;
+            height: calc(100vh - 58px);
+            position: sticky;
+            top: 58px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        .sidebar-header {
+            background: var(--django-secondary);
+            color: #fff;
+            padding: 12px 15px;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Định dạng bảng biểu nghiệp vụ */
+        .guide-content table {
+            width: 100% !important;
+            font-size: 14px !important;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .guide-content table th,
+        .guide-content table td {
+            border: 1px solid #dee2e6;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .guide-content table th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .guide-content table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .guide-content {
+            line-height: 1.8;
+            color: #333;
+            font-size: 16px !important;
+        }
+
+        /* Khung hiển thị sơ đồ Mermaid */
+        .mermaid-container {
+            background: var(--mermaid-bg);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 24px 0;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .mermaid {
+            width: 100% !important;
+            max-width: 100% !important;
+            text-align: center;
+        }
+
+        pre[class*="language-"] {
+            border-radius: 8px;
+            margin: 1.5em 0;
+        }
+
+        /* Giao diện Sidebar Link */
+        .nav-link-django {
+            color: #495057;
+            padding: 12px 20px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .nav-link-django:hover {
+            background: #f1f3f5;
+            color: var(--django-link);
+            border-left-color: var(--django-primary);
+        }
+
+        .nav-link-django.active {
+            background: #e9ecef;
+            color: var(--django-secondary);
+            font-weight: 600;
+            border-left-color: var(--django-secondary);
+        }
+
+        /* NÂNG CẤP HIGHLIGHT TỪ KHÓA SÁNG RỰC RỠ VÀ ĐẬM NÉT */
+        .wiki-search-match {
+            background-color: #ffcc00 !important;
+            /* Vàng hổ phách rực rỡ */
+            color: #000000 !important;
+            /* Chữ đen đậm tạo độ tương phản tuyệt đối */
+            padding: 1px 4px !important;
+            border-radius: 4px !important;
+            font-weight: 700 !important;
+            /* Đậm nét nổi bật */
+            box-shadow: 0 1px 3px rgba(255, 204, 0, 0.5), 0 0 4px rgba(255, 204, 0, 0.8) !important;
+            /* Hiệu ứng tỏa sáng nhẹ */
+            border: 1px solid #e6b800 !important;
+            /* Khung viền mỏng tăng độ tinh tế */
+            text-shadow: none !important;
+        }
+
+        /* Giao diện Cây thư mục phòng thủ (Fallback Tree) */
+        .fallback-app-card {
+            border: 1px dashed #ced4da;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+            transition: all 0.25s ease;
+        }
+
+        .fallback-app-card:hover {
+            border-color: var(--django-secondary);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP HEADER BAR: CHỨA Ô TÌM KIẾM KHÔNG BỊ KHUẤT HÌNH -->
+    <header class="wiki-navbar">
+        <a href="/guide/" class="wiki-brand">
+            <i class="fas fa-project-diagram"></i>
+            <span>KIẾN TRÚC TRI THỨC HTJ</span>
+        </a>
+
+        <!-- Ô tìm kiếm thông minh nổi bật toàn trang -->
+        <div class="wiki-top-search-form">
+            <form action="" method="GET">
+                <div class="search-input-group">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" name="q" id="wikiSearchInput" class="form-control"
+                        placeholder="Tìm kiếm tài liệu, sơ đồ, nghiệp vụ..." value="{{ query|default:'' }}"
+                        autocomplete="off">
+                    <button type="button" id="clearSearchBtn" class="clear-search-btn">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
                 </div>
-                {% for entry in cat.entries.all %}
-                <a href="{% url 'chatbot_guide:detail' entry.id %}"
-                    class="nav-link nav-link-django {% if current_entry and entry.id == current_entry.id %}active{% endif %}">
-                    {{ entry.title }}
-                </a>
-                {% endfor %}
-                {% endfor %}
-            </div>
-        </nav>
+            </form>
+        </div>
 
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <nav aria-label="breadcrumb" class="mb-4">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/guide/" style="color: var(--django-link);">Wiki</a></li>
-                    {% if current_entry %}
-                    <li class="breadcrumb-item active">{{ current_entry.title }}</li>
-                    {% else %}
-                    <li class="breadcrumb-item active">Tổng quan</li>
-                    {% endif %}
-                </ol>
+        <div class="d-none d-md-block text-white-50 small">
+            <span>Vận hành bởi Admin Vũ</span>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- SIDEBAR TRÁI: DANH MỤC WIKI & BÀI HỌC -->
+            <nav class="col-md-3 col-lg-2 d-none d-md-block django-sidebar">
+                <div class="sidebar-header">
+                    <i class="fas fa-folder-open me-2"></i> Danh mục tài liệu
+                </div>
+                <div class="overflow-auto flex-grow-1">
+                    {% for cat in categories %}
+                    <div class="py-2 px-3 bg-light text-muted small fw-bold border-bottom border-top">
+                        {{ cat.name|upper }}
+                    </div>
+                    {% for entry in cat.entries.all %}
+                    <a href="/guide/{{ entry.id }}/{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}"
+                        class="nav-link nav-link-django {% if current_entry and entry.id == current_entry.id %}active{% endif %}">
+                        {{ entry.title }}
+                    </a>
+                    {% endfor %}
+                    {% endfor %}
+                </div>
             </nav>
 
-            <div class="content-card">
-                {% if current_entry %}
-                <div class="content-header d-flex justify-content-between align-items-center">
-                    <h1 class="h5 m-0 fw-bold">{{ current_entry.title }}</h1>
-                    <span class="badge bg-light text-dark shadow-sm">
-                        <i class="far fa-calendar-alt me-1"></i> {{ current_entry.updated_at|date:"d/m/Y" }}
-                    </span>
-                </div>
-                <div class="p-4 p-md-5">
-                    <div class="guide-content">
-                        {# Sử dụng filter markdown để render nội dung từ CSV #}
-                        {{ current_entry.content|markdown }}
-                    </div>
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-book-reader"></i>
-                    <h3 class="fw-bold">Chào mừng anh Vũ đến với Wiki HTJ</h3>
-                    <p class="mb-1">Hệ thống quản lý tri thức và hướng dẫn vận hành Agentic RAG.</p>
-                    <p class="small text-muted">Vui lòng chọn một chuyên mục ở sidebar bên trái để xem chi tiết.</p>
+            <!-- KHU VỰC CHÍNH: NỘI DUNG CHI TIẾT BÀI HỌC -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <!-- Breadcrumb định vị vị trí -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/guide/"
+                                style="color: var(--django-link); text-decoration: none;">Wiki</a></li>
+                        {% if current_entry %}
+                        <li class="breadcrumb-item active" aria-current="page">{{ current_entry.title }}</li>
+                        {% else %}
+                        <li class="breadcrumb-item active" aria-current="page">Tổng quan</li>
+                        {% endif %}
+                    </ol>
+                </nav>
 
-                    <div class="mt-4 p-3 border rounded bg-light mx-auto" style="max-width: 500px;">
-                        <div class="d-flex align-items-center justify-content-center text-danger fw-bold">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <span>LƯU Ý HỆ THỐNG</span>
+                <div class="card shadow-sm border-0 rounded-3">
+                    {% if current_entry %}
+                    <!-- Header của bài viết chi tiết -->
+                    <div
+                        class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <h1 class="h5 m-0 fw-bold text-dark">{{ current_entry.title }}</h1>
+                            {% if query %}
+                            <span class="badge bg-warning text-dark">Khớp từ khóa</span>
+                            {% endif %}
                         </div>
-                        <ul class="list-unstyled mt-2 small text-danger">
-                            <li class="mb-1">• Nội dung bài học có thể chưa được tải lên hệ thống (Vui lòng kiểm tra
-                                file CSV).</li>
-                            <li>• Hoặc bài học hiện đang trong trạng thái chờ Admin phê duyệt (is_reviewed = False).
-                            </li>
+                        <!-- FIX LỖI HIỂN THỊ NGÀY CẬP NHẬT: Gán ID để phòng ngự bằng JS nếu Django không render -->
+                        <span class="badge bg-light text-dark shadow-sm border" id="wikiUpdatedBadge">
+                            <i class="far fa-calendar-alt me-1 text-primary"></i> Cập nhật: <span
+                                id="wikiUpdatedDateText">{{ current_entry.updated_at|date:"d/m/Y"|default:"" }}</span>
+                        </span>
+                    </div>
+
+                    <!-- Body nội dung bài viết Wiki -->
+                    <div class="card-body p-4 p-md-5 bg-white rounded-bottom">
+                        <div class="guide-content" id="wikiGuideContent">
+                            <!-- Sẽ được điền nội dung đã biên dịch bằng JS ở cuối trang -->
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-spinner fa-spin me-2"></i> Đang tải tài liệu tri thức...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chuyển đổi dữ liệu Markdown một cách an toàn thông qua json_script mặc định của Django -->
+                    {{ current_entry.content|json_script:"raw-markdown-data" }}
+
+                    {% else %}
+                    <!-- Trạng thái trống (Màn hình chào mừng) -->
+                    <div class="text-center py-5 px-4">
+                        <div class="mb-4">
+                            <i class="fas fa-book-reader text-muted opacity-50" style="font-size: 80px;"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark">Chào mừng anh Vũ đến với Wiki HTJ</h3>
+                        <p class="text-muted mb-2">Hệ thống quản lý tri thức và hướng dẫn vận hành Agentic RAG cho tiệm
+                            vàng Kim Phát Hiệp Thành.</p>
+                        <p class="small text-muted mb-4">Vui lòng chọn một chuyên mục ở sidebar bên trái để xem sơ đồ
+                            kiến trúc và từ điển nghiệp vụ.</p>
+
+                        {% if query %}
+                        <div class="alert alert-info py-2 px-3 mx-auto mb-4" style="max-width: 500px; font-size: 14px;">
+                            <i class="fas fa-search me-2"></i> Không có kết quả nào phù hợp với từ khóa: <strong>"{{
+                                query }}"</strong>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-4 p-3 border rounded bg-light mx-auto" style="max-width: 500px;">
+                            <div class="d-flex align-items-center justify-content-center text-danger fw-bold">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <span>LƯU Ý HỆ THỐNG</span>
+                            </div>
+                            <ul class="list-unstyled mt-2 small text-danger text-start px-3">
+                                <li class="mb-1">• Nội dung bài học có thể chưa được đồng bộ từ file CSV hoặc mã nguồn
+                                    Models.</li>
+                                <li>• Hoặc bài viết hiện đang trong trạng thái chờ duyệt trên trang Admin (is_reviewed =
+                                    False).</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4">
+                            <span class="badge rounded-pill bg-secondary opacity-75 py-2 px-3">v1.2.0 - Self-Documenting
+                                Engine</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- JS Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cypher.min.js"
+        crossorigin="anonymous"></script>
+
+    <!-- Nạp bộ thư viện biên dịch Markdown Client-side siêu nhẹ Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Nạp thư viện render biểu đồ MermaidJS -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // --- BƯỚC 1: FIX LỖI HIỂN THỊ NGÀY CẬP NHẬT ---
+            const dateTextSpan = document.getElementById('wikiUpdatedDateText');
+            if (dateTextSpan) {
+                const rawText = dateTextSpan.textContent.trim();
+                // Nếu Django trả về chuỗi rỗng do db bị trống ngày
+                if (!rawText) {
+                    const today = new Date();
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const yyyy = today.getFullYear();
+                    dateTextSpan.textContent = dd + '/' + mm + '/' + yyyy;
+                }
+            }
+
+            // --- BƯỚC 2: BIÊN DỊCH MARKDOWN PHÍA CLIENT-SIDE ---
+            const markdownScript = document.getElementById('raw-markdown-data');
+            const contentArea = document.getElementById('wikiGuideContent');
+
+            if (markdownScript && contentArea) {
+                try {
+                    const rawMarkdown = JSON.parse(markdownScript.textContent);
+                    marked.setOptions({ gfm: true, breaks: true });
+                    contentArea.innerHTML = marked.parse(rawMarkdown);
+                } catch (e) {
+                    console.error("⚠️ Lỗi biên dịch nội dung Markdown:", e);
+                    contentArea.innerHTML = "<div class='alert alert-danger'>Lỗi hiển thị nội dung tài liệu.</div>";
+                }
+            }
+
+            // --- BƯỚC 3: KHỞI TẠO MERMAID ENGINE ---
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: 'neutral',
+                flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'cardinal' }
+            });
+
+            // Định vị các khối mã sơ đồ thô vừa được Marked biên dịch ra
+            const blocks = document.querySelectorAll('pre.mermaid, code.language-mermaid, pre code.language-mermaid');
+
+            for (let block of blocks) {
+                let targetNode = block.tagName === 'CODE' ? block.parentElement : block;
+                if (targetNode.tagName === 'PRE' && targetNode.parentElement && targetNode.parentElement.tagName === 'PRE') {
+                    targetNode = targetNode.parentElement;
+                }
+
+                let rawCode = block.textContent.trim();
+                if (rawCode.startsWith('mermaid')) {
+                    rawCode = rawCode.replace(/^mermaid\s*/, '');
+                }
+
+                if (rawCode.startsWith('graph') || rawCode.startsWith('flowchart')) {
+                    const container = document.createElement('div');
+                    container.className = 'mermaid-container';
+
+                    // Thử nghiệm phân tích cú pháp bằng API Mermaid để bắt lỗi trước khi vẽ đồ thị
+                    let isSyntaxValid = false;
+                    try {
+                        await mermaid.parse(rawCode);
+                        isSyntaxValid = true;
+                    } catch (parseError) {
+                        console.warn("⚠️ Phát hiện lỗi cú pháp trong Mermaid. Kích hoạt Fallback Tree View!", parseError);
+                    }
+
+                    if (isSyntaxValid) {
+                        // CHẾ ĐỘ 1: VẼ ĐỒ THỊ VECTOR NGUYÊN BẢN (NẾU CÚ PHÁP ĐÚNG)
+                        const mermaidDiv = document.createElement('div');
+                        mermaidDiv.className = 'mermaid';
+                        mermaidDiv.textContent = rawCode;
+                        container.appendChild(mermaidDiv);
+
+                        targetNode.parentNode.insertBefore(container, targetNode);
+                        targetNode.remove();
+
+                        try {
+                            await mermaid.run({ nodes: [mermaidDiv] });
+                        } catch (renderErr) {
+                            console.error("❌ Lỗi render Mermaid:", renderErr);
+                        }
+                    } else {
+                        // CHẾ ĐỘ 2: CHUYỂN HOÁ THÀNH BẢN ĐỒ CÂY TƯƠNG TÁC (NẾU MERMAID BỊ SAI CÚ PHÁP)
+                        const treeViewDiv = generateInteractiveFallbackTree(rawCode);
+                        container.appendChild(treeViewDiv);
+                        targetNode.parentNode.insertBefore(container, targetNode);
+                        targetNode.remove();
+                    }
+                }
+            }
+
+            // --- HÀM TẠO SƠ ĐỒ CÂY TƯƠNG TÁC PHÒNG THỦ (ACCORDION FALLBACK) ---
+            function generateInteractiveFallbackTree(mermaidText) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'w-100 text-start p-2';
+
+                wrapper.innerHTML = `
+                <div class="alert alert-warning py-2 px-3 mb-4 d-flex align-items-center justify-content-between rounded-3" style="font-size: 13px;">
+                    <div>
+                        <i class="fas fa-circle-nodes me-2"></i>
+                        <strong>Fail-Safe Active:</strong> Sơ đồ đồ họa đang được hiển thị dưới dạng Danh mục Kiến trúc Tương tác để bảo toàn giao diện.
+                    </div>
+                    <span class="badge bg-warning text-dark">Kiến trúc an toàn</span>
+                </div>
+                <div class="row row-cols-1 row-cols-md-2 g-3" id="fallbackTreeGrid"></div>
+            `;
+
+                const grid = wrapper.querySelector('#fallbackTreeGrid');
+                const subgraphRegex = /subgraph\s+(\w+)\s+\[([^\]]+)\]([\s\S]*?)end/g;
+                const nodeRegex = /(\w+)\["?([^"\]]+)"?\]/g;
+
+                let match;
+                let hasApps = false;
+
+                while ((match = subgraphRegex.exec(mermaidText)) !== null) {
+                    hasApps = true;
+                    const appId = match[1];
+                    const appName = match[2];
+                    const appBody = match[3];
+
+                    let modelMatch;
+                    let modelsHTML = '';
+                    const models = [];
+
+                    while ((modelMatch = nodeRegex.exec(appBody)) !== null) {
+                        models.push(modelMatch[2]);
+                    }
+
+                    const uniqueModels = [...new Set(models)];
+                    uniqueModels.forEach(model => {
+                        modelsHTML += `
+                        <li class="list-group-item d-flex align-items-center justify-content-between py-2 px-3 border-0 border-bottom">
+                            <span style="font-size: 14px;"><i class="fas fa-table text-primary me-2"></i>${model}</span>
+                            <span class="badge bg-light text-muted border" style="font-size: 10px;">Django Model</span>
+                        </li>
+                    `;
+                    });
+
+                    if (uniqueModels.length === 0) {
+                        modelsHTML = `<li class="list-group-item text-muted text-center py-3">Không tìm thấy model nào trong app.</li>`;
+                    }
+
+                    const col = document.createElement('div');
+                    col.className = 'col';
+                    col.innerHTML = `
+                    <div class="card fallback-app-card h-100 shadow-sm">
+                        <div class="card-header bg-light py-3 px-3 border-bottom d-flex align-items-center justify-content-between">
+                            <h6 class="m-0 fw-bold text-dark" style="font-size: 14px;">
+                                <i class="fas fa-cubes text-secondary me-2"></i>${appName}
+                            </h6>
+                            <span class="badge bg-secondary opacity-75" style="font-size: 9px; text-transform: uppercase;">${appId}</span>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            ${modelsHTML}
                         </ul>
                     </div>
+                `;
+                    grid.appendChild(col);
+                }
 
-                    <div class="mt-4">
-                        <span class="badge rounded-pill bg-secondary opacity-50">v1.2.0 - System Architect</span>
+                if (!hasApps) {
+                    grid.innerHTML = `
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="fas fa-circle-exclamation fa-2x mb-3"></i>
+                        <p>Kiến trúc hệ thống đang được cập nhật, vui lòng thử lại sau.</p>
                     </div>
-                </div>
-                {% endif %}
-            </div>
-        </main>
-    </div>
-</div>
-{% endblock %}
+                `;
+                }
 
-{% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer
-    crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cypher.min.js" defer
-    crossorigin="anonymous"></script>
+                return wrapper;
+            }
 
-<script>
-    // Đảm bảo PrismJS highlight lại nội dung sau khi load xong trang
-    document.addEventListener('DOMContentLoaded', (event) => {
-        if (typeof Prism !== 'undefined') {
-            Prism.highlightAll();
-        }
-    });
-</script>
-{% endblock %}
+            // --- BƯỚC 4: LOGIC ĐIỀU KHIỂN NÚT CLEAR (x) TRÊN Ô TÌM KIẾM & HIGHLIGHT TỪ KHÓA ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('q');
+            const searchInput = document.getElementById('wikiSearchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (searchInput && clearBtn) {
+                const toggleClearButton = () => {
+                    if (searchInput.value.trim() !== '') {
+                        clearBtn.style.display = 'block';
+                    } else {
+                        clearBtn.style.display = 'none';
+                    }
+                };
+
+                toggleClearButton();
+                searchInput.addEventListener('input', toggleClearButton);
+
+                clearBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    clearBtn.style.display = 'none';
+                    window.location.href = window.location.pathname;
+                });
+            }
+
+            if (searchQuery && searchQuery.trim() !== '') {
+                const keyword = searchQuery.trim();
+
+                if (contentArea) {
+                    function highlightTextNodes(node, word) {
+                        if (node.nodeType === 3) {
+                            const text = node.nodeValue;
+                            const regex = new RegExp('(' + escapeRegExp(word) + ')', 'gi');
+
+                            if (regex.test(text)) {
+                                const span = document.createElement('span');
+                                span.innerHTML = text.replace(regex, '<mark class="wiki-search-match">$1</mark>');
+                                node.parentNode.insertBefore(span, node);
+                                node.remove();
+                            }
+                        } else if (node.nodeType === 1 && node.childNodes &&
+                            !node.classList.contains('mermaid') &&
+                            !node.classList.contains('mermaid-container') &&
+                            node.tagName !== 'SCRIPT' &&
+                            node.tagName !== 'STYLE' &&
+                            node.tagName !== 'CODE' &&
+                            node.tagName !== 'PRE') {
+                            for (let i = 0; i < node.childNodes.length; i++) {
+                                highlightTextNodes(node.childNodes[i], word);
+                            }
+                        }
+                    }
+
+                    function escapeRegExp(string) {
+                        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    }
+
+                    highlightTextNodes(contentArea, keyword);
+                }
+            }
+
+            // --- BƯỚC 5: KÍCH HOẠT HIGHLIGHT CODE LẬP TRÌNH ---
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,29 +1,24 @@
 import json
 import logging
 import re
-from tqdm import tqdm
+import time
 from django.utils import timezone
-from .models import KnowledgeDraft, LearningLog
-# from apps.app_coach.models import DataType
-import time
-import json
-import logging
-import time
 from django.db import transaction
-
-logger = logging.getLogger(__name__)
+from .models import KnowledgeDraft, LearningLog
 
 logger = logging.getLogger(__name__)
 
 class KnowledgeService:
-    
+    # Bộ nhớ đệm tạm thời (Cache trong RAM) để không bị spam Query DB khi chạy 211 sheets
+    _datatype_cache = {}
+
     @staticmethod
     def auto_assign_data_type(draft):
         """
         TỰ ĐỘNG PHÂN LOẠI NÂNG CAO (ADVANCED CLASSIFICATION)
-        Đã bổ sung cơ chế chống chồng lấn nghiệp vụ cho hệ thống lớn.
+        Đã tối ưu hóa bộ nhớ đệm RAM để càn quét 211 file Excel siêu tốc.
         """
-        if draft.data_type:
+        if draft.data_type_id:  # Check ID trực tiếp để tránh trigger query relation của Django
             return draft.data_type
 
         # 1. Thu thập dữ liệu ngữ cảnh
@@ -36,17 +31,15 @@ class KnowledgeService:
         all_context = f"{sheet_name_lower} {fields} {logic}"
 
         # 2. Định nghĩa các tầng lọc
-        # TẦNG 0: ƯU TIÊN TUYỆT ĐỐI (System & Config) - Tránh lẫn lộn với nghiệp vụ
         priority_mapping = {
             'hướng dẫn': 'GUIDE', 'cấu hình': 'SYSTEM_CONFIG', 'thiết lập': 'SYSTEM_CONFIG',
             'setup': 'SYSTEM_CONFIG', 'danh mục': 'SYSTEM_CONFIG', 'quy định': 'GUIDE'
         }
 
-        # TẦNG 1: MAPPING TRỰC TIẾP (Nghiệp vụ thực tế KPHT)
         direct_mapping = {
             'cầm': 'PAWN', 'chuộc': 'PAWN', 'biên nhận': 'PAWN', 'lãi': 'PAWN',
             'mua': 'TRADING', 'bán': 'TRADING', 'đổi': 'TRADING', 'ngoại tệ': 'TRADING',
-            'thợ': 'CRAFTSMAN', 'gia công': 'CRAFTSMAN', 'tiền công': 'CRAFTSMAN', 'sáp': 'CRAFTSMAN',
+            'thọ': 'CRAFTSMAN', 'gia công': 'CRAFTSMAN', 'tiền công': 'CRAFTSMAN', 'sáp': 'CRAFTSMAN',
             'kho': 'INVENTORY', 'tồn': 'INVENTORY', 'nhập': 'INVENTORY', 'xuất': 'INVENTORY', 'tem': 'INVENTORY',
             'thu': 'ACCOUNTING', 'chi': 'ACCOUNTING', 'sổ cái': 'ACCOUNTING', 'thuế': 'ACCOUNTING', 'quỹ': 'ACCOUNTING',
             'marketing': 'MARKETING_CRM', 'quà': 'MARKETING_CRM', 'khách': 'MARKETING_CRM'
@@ -54,25 +47,25 @@ class KnowledgeService:
 
         best_code = None
 
-        # Bước A: Kiểm tra Tầng Ưu Tiên (System/Guide) trước để không bị rơi vào nghiệp vụ kinh doanh
+        # Bước A: Kiểm tra Tầng Ưu Tiên (System/Guide)
         for key, code in priority_mapping.items():
             if key in sheet_name_lower:
                 best_code = code
                 break
 
-        # Bước B: Nếu không phải System/Guide, kiểm tra Tầng Mapping Trực Tiếp
+        # Bước B: Kiểm tra Tầng Mapping Trực Tiếp
         if not best_code:
             for key, code in direct_mapping.items():
                 if key in sheet_name_lower:
                     best_code = code
                     break
 
-        # Bước C: Nếu vẫn chưa ra, dùng Scoring trọng số kết hợp "Từ khóa loại trừ"
+        # Bước C: Dùng Scoring trọng số kết hợp "Từ khóa loại trừ"
         if not best_code:
             category_weights = {
                 "PAWN": {
                     'keywords': ['cầm đồ', 'gia hạn', 'thanh lý', 'tiệm cầm'],
-                    'exclude': ['hướng dẫn', 'phần mềm'] # Nếu có từ này thì khả năng cao không phải nghiệp vụ cầm đồ thực tế
+                    'exclude': ['hướng dẫn', 'phần mềm']
                 },
                 "TRADING": {
                     'keywords': ['hóa đơn', 'bán lẻ', 'giá mua', 'giá bán', 'bù'],
@@ -81,18 +74,14 @@ class KnowledgeService:
                 "ACCOUNTING": {
                     'keywords': ['doanh thu', 'chi phí', 'lợi nhuận', 'công nợ', 'tạm ứng'],
                     'exclude': ['hướng dẫn']
-                },
-                # Thêm các nhóm khác tương tự...
+                }
             }
             
             scores = {}
             for code, config in category_weights.items():
-                # Kiểm tra từ khóa loại trừ trước
                 if any(ex in all_context for ex in config.get('exclude', [])):
-                    scores[code] = -1 # Đánh dấu loại trừ
+                    scores[code] = -1
                     continue
-                    
-                # Tính điểm dựa trên từ khóa xuất hiện
                 scores[code] = sum(1 for word in config['keywords'] if word in all_context)
             
             if scores:
@@ -101,50 +90,60 @@ class KnowledgeService:
             else:
                 best_code = "SYSTEM"
 
-        # 3. Mapping thông tin hiển thị (Cập nhật thêm các loại mới)
-        mapping_data = {
-            "PAWN": ("Nghiệp vụ Cầm đồ", "OLLAMA"),
-            "TRADING": ("Mua bán - Giao dịch", "GROQ"),
-            "CRAFTSMAN": ("Quản lý Thợ & Gia công", "OLLAMA"),
-            "INVENTORY": ("Quản lý Kho & Sản phẩm", "OLLAMA"),
-            "ACCOUNTING": ("Kế toán & Tài chính", "GROQ"),
-            "MARKETING_CRM": ("Marketing & CSKH", "GROQ"),
-            "SYSTEM_CONFIG": ("Cấu hình Hệ thống", "GROQ"),
-            "GUIDE": ("Hướng dẫn sử dụng", "GROQ"),
-            "SYSTEM": (f"Nghiệp vụ: {sheet_name}", "GROQ")
-        }
-
-        name, model_pref = mapping_data.get(best_code, (f"Nghiệp vụ: {sheet_name}", "GROQ"))
-
-        # 4. Cập nhật vào Database
-        from apps.app_coach.models import DataType 
-        dt, created = DataType.objects.get_or_create(
-            code=best_code, 
-            defaults={
-                'name': name, 
-                'ai_model_preference': model_pref
+        # Đánh bẫy Cache RAM: Nếu đã tạo loại DataType này rồi thì bốc ra xài luôn
+        if best_code in KnowledgeService._datatype_cache:
+            dt = KnowledgeService._datatype_cache[best_code]
+        else:
+            # 3. Mapping thông tin hiển thị
+            mapping_data = {
+                "PAWN": ("Nghiệp vụ Cầm đồ", "OLLAMA"),
+                "TRADING": ("Mua bán - Giao dịch", "GROQ"),
+                "CRAFTSMAN": ("Quản lý Thợ & Gia công", "OLLAMA"),
+                "INVENTORY": ("Quản lý Kho & Sản phẩm", "OLLAMA"),
+                "ACCOUNTING": ("Kế toán & Tài chính", "GROQ"),
+                "MARKETING_CRM": ("Marketing & CSKH", "GROQ"),
+                "SYSTEM_CONFIG": ("Cấu hình Hệ thống", "GROQ"),
+                "GUIDE": ("Hướng dẫn sử dụng", "GROQ"),
+                "SYSTEM": (f"Nghiệp vụ: {sheet_name}", "GROQ")
             }
-        )
-        
-        # Cập nhật tên linh hoạt cho các mã dùng chung
-        if not created and best_code in ["SYSTEM", "SYSTEM_CONFIG", "GUIDE"]:
-            dt.name = name
-            dt.save(update_fields=['name'])
+
+            name, model_pref = mapping_data.get(best_code, (f"Nghiệp vụ: {sheet_name}", "GROQ"))
+
+            # 4. Cập nhật vào Database an toàn
+            from apps.app_coach.models import DataType 
+            dt, created = DataType.objects.get_or_create(
+                code=best_code, 
+                defaults={
+                    'name': name, 
+                    'ai_model_preference': model_pref
+                }
+            )
+            
+            if not created and best_code in ["SYSTEM", "SYSTEM_CONFIG", "GUIDE"]:
+                dt.name = name
+                dt.save(update_fields=['name'])
+            
+            # Lưu vào bộ nhớ đệm
+            KnowledgeService._datatype_cache[best_code] = dt
 
         draft.data_type = dt
-        draft.save(update_fields=['data_type'])
-        
-        return draft.data_type
+        return dt
+
     @staticmethod
-    def _get_learned_context(project):
+    def _get_learned_context(project_or_id):
         """
-        KẾT NỐI TRI THỨC: Lấy những gì anh Vũ đã dạy để nạp vào Context.
+        KẾT NỐI TRI THỨC: Chấp nhận cả Object lẫn ID số nguyên từ tiến trình chạy hàng loạt.
         """
-        learned_logs = LearningLog.objects.filter(project=project, is_learned=True)
+        if isinstance(project_or_id, (int, str)):
+            filter_kwargs = {'project_id': project_or_id}
+        else:
+            filter_kwargs = {'project': project_or_id}
+
+        learned_logs = LearningLog.objects.filter(**filter_kwargs, is_learned=True)
         if not learned_logs.exists():
             return ""
         
-        context_parts = ["\n--- 🧠 TRI THỨC HỆ THỐNG ĐÃ HỌC TỪ ANH VŨ ---"]
+        context_parts = ["\n--- 🧠 TRI THỨC HỆ THỐNG ĐÃ HỌC TỪ BAN QUẢN LÝ ---"]
         for log in learned_logs:
             context_parts.append(f"Tình huống: {log.question}\nGiải đáp: {log.admin_answer}")
         
@@ -153,19 +152,16 @@ class KnowledgeService:
     @staticmethod
     def _extract_and_log_questions(draft, content):
         """
-        BÁO HIỆU HỎI BÀI: Bóc tách mục [⚠️ GÓC PHẢN BIỆN] để hiển thị dấu ? đỏ trên GUI.
+        BÁO HIỆU HỎI BÀI: Trích xuất góc phản biện để sinh nhật ký học tập.
         """
-        # Nếu AI báo "Dữ liệu logic đã ổn" thì coi như không có câu hỏi
-        if "dữ liệu logic đã ổn" in content.lower():
+        if re.search(r'dữ\s+liệu\s+logic\s+đã\s+ổn', content, re.I):
             return False
 
-        # Tìm nội dung nằm sau mục phản biện
         pattern = r"\[⚠️\s*(?:GÓC PHẢN BIỆN|Cần xác nhận)\](.*)"
         match = re.search(pattern, content, re.S | re.I)
         
         if match:
             question_content = match.group(1).strip()
-            # Chỉ log nếu câu hỏi có nội dung thực sự (không phải chỉ vài ký tự trắng)
             if len(question_content) > 10:
                 LearningLog.objects.get_or_create(
                     project=draft.project,
@@ -175,101 +171,98 @@ class KnowledgeService:
                 return True
         return False
 
-    
+    @staticmethod
+    def _clean_ai_content(text):
+        """
+        [BỘ LỌC HẬU KỲ] Dọn rác chuyên sâu cho Ollama Qwen 7B & Chuẩn hóa cấu trúc Cloud:
+        """
+        if not text:
+            return ""
+
+        # Lớp 1: Khử lỗi lặp lại cấu trúc tiêu đề (Nếu AI sinh nhiều bộ Mục đích)
+        parts = text.split("### 🎯 MỤC ĐÍCH")
+        if len(parts) > 2:
+            text = "### 🎯 MỤC ĐÍCH" + parts[1]
+
+        # Lớp 2: Xóa các vùng dữ liệu hoặc ô đơn lẻ (Ví dụ: D20:D23, H4, F25, Cell_F15)
+        text = re.sub(r'\b[A-Za-z_]{1,3}\d{1,4}(?::[A-Za-z_]{1,3}\d{1,4})?\b', '', text)
+        
+        # Lớp 3: Xóa tiền tố hệ thống tự chế (Ví dụ: "Ô H4", "ô F25", "Cell_A1")
+        text = re.sub(r'\b(Cell_|Ô\s*|ô\s*)[A-Za-z_]{1,3}\d{1,4}\b', '', text)
+
+        # Lớp 4: Xóa sạch các dấu ngoặc rỗng hoặc dấu ngoặc lỗi do sau khi xóa ô Excel bị thừa lại
+        text = re.sub(r'\(\s*[,.\s]*\s*\)', '', text)
+
+        # Lớp 5: Chuẩn hóa lại khoảng trắng và ngắt dòng thừa cho tài liệu BA đẹp đẽ
+        text = re.sub(r' +', ' ', text)
+        text = re.sub(r'\n{3,}', '\n\n', text)
+
+        return text.strip()
 
     @staticmethod
-    def ensure_default_config():
+    def refine_draft(draft_or_id, current_idx=1, total=1, external_context=None):
         """
-        [AUTO-INIT] Kiểm tra và tự động tạo cấu hình Prompt mặc định 
-        nếu hệ thống chưa có dữ liệu cấu hình AI.
+        Xử lý tinh chế chuyên sâu cho single draft. Chấp nhận cả ID lẫn Object nhằm tối ưu RAM.
+        Tự động kích hoạt cơ chế nạp Prompt gốc phòng thủ nếu phát hiện DB trống.
         """
-        from apps.app_ai_core.models import AIPromptConfig
         
-        # Kiểm tra xem đã có bất kỳ config nào active chưa
-        config = AIPromptConfig.objects.filter(is_active=True).first()
-        
-        if not config:
-            logger.warning("⚠️ Không tìm thấy AIPromptConfig. Đang tự động tạo cấu hình mặc định...")
-            
-            default_system = (
-                "Bạn là Chuyên gia BA cao cấp cho hệ thống 'Ứng Dụng Vàng' (KPHT).\n"
-                "NHIỆM VỤ: Chuyển Metadata kỹ thuật thành HDSD nghiệp vụ thực tế.\n\n"
-                "CHỈ THỊ VỀ ĐỘ TỰ TIN (QUAN TRỌNG):\n"
-                "1. TỰ SUY LUẬN: Dựa vào kiến thức ngành vàng (vàng quy tuổi, lãi suất, tiền công), "
-                "nếu Metadata thiếu nhưng bạn có thể suy luận logic đạt độ tin cậy > 85%, "
-                "hãy TỰ HOÀN THIỆN nội dung và không đặt câu hỏi.\n"
-                "2. KHÔNG HỎI VẶT: Không hỏi về các trường dữ liệu hiển thị đơn giản (Tên, Ngày, Ghi chú). "
-                "Chỉ hỏi về logic tính toán hoặc luồng đi của tiền/hàng nếu bị đứt đoạn.\n\n"
-                "CẤU TRÚC ĐẦU RA BẮT BUỘC:\n"
-                " - 🎯 MỤC ĐÍCH: Ý nghĩa thực tế.\n"
-                " - 🔄 LUỒNG NGHIỆP VỤ: Các bước nhân viên làm (Tự suy luận từ Metadata).\n"
-                " - ⚙️ PHÂN TÍCH LOGIC SÂU: Công thức tính, dòng tiền, dòng hàng.\n\n"
-                " - [⚠️ GÓC PHẢN BIỆN]:\n"
-                "   + CHỈ ĐẶT CÂU HỎI KHI: Metadata mâu thuẫn trực tiếp hoặc độ tin cậy < 50%.\n"
-                "   + Nếu ổn hoặc đã tự suy luận được: Ghi chính xác 'Dữ liệu logic đã ổn, không có nghi vấn'."
-            )
-            
-            # Tạo mới bản ghi default (Anh chỉnh lại field name cho khớp với Model của anh nhé)
-            config = AIPromptConfig.objects.create(
-                name="Cấu hình BA Mặc định (Auto-generated)",
-                module_code="SYSTEM",
-                system_prompt=default_system,
-                is_default=True,
-                is_active=True,
-                # provider_strategy="ollama", # Ví dụ: Anh có thể set mặc định là Ollama cho tiết kiệm
-                # model_name="llama3:latest"
-            )
-            logger.info(f"✅ Đã khởi tạo thành công cấu hình: {config.name}")
-            
-        return config
-
-    @staticmethod
-    def refine_draft(draft_id, current_idx=1, total=1, external_context=None):
-        """
-        Xử lý tinh chế chuyên sâu cho KPHT - Tối ưu bởi Vũ Nghi Xuân.
-        """
         from apps.app_ai_core.models import AIPromptConfig
-        from apps.app_knowledge.models import KnowledgeDraft
         from apps.app_knowledge.ai_gateway import AIGateway 
 
         start_time = time.time()
         
         try:
-            # Bước 1: Lấy dữ liệu
-            draft = KnowledgeDraft.objects.select_related('sheet', 'project', 'data_type').get(id=draft_id)
+            # 🏎️ KIỂM TRA ĐẦU VÀO: Nếu là ID thì truy vấn, nếu là Object có sẵn từ Batch thì xài luôn!
+            if isinstance(draft_or_id, (int, str)):
+                draft = KnowledgeDraft.objects.select_related('sheet', 'project', 'data_type').get(id=draft_or_id)
+            else:
+                draft = draft_or_id
+
             sheet = draft.sheet
             project = draft.project
             
             print(f"🚀 [AI COACH] {current_idx}/{total} | {sheet.name}")
 
-            # Bước 2: DataType & Module Slug
-            data_type = draft.data_type or KnowledgeService.auto_assign_data_type(draft)
-            if not draft.data_type:
-                draft.data_type = data_type
-            
-            module_slug = data_type.code if data_type else "SYSTEM"
+            # Đảm bảo gán dữ liệu phân loại trước khi bốc tách prompt
+            if not draft.data_type_id:
+                KnowledgeService.auto_assign_data_type(draft)
 
-            # Bước 3: Lấy Prompt Config (Sử dụng hàm bảo vệ ensure_default_config)
+            module_slug = draft.data_type.code if draft.data_type else "SYSTEM"
+
+            # 🛡️ LỚP PHÒNG THỦ CHỦ ĐỘNG: Check nhanh nếu chưa có prompt mặc định thì gọi seed ngay lập tức tại runtime
+            if not AIPromptConfig.objects.filter(is_default=True).exists():
+                try:
+                    from apps.app_ai_core.models import seed_default_ai_prompt
+                    seed_default_ai_prompt(None)
+                except Exception as seed_err:
+                    logger.error(f"⚠️ Không thể tự động nạp Prompt phòng thủ: {str(seed_err)}")
+
+            # Tìm Prompt Config theo module nghiệp vụ riêng, nếu không có bốc ngay con mặc định (Vừa được bảo vệ ở trên)
             prompt_config = AIPromptConfig.objects.filter(
                 module_code=module_slug, is_active=True
             ).first() or AIPromptConfig.objects.filter(
                 is_default=True, is_active=True
             ).first()
 
-            # NẾU VẪN NULL THÌ TỰ TẠO LUÔN
+            # 🛡️ VÁ LỖI CHỐNG CRASH: Nếu vì lý do hy hữu (bị de-active hết) dẫn tới None, chặn lại ngay
             if not prompt_config:
-                prompt_config = KnowledgeService.ensure_default_config()
+                logger.error(f"❌ Lỗi: Không tìm thấy cấu hình AIPromptConfig (Active hoặc Default) cho nhóm {module_slug}.")
+                draft.status = 'ERROR'
+                draft.save(update_fields=['status'])
+                return False  # Trả về False an toàn để tiến trình không bị gãy xích
 
-            # Bước 4: Hợp nhất Context
+            # Thu thập bối cảnh tri thức đã học được từ các bước trước
             learned_context = external_context if external_context is not None else \
                               KnowledgeService._get_learned_context(project)
             
+            # Đọc siêu dữ liệu Excel từ schema cấu trúc của anh
             intel = sheet.metadata or {}
             metadata_str = json.dumps({
                 "logic": intel.get("logic_blocks", []), 
                 "fields": intel.get("business_data", [])
             }, ensure_ascii=False, indent=2)
 
+            # Đóng gói gói dữ liệu bối cảnh chặt chẽ truyền sang AI
             full_user_content = (
                 f"=== BỐI CẢNH HỆ THỐNG ===\n{learned_context}\n\n"
                 f"=== NHIỆM VỤ ===\n"
@@ -278,36 +271,42 @@ class KnowledgeService:
                 f"=== METADATA TỪ EXCEL ===\n{metadata_str}"
             )
 
-            # Bước 5: Gọi Gateway AI
             final_content = ""
             try:
+                # Gọi lớp Gateway điều phối thông minh (Local Ollama / API Cloud)
                 ai = AIGateway(config_obj=prompt_config, input_text=full_user_content)
                 final_content = ai.run_process()
             except Exception as ai_err:
-                logger.error(f"❌ AI Error: {str(ai_err)}")
+                # 🛑 BẪY CHÍ MẠNG: Nếu lỗi do cạn kiệt API Key (STOP_BATCH), ném ngược ra ngoài để dừng vòng lặp UI lớn
+                if "STOP_BATCH" in str(ai_err):
+                    raise ai_err
+                
+                logger.error(f"❌ AI Error tại {sheet.name}: {str(ai_err)}")
                 draft.status = 'ERROR'
-                draft.save()
+                draft.save(update_fields=['status'])
                 return False
 
-            # Bước 6: Lưu kết quả
             if final_content and final_content.strip():
+                final_content = KnowledgeService._clean_ai_content(final_content)
+
+                # Bọc cô lập transaction xử lý lưu thông tin kết quả an toàn toàn vẹn dữ liệu
                 with transaction.atomic():
-                    draft.content = final_content.strip()
+                    draft.content = final_content
                     has_questions = KnowledgeService._extract_and_log_questions(draft, final_content)
+                    
+                    # Nếu có câu hỏi [HỎI_ANH_VŨ], giữ PENDING để anh duyệt, nếu sạch thì sẵn sàng AI_READY
                     draft.status = 'PENDING' if has_questions else 'AI_READY'
                     
                     duration = time.time() - start_time
                     
-                    # Kiểm tra xem Model của anh thực tế dùng tên trường nào? 
-                    # Giả sử là 'metadata' thay vì 'metadata_info'
+                    # 🛠️ ĐỒNG BỘ CHUẨN XÁC: Cập nhật fields an toàn và ghi nhận log thời gian xử lý của AI
+                    update_fields = ['content', 'status', 'updated_at', 'data_type_id']
+                    
                     if hasattr(draft, 'metadata'):
                         meta = draft.metadata or {}
                         meta['ai_processing_time'] = round(duration, 2)
                         draft.metadata = meta
-                        update_fields = ['content', 'status', 'updated_at', 'metadata', 'data_type']
-                    else:
-                        # Nếu không có trường JSON nào để lưu, ta bỏ qua phần lưu duration để tránh crash
-                        update_fields = ['content', 'status', 'updated_at', 'data_type']
+                        update_fields.append('metadata')
                     
                     draft.updated_at = timezone.now()
                     draft.save(update_fields=update_fields)
@@ -318,28 +317,23 @@ class KnowledgeService:
             return False
 
         except Exception as e:
-            logger.error(f"💥 Lỗi tại Draft {draft_id}: {str(e)}", exc_info=True)
+            # Nếu lỗi từ Gateway ném ra là STOP_BATCH, dứt khoát đẩy thẳng lên Action ngoài UI ngắt luồng càn quét
+            if "STOP_BATCH" in str(e):
+                raise e 
+            logger.error(f"💥 Lỗi tại Draft {draft_or_id}: {str(e)}", exc_info=True)
             return False
-
+        
     @staticmethod
     def refine_all_project_drafts(project_id, re_process=False):
         """
-        CHẠY HÀNG LOẠT 211 NGHIỆP VỤ (Batch Processing Optimized).
-        Tối ưu cho hệ thống Kim Phát Hiệp Thành:
-        - re_process=True: Chạy lại toàn bộ 211 nghiệp vụ.
-        - re_process=False: Chỉ xử lý những sheet chưa có content hoặc đang ở trạng thái chờ.
+        CHẠY HÀNG LOẠT 211 NGHIỆP VỤ (Batch Processing Optimized)
         """
-        import time
-        from tqdm import tqdm
+        from tqdm import tqdm 
 
-        # 1. Lấy tri thức dùng chung từ những gì anh Vũ đã dạy (Dùng cho toàn dự án)
         shared_learned_context = KnowledgeService._get_learned_context(project_id)
         
-        # 2. Query danh sách Draft
         draft_query = KnowledgeDraft.objects.filter(project_id=project_id).select_related('sheet', 'data_type')
-        
         if not re_process:
-            # Lọc bỏ những cái đã xong (AI_READY) nếu không muốn chạy lại
             draft_query = draft_query.exclude(status='AI_READY')
 
         drafts = list(draft_query)
@@ -349,62 +343,51 @@ class KnowledgeService:
             print(f"✅ Không có nghiệp vụ nào cần tinh chế cho Project {project_id}.")
             return 0
 
-        print(f"\n🚀 [HTJ BATCH] Bắt đầu chiến dịch tinh chế {total} nghiệp vụ...")
-        print(f"📊 Tri thức nạp kèm: {len(shared_learned_context)} ký tự.")
+        print(f"\n🚀 [HTJ BATCH] Khởi động chiến dịch càn quét {total} nghiệp vụ...")
 
         success_count = 0
         fail_count = 0
         start_time = time.time()
 
-        # 3. Vòng lặp xử lý chính
-        for i, draft in enumerate(tqdm(drafts, desc="Đang quét quặng Excel", unit="sheet")):
-            try:
-                # --- BƯỚC 3.1: TỰ ĐỘNG GÁN MÃ VÀ NGHIỆP VỤ (MỚI THÊM) ---
-                # Nếu draft chưa có data_type, gọi hàm tự trọng số của anh để gán
-                if not draft.data_type:
-                    KnowledgeService.auto_assign_data_type(draft)
-                    # Refresh lại object từ DB để nhận data_type vừa gán
-                    draft.refresh_from_db() 
-                # -------------------------------------------------------
+        KnowledgeService._datatype_cache.clear()
 
-                # Gọi hàm xử lý đơn lẻ
+        # Vòng lặp xử lý chính
+        for i, draft in enumerate(tqdm(drafts, desc="Khai thác Miner Excel", unit="sheet")):
+            try:
+                # 🏎️ TRUYỀN THẲNG INSTANCE 'draft' thay vì truyền ID để loại bỏ hoàn toàn việc truy vấn lặp lại
                 status = KnowledgeService.refine_draft(
-                    draft.id, 
+                    draft, 
                     current_idx=i+1, 
                     total=total,
                     external_context=shared_learned_context 
                 )
 
                 if status:
-                    success_count += 1 # Thêm dòng này để đếm số bản ghi thành công
+                    success_count += 1
                 else:
                     fail_count += 1
 
-                # 4. Kiểm soát Rate Limit
-                # Nếu trong Admin chọn Groq/Gemini thì mới nên nghỉ (Sleep)
-                # Nếu anh Vũ ép OLLAMA hoàn toàn cho 211 sheet thì có thể bỏ sleep để chạy max speed
-                current_config = getattr(draft.data_type, 'ai_model_preference', 'OLLAMA')
-                if current_config != 'OLLAMA' and (i + 1) % 10 == 0:
-                    time.sleep(2) # Nghỉ 2s sau mỗi 10 sheet cho Cloud API
+                # Quản lý Tần suất gọi API (Rate Limit Protection)
+                current_pref = getattr(draft.data_type, 'ai_model_preference', 'OLLAMA')
+                if current_pref != 'OLLAMA' and (i + 1) % 10 == 0:
+                    time.sleep(2) 
 
             except Exception as e:
-                logger.error(f"❌ Lỗi tại Draft {draft.id}: {str(e)}")
+                if "STOP_BATCH" in str(e):
+                    print(f"\n🛑 [DỪNG TIẾN TRÌNH] Hết hạn mức API Free ngày hôm nay tại vị trí {i+1}/{total}!")
+                    print("Các sheet còn lại được giữ nguyên trạng thái PENDING an toàn để ngày mai chạy tiếp.")
+                    break
+                
+                logger.error(f"❌ Sập cục bộ tại Draft {draft.id}: {str(e)}")
                 fail_count += 1
                 continue
 
-        # 5. Tổng kết
-        end_time = time.time()
-        duration = round(end_time - start_time, 2)
-        avg_speed = round(duration / total, 2) if total > 0 else 0
-
+        duration = round(time.time() - start_time, 2)
         print(f"\n{'='*60}")
-        print(f"✨ HOÀN THÀNH TINH CHẾ CHO DỰ ÁN KIM PHÁT HIỆP THÀNH")
-        print(f"✅ Thành công: {success_count}/{total}")
-        print(f"❌ Thất bại: {fail_count}")
-        print(f"⏱️ Tổng thời gian: {duration} giây")
-        print(f"⚡ Tốc độ trung bình: {avg_speed} giây/nghiệp vụ")
+        print(f"✨ KẾT QUẢ ĐỢT CÀN QUÉT TRI THỨC Ứng Dụng Vàng")
+        print(f"✅ Đã xử lý lưu thành công: {success_count}/{total} sheets")
+        print(f"❌ Thất bại: {fail_count} sheets")
+        print(f"⏱️ Tổng thời gian chạy máy: {duration} giây")
         print(f"{'='*60}\n")
         
         return success_count
-
-        

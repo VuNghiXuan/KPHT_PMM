@@ -1,0 +1,17 @@
+Nhập hàng:
+Đối với hàng tân trang không cần require NCC, vì hàng tân trang khi gom là nhiều NCC
+Công gốc: Nhập theo từng sp theo tao hàng NCC
+Công vốn: Công thức tư NCC
+Công bán: Công thức tư NCC
+Giá vốn: Giá vốn lô hàng+CP nhập hàng (nếu có)+ tiền hột
+
+Trạng thái nhập hàng:
+Đang nhập hàng: Khi có ít nhất phiếu nhập hàng
+Dẫ nhập hàng: Khi tất cả các phiếu nhập hàng đã duyệt
+Hoàn tất khi không còn phiếu nhập hàng đã duyệt và trạng thái đã nhập hàng
+
+NGhĩa là từng giai đoạn sẽ check (trong toa hàng có bao nhiêu toa hàng, trong lô hàng có bao nhiêu phiếu nhập hàng)
+Theo kiểu cha là toa hang, con là lô hàng, cháu là phiếu nhập hàng
+
+Chú ý: hàng hư lỗi (thuộc quầy khu vực quản lý -> thành vàng nguyên liệu)
+Sheet_Phiếu nhập hàng: Thôg tin sản phẩm tại Ô (check theo cấu hìnhTình trạng hàng theo grid Kho theo tình trạng, ảnh ngày 20.5.2026)

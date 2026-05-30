@@ -145,7 +145,7 @@ Cuối cùng, hãy tận hưởng thành quả của bạn!
 4.  **Thụt lề:** Python rất quan trọng việc thụt lề (4 dấu cách), hãy đảm bảo code của bạn thẳng hàng.
 
 ---
-*Tài liệu hướng dẫn nội bộ - Hệ thống ChatBot Kim Phát Hiệp Thành.*
+*Tài liệu hướng dẫn nội bộ - Hệ thống ChatBot Ứng Dụng Vàng.*
 
 ---
 
@@ -159,6 +159,6 @@ Nội dung này được tối ưu hóa chuẩn Markdown để khi đi qua bộ 
 
 # 🚀 Lộ Trình Toàn Diện: Từ Cài Đặt Đến Vận Hành Dự Án Django
 
-Chào mừng bạn đến với thế giới của **Django** – Framework web mạnh mẽ giúp bạn xây dựng các hệ thống quản lý chuyên nghiệp như dự án **Kim Phát Hiệp Thành**. Tài liệu này hướng dẫn chi tiết từng bước để bạn từ số 0 trở thành người có thể vận hành một ứng dụng Django hoàn chỉnh.
+Chào mừng bạn đến với thế giới của **Django** – Framework web mạnh mẽ giúp bạn xây dựng các hệ thống quản lý chuyên nghiệp như dự án **Ứng Dụng Vàng**. Tài liệu này hướng dẫn chi tiết từng bước để bạn từ số 0 trở thành người có thể vận hành một ứng dụng Django hoàn chỉnh.
 
 ---
