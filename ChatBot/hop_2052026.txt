@@ -1,0 +1,4 @@
+Note:
+1. Soạn dẻ và Nhập kho:
+Bước soạn dẻ nên phân loại hàng, nhưng bước nhập kho nên gom nhóm theo loại
+2. Bỏ Phiếu quầy hàng phiếu NKho và Phiếu giao thợ Tân trag

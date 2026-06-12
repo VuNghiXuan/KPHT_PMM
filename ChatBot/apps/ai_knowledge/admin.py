@@ -59,7 +59,7 @@ class BusinessProcessDraftAdmin(admin.ModelAdmin):
         }),
         ("Nội dung biên soạn AI (Markdown)", {
             'fields': ('draft_content',),
-            'description': "Anh hãy gọt giũa quy trình tại đây. Sau đó nhấn 'Lưu' và dùng nút 'Tinh chỉnh' nếu cần AI làm mượt lại."
+            'description': "Thực hiện gọt giũa quy trình tại đây. Sau đó nhấn 'Lưu' và dùng nút 'Tinh chỉnh' nếu cần AI làm mượt lại."
         }),
         ("Dữ liệu kỹ thuật", {
             'classes': ('collapse',),

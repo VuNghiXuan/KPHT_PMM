@@ -1,0 +1,2 @@
+Nấu: là lấy các loại vàng hư đi nấu thành 1 cục dẻ, sản phẩm sau nấu có hàm lượng gì không quan tâm, chỉ quy ra vang 10 hay laoij vàng gì đó để tính toán hao hụt (chênh lệch trước sau nấu)
+Phân kim: Các cục vàng sau khi nấu đem đi phân kim. Yêu cầu trước phân kim sản phẩm thì biết trước hàm lượng và tuổi vàng đầu ra

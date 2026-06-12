@@ -1,0 +1,55 @@
+Nhập hàng:
+Đối với hàng tân trang không cần require NCC, vì hàng tân trang khi gom là nhiều NCC
+Công gốc: Nhập theo từng sp theo tao hàng NCC => Hồi công
+Công vốn: Công thức tư NCC
+Công bán: Công thức tư NCC
+Giá vốn: Giá vốn lô hàng+CP nhập hàng (nếu có)+ tiền hột
+
+Trạng thái nhập hàng:
+Đang nhập hàng: Khi có ít nhất phiếu nhập hàng
+Dẫ nhập hàng: Khi tất cả các phiếu nhập hàng đã duyệt
+Hoàn tất khi không còn phiếu nhập hàng đã duyệt và trạng thái đã nhập hàng
+
+NGhĩa là từng giai đoạn sẽ check (trong toa hàng có bao nhiêu toa hàng, trong lô hàng có bao nhiêu phiếu nhập hàng)
+Theo kiểu cha là toa hang, con là lô hàng, cháu là phiếu nhập hàng
+
+Chú ý: hàng hư lỗi (thuộc quầy khu vực quản lý -> thành vàng nguyên liệu)
+Sheet_Phiếu nhập hàng: Thôg tin sản phẩm tại Ô (check theo cấu hìnhTình trạng hàng theo grid Kho theo tình trạng, ảnh ngày 20.5.2026)
+
+*Mô tả trạng thái nhập hàng:
+	Hàng cắt ni không cho trả lại, chỉ thực hiện mua lại, hoặc bán
+
+	Nếu trên hóa đơn nếu loại vàng 610 : 1.5 chỉ đổi 1 chỉ bán 0.5 chỉ . Thì có 2 trạng thái (đã bán) và đã đổi
+
+	Đã xuất: trừ tồn hoặc xuất đi thì không thể quay lại Tồn kho
+
+	Xuất tạm: Xuất kho đi xi-> quay lại trạng thái tồn kho
+
+	Kho->Quầy->sản phẩm
+
+Cân:
+	Sử dụng cân cho các sẩn phẩm có TL thực, tắt cân đối với các sản khi kiềng (bên trong co đé). 
+
+	TL trên cân là TL tổng, Hột sẽ xem thông tin tem hoặc sản phẩm nhập tay vào
+
+
+
+AI:
+1. Thiết kế đọc nhiều file vét cạn thông tin file thô (quặng)
+2. Phân loại và Liệt kê thông tin thu thập theo các dạng dữ liệu như sau:
+	- Thu thập và phân loại dữ liệu thô: Có quy trình không, có grid, nút, trường dữ liệu
+	- Có ảnh không (chú giảng cho nội dung bài )
+	- Chọn Promts
+	- AI soạn bài--> Bài giảng
+
+Nội dung promt:
+-Bổ sung nút chọn cho theo bảng phân loại
+-Viết promts (Lọc selected == True) và promt mặc định --> Chuyển AI soạn bài
+Kết quả AI trả về:
+-Trả qua trang Blog (trình bày theo dạng Markdown hay soạn như bài báo?)
+-AI lấy trang này làm kiến thức hoặc các logic đang mâu thuẫn và hỏi lại Admin 
+ghi chú:
+
+
+
+

@@ -1,0 +1,4 @@
+
+Cần phân biệt giai đoạn nào dùng loại vàng nào
+	+Form Nhập kho
+	+ Tạo loại vàng, quầy vàng chưa phân biệt 
