@@ -17,6 +17,8 @@ Google:
 		TK: vnx@gmail.com   ------ Vu123456#
 		TK: Vu_ThuChi@gmail.com   ------ Demo@123
 		TK: ThuNganKD@gmail.com   ------ Demo@123 (Test nút nhận tiền KVKD)
+		Tk: CN2_QLCN2_VuTest@gmail.com ------ Demo@123
+
 	
 	7. Issue QC với thảo:https://docs.google.com/spreadsheets/d/1e_Y5jUeIhyBz8E6JCgzgevxm0iheMh9OLdxu8fV4n0U/edit?gid=0#gid=0
 	8. Học kế toán cơ bản: https://docs.google.com/spreadsheets/d/1sy5z_yK-cL-J2k5MS7AwtHI2ANWP3_b61patZNXjNXg/edit?gid=193485354#gid=193485354
