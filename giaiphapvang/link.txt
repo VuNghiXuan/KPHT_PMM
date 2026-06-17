@@ -16,6 +16,7 @@ Google:
 		TK: qlcn1@gmail.com   ------role quản lý
 		TK: vnx@gmail.com   ------ Vu123456#
 		TK: Vu_ThuChi@gmail.com   ------ Demo@123
+		TK:ThuNgan_QLCN1@gmail.com ------ Demo@123
 		TK: ThuNganKD@gmail.com   ------ Demo@123 (Test nút nhận tiền KVKD)
 		Tk: CN2_QLCN2_VuTest@gmail.com ------ Demo@123
 
