@@ -1,0 +1,103 @@
+/* static/admin/css/chatbot_map.css */
+:root {
+    --primary-blue: #447e9b;
+    --accent-gold: #E1AD01;
+    --soft-blue: #2085EC;
+    --dark-navy: #1a3a4a;
+    --bg-light: #f4f7f9;
+    --success-green: #28a745;
+}
+
+.guide-body {
+    background: var(--bg-light);
+    padding: 25px;
+    border-radius: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.guide-header {
+    background: linear-gradient(135deg, var(--dark-navy), var(--primary-blue));
+    color: white;
+    padding: 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab Logic */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.tabs label {
+    padding: 10px 20px;
+    background: #e1e8ed;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0;
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+.tabs .tab-content {
+    width: 100%;
+    display: none;
+    order: 1;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #e1e8ed;
+}
+
+.tabs input[type="radio"]:checked+label {
+    background: var(--accent-gold);
+    color: white;
+}
+
+.tabs input[type="radio"]:checked+label+.tab-content {
+    display: block;
+}
+
+.section-title {
+    border-left: 6px solid var(--accent-gold);
+    padding-left: 15px;
+    margin-bottom: 20px;
+    color: var(--dark-navy);
+    text-transform: uppercase;
+}
+
+.model-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: 0.3s;
+}
+
+.model-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.box {
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.box-purpose {
+    background: #eef7ff;
+    border: 1px solid #d0e8ff;
+}
+
+.box-note {
+    background: #fff9e6;
+    border: 1px solid #ffeeba;
+}
+
+.box-future {
+    background: #e6f7ed;
+    border: 1px solid #c3e6cb;
+}

@@ -1,0 +1,19 @@
+Nội dung sau giải thích về Tuổi Thu và tuổi bán, cách tính toán giao dịch với Nhà cung cấp (NCC):
+Tuổi vàng: Trong giao dịch NCC thường ngầm hiểu là hàm lượng vàng 
+Tuổi thu: là tuổi NCC thu mua vào và tuỳ loại hàng cung cấp sẽ do NCC quy định. Ví dụ CTY TNHH TM DV VÀNG BẠC TKJ Tuấn Kiệt đối với vàng 610 và Hàng Bọng (Tay ) NCC
+thì có tuổi thu là 61.0, còn hàng Hàng Simen 1.0 NCC thì có tuổi thu là 61.50
+
+Tuổi bán: Thường cao hơn hoặc bảng tuổi thu, cũng giống loại vàng và loại hàng trên thì tuổi bán Hàng Bọng (Tay ) NCC là 63, Hàng Simen 1.0 NCC có tuổi bán là 62.5
+Như vậy nếu mình mua hàng của NCC Tuấn Kiệt thì loại vàng 610 với 2 loại hàng hoá trên thì phải mua ở tuổi 63 và 62.5 nhưng khi mình bán lại cho họ chỉ tính là 61 và 61.5 thôi. Chênh lệch này xem như là phần lợi nhuận và bù đắp cho phí hao hụt
+Tuổi tính công nợ: là tuổi NCC quy về các loại vàng và tuổi về 1 loại tuổi để 2 bên dễ xác định được công nợ lẫn nhau
+Loại vàng ghi nhận công nợ: Là loại vàng được quy về từ tuổi quy. Ví dụ NCC Tuấn Kiệt quy về vàng 10
+Các công thức tính toán giao dịch với NCC:
+Công thức tính Trọng lượng vàng (TLV) = Tổng TL - TL hột
+Công thức quy đổi tuổi vàng ghi nhận công nợ: Tuổi bán/Tuổi tính công nợ
+Ghi chú: 
+1.Các khái niệm Tuổi ghi nhận công nợ và Tuổi tính công nợ là giống nhau)
+2.Trong bảng này :Loại vàng ghi nhận công nợ cũng được hiểu là hàm lượng vàng, tuổi vàng ghi nhận công nợ, đặc điểm do dùng từ và thường được sử dụng khi giao dịch vàng với NCC
+
+TLV quy trong bảng này chính là TLV ghi nhận công nợ = TLV * (Tuổi bán/Tuổi tính công nợ)
+Vàng tính bằng tiền: giá vàng 10 * Tuổi bán/100
+Trong đó: vàng 10 là loại vàng xem là tinh khiết nhất 100% là vàng

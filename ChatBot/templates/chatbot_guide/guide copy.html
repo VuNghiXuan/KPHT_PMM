@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load guide_filters %}
+
+{% block title %}Wiki Tri Thức HTJ - {{ current_entry.title|default:"Tổng quan" }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+    :root {
+        --django-primary: #79aec8;
+        --django-secondary: #417690;
+        --django-header: #102833;
+        --django-link: #447e9b;
+        --django-bg: #f8f8f8;
+    }
+
+    body {
+        background-color: var(--django-bg);
+        font-family: "Roboto", sans-serif;
+    }
+
+    .django-sidebar {
+        background: #fff;
+        border-right: 1px solid #ccc !important;
+        padding: 0 !important;
+        z-index: 1000;
+    }
+
+    .sidebar-header {
+        background: var(--django-secondary);
+        color: #fff;
+        padding: 12px 15px;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+    }
+
+    .cat-title {
+        background: #f1f1f1;
+        padding: 8px 15px;
+        border-bottom: 1px solid #ddd;
+        color: #666;
+        font-weight: bold;
+        font-size: 0.75rem;
+    }
+
+    .nav-link-django {
+        padding: 8px 20px;
+        color: var(--django-link);
+        border-bottom: 1px solid #eee;
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: block;
+    }
+
+    .nav-link-django.active {
+        background: var(--django-primary) !important;
+        color: white !important;
+        font-weight: bold;
+    }
+
+    .breadcrumb-django {
+        background: #79aec8;
+        color: #fff;
+        padding: 8px 25px;
+        font-size: 0.8rem;
+    }
+
+    .content-card {
+        border: 1px solid #ccc;
+        margin-top: 20px;
+        background: #fff;
+    }
+
+    .content-header {
+        background: var(--django-header);
+        color: #fff;
+        padding: 12px 25px;
+    }
+
+    /* Style cho Hình ảnh minh họa */
+    .guide-image {
+        max-width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 20px 0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Style cho Code Block */
+    pre[class*="language-"] {
+        margin: 1.5em 0;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .guide-content mark {
+        background-color: #ffeb3b !important;
+        color: #000 !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <nav class="col-md-3 col-lg-2 d-md-block django-sidebar"
+            style="height: 92vh; overflow-y: auto; position: sticky; top: 0;">
+            <div class="sidebar-header"><i class="fa fa-sitemap me-2"></i>Cấu trúc tài liệu</div>
+            {% for cat in categories %}
+            <div class="category-block">
+                <div class="cat-title"><i class="fa {{ cat.icon }} me-1"></i> {{ cat.name|upper }}</div>
+                <div class="nav flex-column">
+                    {% for entry in cat.entries.all %}
+                    <a class="nav-link nav-link-django {% if entry.id == current_entry.id %}active{% endif %}"
+                        href="{% url 'chatbot_guide:detail' entry.id %}?q={{ query }}">
+                        {{ entry.title }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10">
+            <div class="breadcrumb-django shadow-sm">
+                Trang chủ &rsaquo; Hướng dẫn &rsaquo;
+                {% if current_entry %} {{ current_entry.category.name }} &rsaquo; <strong>{{ current_entry.title
+                    }}</strong> {% else %} Tổng quan {% endif %}
+            </div>
+
+            <div class="px-4 py-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted small">{% if query %}Tìm thấy {{ result_count }} kết quả cho "<strong>{{
+                            query }}</strong>"{% endif %}</span>
+                    <form action="{% url 'chatbot_guide:home' %}" method="GET" class="w-50">
+                        <div class="input-group border shadow-sm bg-white">
+                            <input type="text" name="q" class="form-control border-0 shadow-none"
+                                placeholder="Tìm quy trình, mã lệnh..." value="{{ query }}">
+                            <button class="btn btn-django px-3" type="submit">Tìm nhanh</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="content-card">
+                    {% if current_entry %}
+                    <div class="content-header d-flex justify-content-between align-items-center">
+                        <h2 class="m-0 h6 fw-bold text-uppercase">{{ current_entry.title }}</h2>
+                        <span class="small opacity-75"><i class="fa fa-clock me-1"></i>{{
+                            current_entry.updated_at|date:"d/m/Y" }}</span>
+                    </div>
+
+                    <div class="p-4">
+                        {% if current_entry.prerequisites %}
+                        <div
+                            style="background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; margin-bottom: 25px; font-size: 0.9rem; color: #856404;">
+                            <i class="fa fa-info-circle me-2"></i><strong>Lưu ý trước khi đọc:</strong> {{
+                            current_entry.prerequisites }}
+                        </div>
+                        {% endif %}
+
+                        {% if current_entry.image_example %}
+                        <div class="text-center">
+                            <img src="{{ current_entry.image_example.url }}" class="guide-image"
+                                alt="{{ current_entry.title }}">
+                        </div>
+                        {% endif %}
+
+                        <div class="guide-content mb-4">
+                            {% if query %}
+                            {{ current_entry.content|markdown|highlight:query }}
+                            {% else %}
+                            {{ current_entry.content|markdown }}
+                            {% endif %}
+                        </div>
+
+                        {% if current_entry.code_example %}
+                        <div class="mt-4">
+                            <h6 class="text-muted small fw-bold text-uppercase">Mã Code / Truy vấn ví dụ:</h6>
+                            {# Kiểm tra nếu nội dung có 'MATCH' hoặc 'RETURN' thì dùng Cypher, ngược lại dùng Python #}
+                            <pre
+                                class="language-{% if 'MATCH' in current_entry.code_example %}cypher{% else %}python{% endif %}"><code>{{ current_entry.code_example }}</code></pre>
+                        </div>
+                        {% endif %}
+
+                        {% if current_entry.future_notes %}
+                        <div class="mt-5 p-3"
+                            style="background: #f0f7fa; border: 1px solid #d1e9f2; border-left: 4px solid var(--django-secondary);">
+                            <strong style="color: var(--django-secondary); font-size: 0.85rem;"><i
+                                    class="fa fa-rocket me-2"></i>Ghi chú phát triển:</strong>
+                            <p class="mb-0 small text-muted mt-1">{{ current_entry.future_notes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="p-5 text-center">
+                        <i class="fa fa-search fa-4x mb-3 text-light"></i>
+                        <h2 style="color: #bbb; font-weight: 300;">Không tìm thấy hoặc chưa chọn bài hướng dẫn</h2>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cypher.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+{% endblock %}

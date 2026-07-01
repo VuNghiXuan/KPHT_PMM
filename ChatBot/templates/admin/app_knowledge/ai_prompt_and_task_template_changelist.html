@@ -1,0 +1,14 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools-items %}
+{# Giữ lại các nút mặc định (như nút Thêm mới) #}
+{{ block.super }}
+
+{# Thêm nút Import của anh vào #}
+<li>
+    <a href="import-json/" class="addlink" style="background-color: #417690; color: white;">
+        {% trans "📥 Import Prompt JSON" %}
+    </a>
+</li>
+{% endblock %}
