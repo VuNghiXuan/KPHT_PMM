@@ -1,0 +1,3 @@
+1. Bảng kê xuất kho trả NCC: Gòm nhiều loại vàng trả nhiều nhà cung cấp, hiện nay vẫn trừ tồn kho
+--> có nên vào tình trạng : Xuất tạm để quản lý vàng hay không?/
+2. Phiếu xuất kho mục đích giống như xác nhận lại TLV thực tế mà NCC nhận được bao nhiêu, trả về bap nhiêu, bước này hệ thống mô tả là mới xuất kho thực tế (chưa đúng). Tự hiểu đây là bước xác nhận lại TLV xuất kho trả NCC thực tế để xác nhận công nợ (kể cả vàng trả lại từ NCC)

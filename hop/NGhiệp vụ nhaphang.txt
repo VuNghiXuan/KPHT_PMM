@@ -32,7 +32,7 @@ Cân:
 
 	TL trên cân là TL tổng, Hột sẽ xem thông tin tem hoặc sản phẩm nhập tay vào
 
-
+Ghi chú nhập hàng: Một toa nhiều lô, một lô 1 phiếu nhập hàng
 
 AI:
 1. Thiết kế đọc nhiều file vét cạn thông tin file thô (quặng)
