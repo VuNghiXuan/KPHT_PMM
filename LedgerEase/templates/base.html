@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>LedgerEase</title>
+</head>
+
+<body>
+    {% comment %} Truy cập danh sách feature của công ty từ context_processor {% endcomment %}
+    <nav>
+        <a href="/accounting/">Kế toán lõi</a>
+
+        {% if 'tax-report' in allowed_features %}
+        <a href="/accounting/tax-reports/">Báo cáo thuế</a>
+        {% else %}
+        <span style="color: gray;">Báo cáo thuế (Nâng cấp để sử dụng)</span>
+        {% endif %}
+    </nav>
+    <div class="content">
+        {% block content %}{% endblock %} </div>
+</body>
+
+</html>
