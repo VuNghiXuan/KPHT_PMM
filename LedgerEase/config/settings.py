@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # Apps hệ thống Django
+    'jazzmin',  # ĐẶT DÒNG NÀY TRƯỚC 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,12 +40,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Thư viện app cài thêm
+    'widget_tweaks', #pip install django-widget-tweaks khắc phục lỗi {{ field|add_class:"form-control" }} khi cấu hình giao diện kế thừa django admin
+
     # Apps thêm vào
     'django.contrib.humanize', # Chuẩn hoá tiếng việt trên giao diện và template HTML, filter |intcomma (chưa thực hiện)
     'apps.core', # Module lõi (Tenant, User, Profile)
     'apps.accounting', # Nghiệp vụ kế toán
     'apps.subscriptions' # Định nghĩa các gói dịch vụ
 
+
+   
 ]
 
 MIDDLEWARE = [
@@ -132,11 +138,51 @@ FORMAT_MODULE_PATH = 'config.formats'
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Đăng nhập trước khi sử dụng app
-LOGIN_REDIRECT_URL = '/dashboard/'
+# --- AUTHENTICATION CONFIGURATION ---
+AUTH_USER_MODEL = 'core.User'  # Khai báo Model gốc
+
+# URL xử lý đăng nhập & chuyển hướng
+# Sử dụng đường dẫn tuyệt đối (tránh lỗi namespace khi app chưa sẵn sàng)
+LOGIN_URL = '/core/login/'
+
+LOGOUT_REDIRECT_URL = 'core:login'
+
+# Tùy chỉnh: Chuyển hướng nếu user đã login nhưng profile chưa setup
+LOGIN_REDIRECT_URL = '/dashboard/' # Nơi đưa người dùng đến sau khi login thành công
+
+
+JAZZMIN_SETTINGS = {
+    "site_title": "LedgerEase Admin",
+    "site_header": "LedgerEase",
+    "site_brand": "LedgerEase",
+    "welcome_sign": "Chào mừng đến với hệ thống quản trị",
+    
+    # Đồng bộ màu sắc với Sidebar #2c3e50 của bạn
+    # "custom_css": "css/custom_admin.css",  # Bạn có thể tạo file này để tinh chỉnh thêm
+    "custom_css": "css/ledger_theme.css",
+    "theme": "flatly",  # Theme này có tone màu sáng, sạch sẽ và chuyên nghiệp
+    
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    
+    # Đồng bộ các menu
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "core.Company": "fas fa-building",
+        "core.Profile": "fas fa-user",
+    },
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_fixed": True,           # Cố định Navbar trên đầu
+    "sidebar_fixed": True,          # Cố định Sidebar
+    "layout_boxed": False,          # QUAN TRỌNG: Phải là False
+    "sidebar": "sidebar-dark-primary",
+}

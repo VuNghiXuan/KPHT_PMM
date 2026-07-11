@@ -1,8 +1,28 @@
-# Trong apps/core/models.py
-from apps.subscriptions.models import SubscriptionPlan
+# apps/core/models.py
+"""
+Định nghĩa các Model nền tảng cho hệ thống Multi-tenant: User, Company và Profile.
+"""
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from apps.subscriptions.models import SubscriptionPlan
 from .middleware import get_current_company
+
+class User(AbstractUser):
+    """
+    User model tùy chỉnh, dùng làm đối tượng xác thực chính của hệ thống.
+    """
+    class Meta:
+        verbose_name = "Người dùng"
+        verbose_name_plural = "Người dùng"
+
+    @property
+    def has_profile(self):
+        """
+        Kiểm tra người dùng đã có liên kết Profile chưa.
+        Returns: bool: True nếu đã có profile.
+        """
+        return hasattr(self, 'profile')
 
 class Company(models.Model):
     """
@@ -10,25 +30,20 @@ class Company(models.Model):
     """
     name = models.CharField(max_length=255, verbose_name="Tên công ty")
     tax_code = models.CharField(max_length=20, unique=True, db_index=True, verbose_name="Mã số thuế")
-    plan = models.ForeignKey(
-        SubscriptionPlan, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        verbose_name="Gói dịch vụ"
-    )
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True, verbose_name="Gói dịch vụ")
     is_active = models.BooleanField(default=True, verbose_name="Trạng thái hoạt động")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
 
     class Meta:
         verbose_name = "Công ty"
-        verbose_name_plural = "Các công ty"
+        verbose_name_plural = "Công ty"
 
     def __str__(self):
         return f"{self.name} ({self.tax_code})"
 
 class CompanyManager(models.Manager):
     """
-    Manager tự động lọc dữ liệu theo công ty đang đăng nhập.
+    Manager tự động lọc dữ liệu theo công ty đang đăng nhập qua Middleware.
     """
     def get_queryset(self):
         company = get_current_company()
@@ -38,28 +53,29 @@ class CompanyManager(models.Manager):
 
 class CompanyScopedModel(models.Model):
     """
-    Abstract Model bắt buộc kế thừa cho mọi dữ liệu nghiệp vụ kế toán.
+    Abstract Model bắt buộc kế thừa cho mọi dữ liệu nghiệp vụ kế toán (Chứng từ, Sổ cái).
     """
-    company = models.ForeignKey(
-        Company, 
-        on_delete=models.CASCADE, 
-        verbose_name="Công ty sở hữu",
-        db_index=True
-    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name="Công ty sở hữu")
+    objects = CompanyManager() # Áp dụng manager lọc theo tenant
 
     class Meta:
         abstract = True
 
 class Profile(models.Model):
     """
-    Mở rộng thông tin User để gắn với một công ty cụ thể.
+    Mở rộng thông tin người dùng gắn với công ty.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Người dùng", related_name="profile")
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name="Công ty làm việc", related_name="members")
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name="profile"
+    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="members")
+    
     
     class Meta:
         verbose_name = "Hồ sơ người dùng"
         verbose_name_plural = "Hồ sơ người dùng"
 
     def __str__(self):
-        return f"{self.user.username} | {self.company.name}"
+        return f"{self.user.username} - {self.company.name}"

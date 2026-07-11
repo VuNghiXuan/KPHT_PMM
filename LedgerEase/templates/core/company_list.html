@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block page_title %}Chọn công ty để làm việc{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Danh sách công ty</h5>
+                <a href="#" class="btn btn-primary btn-sm">+ Thêm công ty mới</a>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <input type="text" class="form-control" placeholder="Tìm kiếm công ty...">
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên công ty</th>
+                                <th>Mã số thuế</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for company in companies %}
+                            <tr>
+                                <td><strong>{{ company.name }}</strong></td>
+                                <td>{{ company.tax_code }}</td>
+                                <td><span class="badge bg-success">Đang hoạt động</span></td>
+                                <td>
+                                    <a href="{% url 'core:switch-company' company.id %}"
+                                        class="btn btn-sm btn-outline-primary">Chọn</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">Bạn chưa có công ty nào.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
