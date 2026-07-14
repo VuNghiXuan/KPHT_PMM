@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.urls import reverse
 from .forms_profile_customer import ProfileSetupForm # Giả sử bạn đã có form này
+from django.views.decorators.csrf import csrf_protect
+
 
 
 def debug_auth_config(request):
@@ -19,6 +21,8 @@ def debug_auth_config(request):
     except Exception as e:
         print(f"DEBUG: Could not resolve core:login - {e}")
 
+
+@csrf_protect
 @transaction.atomic
 def register_view(request):
     if request.method == 'POST':
@@ -55,6 +59,7 @@ def register_view(request):
 
 
 @login_required(login_url='core:login')
+
 def dashboard_view(request):
     """
     Hiển thị bảng điều khiển. Yêu cầu người dùng phải đăng nhập.
@@ -63,8 +68,13 @@ def dashboard_view(request):
     if not request.user.has_profile:
         return redirect('core:profile-setup')
     
-    return render(request, 'dashboard.html')
-
+    # Lấy toàn bộ gói dịch vụ từ database
+    all_plans = SubscriptionPlan.objects.all()
+    
+    context = {
+        'all_plans': all_plans,
+    }
+    return render(request, 'dashboard.html', context)
 
 @login_required
 def profile_setup_view(request):

@@ -4,21 +4,25 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <h6 class="text-uppercase text-muted">Số dư tài khoản</h6>
-                <h3 class="mt-2 text-primary">150.000.000 VNĐ</h3>
+                <h6 class="text-uppercase text-muted">Thông tin công ty</h6>
+                <h4 class="mt-2 text-primary">{{ request.user.profile.company.name }}</h4>
+                <p class="text-muted mb-0"><strong>MST:</strong> {{ request.user.profile.company.tax_code }}</p>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-light h-100">
             <div class="card-body">
-                <h6 class="text-uppercase text-muted">Công ty</h6>
-                <h5 class="mt-2">{{ request.user.profile.company.name }}</h5>
-                <small class="text-muted">MST: {{ request.user.profile.company.tax_code }}</small>
+                <h6 class="text-uppercase text-muted">Gói dịch vụ hiện tại</h6>
+                {% if request.user.profile.company.plan %}
+                    <h4 class="mt-2 text-success">{{ request.user.profile.company.plan.name }}</h4>
+                {% else %}
+                    <h5 class="mt-2 text-danger">Chưa chọn gói dịch vụ</h5>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -26,11 +30,25 @@
 
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">Gần đây</div>
-            <div class="card-body">
-                <p>Chưa có chứng từ nào được ghi nhận.</p>
+        <h5 class="mb-3">Danh sách các gói dịch vụ khả dụng</h5>
+        <div class="row">
+            {% for plan in all_plans %}
+            <div class="col-md-4">
+                <div class="card {% if request.user.profile.company.plan == plan %}border-success{% endif %}">
+                    <div class="card-body">
+                        <h5>{{ plan.name }}</h5>
+                        <h4 class="text-primary">{{ plan.price }} VNĐ/tháng</h4>
+                        <p>{{ plan.description }}</p>
+                        
+                        {% if request.user.profile.company.plan == plan %}
+                            <button class="btn btn-success w-100" disabled>Đang sử dụng</button>
+                        {% else %}
+                            <a href="{% url 'subscriptions:upgrade' plan.id %}" class="btn btn-outline-primary w-100">Nâng cấp ngay</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 </div>
