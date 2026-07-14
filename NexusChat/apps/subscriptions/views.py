@@ -28,6 +28,10 @@ def upgrade_plan_view(request, plan_id: int):
     """
     Xử lý logic nâng cấp gói dịch vụ cho Công ty.
     """
+    if not hasattr(request.user, 'profile'):
+        messages.info(request, "Vui lòng thiết lập thông tin công ty trước khi nâng cấp gói.")
+        return redirect('core:profile-setup')
+    
     new_plan = get_object_or_404(SubscriptionPlan, pk=plan_id)
     company = request.user.profile.company
     

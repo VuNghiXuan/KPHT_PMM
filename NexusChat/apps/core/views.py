@@ -10,6 +10,7 @@ from django.conf import settings
 from django.urls import reverse
 from .forms_profile_customer import ProfileSetupForm # Giả sử bạn đã có form này
 from django.views.decorators.csrf import csrf_protect
+from apps.group_chat.models import ChatGroup #
 
 
 
@@ -36,11 +37,11 @@ def register_view(request):
                 
                 # 2. Tạo Công ty (Dùng slug thay vì ID)
                 # Giả sử bạn có slug='basic' cho gói cơ bản
-                basic_plan = SubscriptionPlan.objects.get(slug='basic') 
+                basic_plan = SubscriptionPlan.objects.filter(slug='basic').first() 
                 company = Company.objects.create(
                     name=form.cleaned_data['company_name'],
                     tax_code=form.cleaned_data['tax_code'],
-                    plan=basic_plan
+                    plan=basic_plan # Có thể là None nếu không tìm thấy gói
                 )
                 
                 # 3. Tạo Profile
@@ -59,22 +60,19 @@ def register_view(request):
 
 
 @login_required(login_url='core:login')
-
 def dashboard_view(request):
-    """
-    Hiển thị bảng điều khiển. Yêu cầu người dùng phải đăng nhập.
-    """
-    # Bây giờ, request.user chắc chắn là một đối tượng User thực (không phải AnonymousUser)
-    if not request.user.has_profile:
-        return redirect('core:profile-setup')
-    
-    # Lấy toàn bộ gói dịch vụ từ database
+    user_profile = getattr(request.user, 'profile', None)
     all_plans = SubscriptionPlan.objects.all()
+    # Nhóm chat lấy theo user, không cần điều kiện profile
+    my_groups = ChatGroup.objects.filter(members=request.user) 
     
     context = {
+        'user_profile': user_profile,
         'all_plans': all_plans,
+        'my_groups': my_groups,
     }
     return render(request, 'dashboard.html', context)
+
 
 @login_required
 def profile_setup_view(request):

@@ -1,7 +1,7 @@
 """
 File: apps/subscriptions/models.py
 Mô tả: Quản lý các gói dịch vụ, tính năng và đăng ký sử dụng của các Tenant (Công ty).
-Tác giả: LedgerEase Engineering Team
+Tác giả: NexusChat Engineering Team
 Liên kết: 
     - apps.core.models (Company)
 """

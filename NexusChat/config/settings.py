@@ -11,9 +11,22 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Thêm vào cuối file hoặc mục cấu hình AI
+# VECTOR_DB_PATH = os.path.join(BASE_DIR, 'vector_db')
+VECTOR_DB_PATH = os.path.join(BASE_DIR, 'core', 'vector_db')
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL')
+OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL')
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -46,7 +59,10 @@ INSTALLED_APPS = [
     # Apps thêm vào
     'django.contrib.humanize', # Chuẩn hoá tiếng việt trên giao diện và template HTML, filter |intcomma (chưa thực hiện)
     'apps.core', # Module lõi (Tenant, User, Profile)
-    'apps.accounting', # Nghiệp vụ kế toán
+    'apps.group_chat',
+    'channels',
+    'apps.ai_assistant',
+    # 'apps.accounting', # Nghiệp vụ kế toán
     'apps.subscriptions' # Định nghĩa các gói dịch vụ
 
 
@@ -149,19 +165,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'core.User'  # Khai báo Model gốc
 
 # URL xử lý đăng nhập & chuyển hướng
-# Sử dụng đường dẫn tuyệt đối (tránh lỗi namespace khi app chưa sẵn sàng)
-LOGIN_URL = '/core/login/'
-
-LOGOUT_REDIRECT_URL = 'core:login'
-
-# Tùy chỉnh: Chuyển hướng nếu user đã login nhưng profile chưa setup
-LOGIN_REDIRECT_URL = '/dashboard/' # Nơi đưa người dùng đến sau khi login thành công
+LOGIN_URL = 'core:login'
+LOGIN_REDIRECT_URL = 'core:dashboard' # Trang chủ sau khi đăng nhập
+LOGOUT_REDIRECT_URL = 'core:login'    # Trang chủ sau khi đăng xuất
 
 
 JAZZMIN_SETTINGS = {
-    "site_title": "LedgerEase Admin",
-    "site_header": "LedgerEase",
-    "site_brand": "LedgerEase",
+    "site_title": "NexusChat Admin",
+    "site_header": "NexusChat",
+    "site_brand": "NexusChat",
     "welcome_sign": "Chào mừng đến với hệ thống quản trị",
     
     # Đồng bộ màu sắc với Sidebar #2c3e50 của bạn
@@ -186,3 +198,10 @@ JAZZMIN_UI_TWEAKS = {
     "layout_boxed": False,          # QUAN TRỌNG: Phải là False
     "sidebar": "sidebar-dark-primary",
 }
+
+
+# Thêm cấu hình kết nối tới Redis (chạy mặc định trên port 6379):
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'

@@ -2,7 +2,7 @@ import os
 import ast
 
 def get_manifest_content(root_dir):
-    manifest = ["# LedgerEase Project Manifest\n"]
+    manifest = ["# NexusChat Project Manifest\n"]
     
     # Duyệt qua các apps
     apps_path = os.path.join(root_dir, 'apps')

@@ -9,9 +9,26 @@ from apps.subscriptions.models import SubscriptionPlan
 from .middleware import get_current_company
 
 class User(AbstractUser):
-    """
-    User model tùy chỉnh, dùng làm đối tượng xác thực chính của hệ thống.
-    """
+    # Ghi đè quan hệ groups
+    groups = models.ManyToManyField(
+        'auth.Group',
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        related_name="core_user_set", # Thay đổi related_name tại đây
+        related_query_name="user",
+    )
+    
+    # Ghi đè quan hệ user_permissions
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        verbose_name='user permissions',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        related_name="core_user_set", # Thay đổi related_name tại đây
+        related_query_name="user",
+    )
+
     class Meta:
         verbose_name = "Người dùng"
         verbose_name_plural = "Người dùng"

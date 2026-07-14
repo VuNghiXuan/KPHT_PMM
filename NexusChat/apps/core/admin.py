@@ -1,7 +1,7 @@
 """
 File: apps/core/admin.py
 Mô tả: Đăng ký các model core (User, Company, Profile) vào Django Admin UI.
-Tác giả: LedgerEase Engineering Team
+Tác giả: NexusChat Engineering Team
 """
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin

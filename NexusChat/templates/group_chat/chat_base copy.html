@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>NexusChat - {% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-w: 280px;
+            --kb-w: 300px;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .chat-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-w);
+            background: #fff;
+            border-right: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fdfdfd;
+        }
+
+        .kb-sidebar {
+            width: var(--kb-w);
+            background: #f8f9fa;
+            border-left: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Nút gửi và Input */
+        .chat-input-area {
+            padding: 20px;
+            background: #fff;
+            border-top: 1px solid #eee;
+        }
+
+        .ai-config-panel {
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <div class="p-3 border-bottom d-flex align-items-center">
+                <a href="{% url 'core:dashboard' %}" class="btn btn-sm btn-outline-dark me-2"><i
+                        class="fas fa-home"></i></a>
+                <h6 class="mb-0 fw-bold">NexusChat</h6>
+            </div>
+            <nav class="nav nav-pills flex-column p-2">
+                <a class="nav-link active" href="#"><i class="fas fa-users me-2"></i> Nhóm hiện tại</a>
+                <a class="nav-link" href="#"><i class="fas fa-user-friends me-2"></i> Danh sách bạn bè</a>
+            </nav>
+            <div class="p-3 flex-grow-1 overflow-auto">
+                <small class="text-muted fw-bold">THÀNH VIÊN</small>
+                {% for member in group.members.all %}
+                <div class="user-item py-2"><i class="fas fa-circle text-success fa-xs me-2"></i> {{ member.username }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ group.name }}</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-phone"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-video"></i></button>
+                </div>
+            </div>
+
+            <div class="chat-messages flex-grow-1 overflow-auto p-4">
+                {% block chat_content %}{% endblock %}
+            </div>
+
+            <div class="chat-input-area">
+                <div class="ai-config-panel d-flex align-items-center gap-3">
+                    <small><i class="fas fa-robot text-primary"></i> <b>AI Model:</b></small>
+                    <select class="form-select form-select-sm w-auto">
+                        <option>GPT-4o</option>
+                        <option>Claude 3.5</option>
+                        <option>Nexus-Custom</option>
+                    </select>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" checked>
+                        <label class="form-check-label">Voice-to-Text</label>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <button class="btn btn-outline-secondary"><i class="fas fa-smile"></i></button>
+                    <input type="text" class="form-control" placeholder="Nhập tin nhắn...">
+                    <button class="btn btn-primary px-4"><i class="fas fa-paper-plane"></i> Gửi</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="kb-sidebar">
+            <div class="p-3 border-bottom bg-white">
+                <h6><i class="fas fa-book me-2"></i> Tài liệu nhóm</h6>
+            </div>
+            <div class="p-3 overflow-auto">
+                <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal"
+                    data-bs-target="#uploadModal">
+                    <i class="fas fa-plus"></i> Thêm tài liệu
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-# LedgerEase Project Manifest
+# NexusChat Project Manifest
 
 ## 1. Hệ thống Modules (Apps)
 - **accounting**: [Điền mô tả nghiệp vụ tại đây]
