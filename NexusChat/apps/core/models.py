@@ -59,14 +59,15 @@ class Company(models.Model):
         return f"{self.name} ({self.tax_code})"
 
 class CompanyManager(models.Manager):
-    """
-    Manager tự động lọc dữ liệu theo công ty đang đăng nhập qua Middleware.
-    """
     def get_queryset(self):
         company = get_current_company()
         if company:
+            # Nếu có công ty, chỉ lọc dữ liệu của công ty đó
             return super().get_queryset().filter(company=company)
-        return super().get_queryset().none()
+        # Nếu là User cá nhân (None), bạn có thể:
+        # Cách 1: Trả về .none() (Để bảo mật, cá nhân không thấy dữ liệu công ty)
+        # Cách 2: Trả về .filter(company__isnull=True) (Nếu bạn muốn tách biệt dữ liệu cá nhân)
+        return super().get_queryset().filter(company__isnull=True)
 
 class CompanyScopedModel(models.Model):
     """
@@ -80,19 +81,34 @@ class CompanyScopedModel(models.Model):
 
 class Profile(models.Model):
     """
-    Mở rộng thông tin người dùng gắn với công ty.
+    Mở rộng thông tin người dùng. 
+    Field 'company' hiện tại là tùy chọn để hỗ trợ cả User cá nhân và User doanh nghiệp.
     """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
         related_name="profile"
     )
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="members")
-    
+    # Thêm null=True và blank=True để user có thể đăng ký mà không cần công ty
+    company = models.ForeignKey(
+        Company, 
+        on_delete=models.SET_NULL, # Dùng SET_NULL để không xóa profile khi công ty bị xóa
+        related_name="members", 
+        null=True, 
+        blank=True,
+        verbose_name="Công ty (Tùy chọn)"
+    )
     
     class Meta:
         verbose_name = "Hồ sơ người dùng"
         verbose_name_plural = "Hồ sơ người dùng"
 
     def __str__(self):
-        return f"{self.user.username} - {self.company.name}"
+        company_name = self.company.name if self.company else "Cá nhân"
+        return f"{self.user.username} - {company_name}"
+
+class DevDashboard(models.Model):
+    class Meta:
+        managed = False  # Django sẽ không tạo bảng trong DB cho model này
+        verbose_name = "Dashboard Kiến trúc"
+        verbose_name_plural = "NexusChat Dev"

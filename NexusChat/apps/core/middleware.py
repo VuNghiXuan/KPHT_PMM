@@ -13,16 +13,15 @@ def get_current_company():
 
 class CompanyMiddleware(MiddlewareMixin):
     """
-    Middleware chặn mọi request để xác định công ty của User.
+    Middleware xác định công ty của User một cách an toàn.
     """
     def process_request(self, request):
-        # 1. Kiểm tra User đã đăng nhập chưa
+        _thread_locals.company = None  # Reset về None mặc định
+        
         if request.user.is_authenticated:
-            try:
-                # 2. Gán company vào biến thread-local để dùng toàn cục
-                _thread_locals.company = request.user.profile.company
-            except AttributeError:
-                # Nếu User chưa có Profile (ví dụ: Admin chưa gắn công ty)
+            # Dùng getattr để lấy profile một cách an toàn, tránh lỗi AttributeError
+            profile = getattr(request.user, 'profile', None)
+            if profile and profile.company:
+                _thread_locals.company = profile.company
+            else:
                 _thread_locals.company = None
-        else:
-            _thread_locals.company = None

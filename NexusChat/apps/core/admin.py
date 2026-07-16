@@ -6,6 +6,8 @@ Tác giả: NexusChat Engineering Team
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User, Company, Profile
+from .models import DevDashboard
+from django.shortcuts import redirect
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
@@ -41,3 +43,16 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {'fields': ('email',)}),
     )
+
+@admin.register(DevDashboard)
+class DevDashboardAdmin(admin.ModelAdmin):
+    # Khi nhấn vào menu này, nó redirect sang trang Dashboard
+    def changelist_view(self, request, extra_context=None):
+        return redirect('/dev/architecture/')
+    
+    # Ẩn nút "Add" vì ta không cần thêm record vào đây
+    def has_add_permission(self, request, obj=None):
+        return False
+        
+    def has_change_permission(self, request, obj=None):
+        return False

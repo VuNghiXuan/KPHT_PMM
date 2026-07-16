@@ -1,3 +1,8 @@
+"""
+Luồng AI: ChatGroup -> VectorDB -> LLM -> Message.
+Mục đích: Xử lý RAG tự động mỗi khi có tin nhắn mới.
+Người chịu trách nhiệm: RAGEngine Service
+"""
 import openai, google.generativeai as genai, requests
 from django.conf import settings
 

@@ -6,7 +6,7 @@ from django.conf import settings
 class LLMService:
     """
     Service xử lý kết nối linh hoạt tới các LLM Provider.
-    Lấy thông số từ settings.py (vốn đã load từ file .env).
+    Lấy thông số từ settings.py (vốn đã load từ file .env).    
     """
 
     @staticmethod

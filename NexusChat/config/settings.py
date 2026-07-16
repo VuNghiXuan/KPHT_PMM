@@ -55,9 +55,10 @@ INSTALLED_APPS = [
 
     # Thư viện app cài thêm
     'widget_tweaks', #pip install django-widget-tweaks khắc phục lỗi {{ field|add_class:"form-control" }} khi cấu hình giao diện kế thừa django admin
+    'django.contrib.humanize', # Chuẩn hoá tiếng việt trên giao diện và template HTML, filter |intcomma (chưa thực hiện)
+    
 
     # Apps thêm vào
-    'django.contrib.humanize', # Chuẩn hoá tiếng việt trên giao diện và template HTML, filter |intcomma (chưa thực hiện)
     'apps.core', # Module lõi (Tenant, User, Profile)
     'apps.group_chat',
     'channels',
