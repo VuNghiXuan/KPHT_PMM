@@ -1,0 +1,16 @@
+graph TD
+    %% Nhánh 1: Upload tài liệu
+    UserA[Người dùng] -->|Upload file| DocProcessor[FileProcessor]
+    DocProcessor -->|Trích xuất text & metadata| VectorDB[(Vector Database)]
+    
+    %% Nhánh 2: Thảo luận & gọi AI
+    UserA -->|Chat @AI| Channel[Django Channels]
+    Channel -->|Trigger| RAG[VectorStoreService]
+    RAG -->|Lấy ngữ cảnh| VectorDB
+    RAG -->|Gửi prompt| AIFactory[AIFactory]
+    AIFactory -->|Phản hồi| AI_Response[AI Trả lời]
+    
+    %% Nhánh 3: Feedback Loop (Thông minh)
+    AI_Response -->|Người dùng Dislike/Sửa| Feedback[KnowledgeFeedback]
+    Feedback -->|AI tóm tắt & hỏi lại| AI_Validation[AI Validation Flow]
+    AI_Validation -->|Duyệt kiến thức mới| VectorDB

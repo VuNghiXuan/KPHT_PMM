@@ -1,6 +1,5 @@
 # NexusChat Project Manifest
-
-> *Cập nhật lần cuối: 16/Jul/26*
+> *Cập nhật lần cuối: 18/Jul/26*
 
 ## 1. Hệ thống Modules (Apps)
 - **accounting**: Chưa có mô tả nghiệp vụ
@@ -47,6 +46,7 @@ Luồng chính: `ChatGroup` -> `VectorDB` (RAG) -> `LLM` -> `Message`.
 - **Class CompanyManager**: Chưa có mô tả
 - **Class CompanyScopedModel**: Abstract Model bắt buộc kế thừa cho mọi dữ liệu nghiệp vụ kế toán (Chứng từ, Sổ cái).
 - **Class Profile**: Mở rộng thông tin người dùng. 
+- **Class DevDashboard**: Chưa có mô tả
 #### File: `views.py`
 
 ### App: group_chat
@@ -54,7 +54,7 @@ Luồng chính: `ChatGroup` -> `VectorDB` (RAG) -> `LLM` -> `Message`.
 *File: apps/group_chat/models.py*
 - **Class ChatGroup**: Class đại diện cho một nhóm chat riêng biệt.
 - **Class Membership**: Class quản lý quyền của thành viên trong nhóm.
-- **Class Message**: Chưa có mô tả
+- **Class Message**: Class đại diện cho tin nhắn trong nhóm.
 #### File: `views.py`
 
 ### App: subscriptions

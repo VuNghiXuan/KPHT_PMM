@@ -1,0 +1,136 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<style>
+    .tab-nav {
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .admin-tab-btn {
+        background: #79aec8;
+        color: #fff;
+        border: none;
+        padding: 8px 15px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+
+    /* Style cho nút tải file */
+    .btn-download {
+        background: #417690;
+        color: #fff;
+        padding: 8px 15px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .btn-download:hover {
+        background: #355f75;
+    }
+
+    #erd-wrapper {
+        width: 100%;
+        height: 70vh;
+        background: #fff;
+        border: 1px solid #ddd;
+        overflow: hidden;
+        position: relative;
+        cursor: grab;
+    }
+
+    #mermaid-container {
+        transform-origin: 0 0;
+        display: inline-block;
+        min-width: 5000px;
+        transition: transform 0.1s ease-out;
+    }
+
+    .mermaid svg {
+        max-width: none !important;
+        height: auto !important;
+    }
+</style>
+
+<div class="tab-nav">
+    <button class="admin-tab-btn" onclick="showTab('erd')">ERD Diagram</button>
+    <button class="admin-tab-btn" onclick="showTab('manifest')">Project Manifest</button>
+    <a href="{% url 'download_manifest' %}" class="btn-download">Tải PROJECT_MANIFEST.md</a>
+</div>
+
+<div id="erd" class="tab-content" style="display: block;">
+    <div id="erd-wrapper">
+        <div id="mermaid-container" class="mermaid">{{ mermaid_code|safe }}</div>
+    </div>
+    <div style="margin-top: 10px; color: #666; font-size: 12px;">
+        * Sử dụng chuột để lăn zoom và kéo di chuyển.
+    </div>
+</div>
+
+<div id="manifest" class="tab-content" style="display:none;">
+    <pre style="white-space: pre-wrap; background: #eee; padding: 15px;">{{ manifest_content }}</pre>
+</div>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default',
+        flowchart: {
+            htmlLabels: true,    // Dùng HTML/Div cho các ô
+            curve: 'basis'
+        },
+        // BỔ SUNG ĐOẠN NÀY ĐỂ TRÁNH MẤT CHỮ:
+        themeVariables: {
+            fontSize: '16px',
+            fontFamily: 'Arial, sans-serif'
+        }
+    });
+
+    const container = document.getElementById('mermaid-container');
+    const wrapper = document.getElementById('erd-wrapper');
+
+    let scale = 1;
+    let posX = 50;
+    let posY = 50;
+
+    async function renderMermaid() {
+        const { svg } = await mermaid.render('mermaid-svg', container.innerText.trim());
+        container.innerHTML = svg;
+        updateTransform();
+    }
+
+    function updateTransform() {
+        container.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+    }
+
+    wrapper.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+        scale *= zoomFactor;
+        scale = Math.min(Math.max(scale, 0.1), 5);
+        updateTransform();
+    }, { passive: false });
+
+    let isDragging = false;
+    wrapper.addEventListener('mousedown', () => isDragging = true);
+    window.addEventListener('mouseup', () => isDragging = false);
+    wrapper.addEventListener('mousemove', (e) => {
+        if (isDragging) { posX += e.movementX; posY += e.movementY; updateTransform(); }
+    });
+
+    window.showTab = (id) => {
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        if (id === 'erd') renderMermaid();
+    }
+
+    renderMermaid();
+</script>
+{% endblock %}

@@ -1,0 +1,107 @@
+Để tổng kết lại những gì chúng ta đã xây dựng cho SyncroMind – hệ thống quản trị năng suất nhóm tích hợp AI, đây là kiến trúc toàn diện mà tôi đã thiết lập cho bạn:
+
+1. Kiến trúc Tổng thể (Modular Monolith)
+Chúng ta đã chia dự án thành các module độc lập để dễ dàng bảo trì và mở rộng:
+
+apps.core: Nền tảng quản lý người dùng và các cấu hình cơ bản.
+
+apps.group_chat: Module "trái tim" quản lý nhóm, phân quyền chủ nhóm/thành viên và hệ thống tin nhắn thời gian thực.
+
+apps.ai_assistant: "Bộ não" thông minh của hệ thống.
+
+apps.subscriptions: Module quản lý gói dịch vụ (Free/Pro) dựa trên số lượng thành viên.
+
+2. Luồng dữ liệu "Thông minh" (Smart Pipeline)
+Chúng ta đã thiết lập một quy trình khép kín giúp AI thực sự hiểu chuyên môn của nhóm bạn mà không tốn kém token vô ích:
+
+Ingestion (Nạp liệu): Khi bạn upload file (Docx, Excel, Ảnh, Text), hệ thống tự động chạy FileProcessor để trích xuất nội dung thành Text/Markdown.
+
+Embedding & Vector DB: Sử dụng ChromaDB để lưu trữ các "điểm dữ liệu" này theo group_id, đảm bảo dữ liệu nhóm này không bị lộ sang nhóm kia.
+
+Automation: Sử dụng Django Signals để quá trình này diễn ra hoàn toàn tự động ngay khi file được lưu vào database.
+
+3. Công nghệ kết nối AI (AI Factory)
+Chúng ta đã tạo ra một "Nhà máy AI" (AIFactory) cực kỳ linh hoạt:
+
+Đa dạng Provider: Bạn có thể đổi qua lại giữa Groq (Llama), Google (Gemini), hoặc Ollama (Local LLM) chỉ bằng cách thay đổi cấu hình trong DB.
+
+Cấu hình linh động: Người dùng có thể tự thêm Key, tự chọn Model và đặt làm mặc định thông qua giao diện AIConfig.
+
+RAG (Retrieval-Augmented Generation): AI không đoán mò. Nó luôn truy vấn vào VectorDB của nhóm trước khi trả lời, giúp thông tin luôn chính xác theo tài liệu nội bộ.
+
+4. Hệ thống Chat thời gian thực (Real-time Communication)
+Chúng ta đã thiết lập Django Channels để thay thế cho HTTP truyền thống:
+
+WebSockets: Cho phép tin nhắn hiện lên tức thì cho tất cả thành viên trong nhóm mà không cần tải lại trang.
+
+AI Consumer: AI được thiết lập như một "thành viên thứ 6" tự động. Chỉ cần người dùng ping @AI trong khung chat, hệ thống sẽ tự động kích hoạt Service AI xử lý và trả kết quả về nhóm.
+
+5. Hạ tầng kỹ thuật đã sẵn sàng
+Bạn đã cài đặt đầy đủ các thư viện "hạng nặng":
+
+OCR: EasyOCR (đọc hình ảnh nội bộ không tốn token).
+
+Phân tích dữ liệu: Pandas, Openpyxl (xử lý file Excel/Word cực chuẩn).
+
+Tính toán: Torch, NumPy, Scipy.
+
+Tóm tắt "SyncroMind" trong 1 câu:
+Một nền tảng chat nhóm mà ở đó AI đóng vai trò chuyên gia tư vấn nội bộ, có khả năng đọc hiểu tài liệu chuyên sâu của công ty bạn (RAG), hỗ trợ đa dạng AI model, và vận hành thời gian thực với trải nghiệm mượt mà như các ứng dụng chat hiện đại.
+
+Với cấu trúc hiện tại, nếu 1000 người cùng hỏi AI, Server sẽ "chết" vì API request đến Groq/Gemini đều là Blocking. Dưới đây là lộ trình mở rộng (Scaling Path) cho ai_assistant:
+
+1. Kiến trúc Scaling (Lộ trình mở rộng)
+Giai đoạn 1 (Hiện tại): Chạy services.py trực tiếp trong View.
+
+Giai đoạn 2 (Bắt buộc): Chuyển việc gọi AI sang Celery + Redis. User gửi tin nhắn -> View đẩy Task vào Queue -> Celery worker xử lý background -> Webhook/WebSocket đẩy phản hồi về UI.
+
+Giai đoạn 3 (Enterprise): Chuyển sang mô hình Micro-services. Module AI nằm trên một server riêng, chỉ giao tiếp với Core qua Message Broker (RabbitMQ).
+
+2. Tối ưu code services.py để hỗ trợ RAG quy mô lớn
+Với hàng ngàn nhóm, vector_service.query sẽ là điểm nghẽn. Bạn cần tối ưu hóa bằng cách dùng "Namespace/Collection per Group" trong VectorDB.
+
+Python
+# Cập nhật để hỗ trợ scaling
+class AIFactory:
+    @staticmethod
+    def get_response_async(user, prompt, group=None, use_rag=False):
+        """
+        Thay vì trả về kết quả, ta đẩy task vào Celery.
+        Giúp webserver (Gunicorn/Uvicorn) không bị treo.
+        """
+        from .tasks import process_ai_chat_task
+        # Trả về task_id để frontend theo dõi trạng thái
+        return process_ai_chat_task.delay(user.id, prompt, group.id if group else None, use_rag)
+3. Những việc cần làm ngay để "hàng ngàn nhóm" không sập hệ thống
+Caching Chiến lược (Redis): Đừng truy vấn lại AI cho các câu hỏi giống nhau trong cùng một nhóm. Hãy Cache kết quả vào Redis theo khóa: cache_key = f"group_{group.id}_query_{hash(prompt)}".
+
+VectorDB Phân tán: Nếu dùng ChromaDB, đừng để nó chạy local chung với Webserver. Hãy dựng một ChromaDB Server (Docker Container) riêng biệt. Khi quy mô tăng lên, bạn chỉ cần thay đổi địa chỉ IP của server đó.
+
+Throttling & Queueing:
+
+Sử dụng django-ratelimit để giới hạn tần suất gửi tin của người dùng (tránh bị ban API Key từ Groq/Gemini).
+
+Sử dụng Celery Priority Queues: Các nhóm chat Premium (Gói cao cấp) sẽ được ưu tiên vào hàng đợi high_priority_queue, nhóm dùng thử vào default_queue.
+
+4. Chiến lược mở rộng "Kiến thức doanh nghiệp" (Phân loại kiến thức)
+Để vượt mặt Zalo, bạn cần phân loại kiến thức theo 3 tầng:
+
+Tầng Nhóm (Group-level): File, tài liệu chỉ nhóm đó thấy (Dùng group.id làm Filter trong VectorDB).
+
+Tầng Tổ chức (Company-level): Tài liệu chung (VD: Quy định công ty). AI sẽ truy vấn 2 nguồn: Global Context + Local Context.
+
+Tầng Cá nhân (Personal-level): Ghi chú riêng của người dùng.
+
+5. Cấu trúc thư mục tương lai (Để dễ quản lý nghìn nhóm)
+Khi mở rộng, bạn nên chia lại services.py thành các class riêng biệt để dễ bảo trì:
+
+Plaintext
+apps/ai_assistant/
+├── services/
+│   ├── llm_provider.py    # Chứa Factory logic
+│   ├── rag_engine.py      # Xử lý VectorDB, Chunking tài liệu
+│   └── worker_tasks.py    # Celery tasks cho việc xử lý background
+├── vector_store/
+│   └── chromadb_client.py # Quản lý kết nối tới DB
+Câu hỏi quan trọng cho lộ trình tiếp theo:
+Để xử lý hàng ngàn nhóm, việc "đọc file" của bạn sẽ cực kỳ tốn RAM nếu cứ đọc file gốc. Bạn đã có hệ thống "Text Extractor" (chuyển PDF/Docx sang Text thuần) chạy background chưa? Nếu chưa, tôi sẽ viết cho bạn một bộ xử lý file chạy bằng Celery để khi người dùng vừa upload xong, file đã được "nuốt" vào VectorDB sẵn sàng cho AI đọc.

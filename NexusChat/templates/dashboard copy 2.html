@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Tổng quan Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-white rounded shadow-sm border-0">
+                <h4 class="fw-bold">Giao dịch nhóm & dự án</h4>
+                <p class="text-muted">Tổng quan các hoạt động, tài liệu và tiến độ làm việc trong tháng.</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success"><i class="fas fa-plus me-2"></i>Tạo nhóm chat mới</button>
+                    <button class="btn btn-outline-secondary">Xem danh mục nhóm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Metric Cards: Gom lại trên 1 dòng để tránh lỗi render text -->
+    <div class="row g-4 mb-4">
+        {% include "components/metric_card.html" with title="Số tin nhắn tháng" value="1,240" percent="+12.5%"
+        color="success" icon="fa-comments" %}{% include "components/metric_card.html" with title="Tài liệu AI đã xử lý"
+        value="84" percent="-3.4%" color="warning" icon="fa-file-alt" %}{% include "components/metric_card.html" with
+        title="Gói dịch vụ còn hạn" value="28 ngày" percent="+4.2%" color="primary" icon="fa-calendar-check" %}{%
+        include "components/metric_card.html" with title="Thành viên hoạt động" value="46" percent="+6.9%" color="info"
+        icon="fa-users" %}
+        {% include "components/metric_card.html" with title="Tài liệu AI đã xử lý" value="84" percent="-3.4%"
+        color="warning" icon="fa-file-alt" %}
+        {% include "components/metric_card.html" with title="Gói dịch vụ còn hạn" value="28 ngày" percent="+4.2%"
+        color="primary" icon="fa-calendar-check" %}
+        {% include "components/metric_card.html" with title="Thành viên hoạt động" value="46" percent="+6.9%"
+        color="info" icon="fa-users" %}
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 p-3">
+                <h5 class="mb-3">Hoạt động trong 12 tháng qua</h5>
+                <canvas id="activityChart" height="300"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 p-3 h-100">
+                <h5 class="mb-3">Cơ cấu loại tài liệu</h5>
+                <canvas id="documentChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %} <!-- Đã thêm thẻ đóng block content -->
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_data|json_script:"chart-data-data" }}
+
+<script>
+    // Lấy dữ liệu từ thẻ script đã định nghĩa phía trên
+    const chartLabels = JSON.parse(document.getElementById('chart-labels-data').textContent);
+    const chartData = JSON.parse(document.getElementById('chart-data-data').textContent);
+
+    const ctx = document.getElementById('activityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Số tin nhắn/tài liệu',
+                data: chartData,
+                backgroundColor: '#198754',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
+{% endblock extra_js %}

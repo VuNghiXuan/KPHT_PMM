@@ -1,0 +1,21 @@
+{% extends "group_chat/chat_base.html" %}
+
+{% block title %}Tạo nhóm mới{% endblock %}
+
+{% block chat_content %}
+<div class="d-flex justify-content-center align-items-center h-100">
+    <div class="card shadow-sm" style="width: 400px;">
+        <div class="card-body p-4">
+            <h5 class="card-title fw-bold mb-4">Tạo Nhóm Làm Việc Mới</h5>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Tên nhóm</label>
+                    <input type="text" name="name" class="form-control" placeholder="Ví dụ: Đội ngũ KPHT" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Khởi tạo nhóm</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -59,17 +59,40 @@ def register_view(request):
     return render(request, 'registration.html', {'form': form})
 
 
+# @login_required(login_url='core:login')
+# def dashboard_view(request):
+#     user_profile = getattr(request.user, 'profile', None)
+#     all_plans = SubscriptionPlan.objects.all()
+#     # Nhóm chat lấy theo user, không cần điều kiện profile
+#     my_groups = ChatGroup.objects.filter(members=request.user) 
+    
+#     context = {
+#         'user_profile': user_profile,
+#         'all_plans': all_plans,
+#         'my_groups': my_groups,
+#     }
+#     return render(request, 'dashboard.html', context)
+
 @login_required(login_url='core:login')
 def dashboard_view(request):
-    user_profile = getattr(request.user, 'profile', None)
-    all_plans = SubscriptionPlan.objects.all()
-    # Nhóm chat lấy theo user, không cần điều kiện profile
-    my_groups = ChatGroup.objects.filter(members=request.user) 
+    """
+    Hiển thị trang Dashboard với dữ liệu thống kê nhóm và các gói dịch vụ.
     
+    Returns:
+        Rendered template 'dashboard.html' với context đầy đủ.
+    """
+    user = request.user
+    user_profile = getattr(user, 'profile', None)
+    all_plans = SubscriptionPlan.objects.all()
+    my_groups = ChatGroup.objects.filter(members=user) 
+    
+    # Dữ liệu giả lập cho biểu đồ (Trong tương lai sẽ truy vấn từ Model Message/Document)
     context = {
         'user_profile': user_profile,
         'all_plans': all_plans,
         'my_groups': my_groups,
+        'chart_labels': ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+        'chart_data': [120, 150, 180, 200, 240, 280, 310, 350, 380, 410, 450, 480]
     }
     return render(request, 'dashboard.html', context)
 

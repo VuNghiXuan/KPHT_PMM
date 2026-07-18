@@ -1,0 +1,21 @@
+1. Loại hàng "Tất cả" của NCC:
+
+Quy tắc "Tuổi vàng quy đổi đồng nhất" (Loại hàng: Tất cả)
+
+Đây là chính sách của Nhà cung cấp (NCC) áp dụng một công thức quy đổi duy nhất cho mọi giao dịch mua và bán, bất kể hàm lượng vàng thực tế bạn mang tới là bao nhiêu.
+
+Cơ chế: Hệ thống sử dụng một bảng định mức quy đổi cố định (ví dụ: Vàng 96.5 luôn được tính là 62.2, Vàng 60 luôn được tính là 62.2, v.v.).
+
+Ý nghĩa: NCC "chuẩn hóa" mọi giao dịch về một đơn vị tính toán chung (ví dụ: Vàng quy 10). Khi bạn giao dịch, giá trị vàng của bạn sẽ được tự động quy đổi theo tỷ giá của NCC bất chấp tuổi vàng thực tế, giúp việc thanh toán trở nên đồng bộ và nhanh chóng.
+
+Tóm tắt để đưa vào hệ thống:
+Loại hàng: Tất cả
+Mô tả: NCC áp dụng chính sách Định mức quy đổi đồng nhất. Mọi loại vàng khi giao dịch đều được hệ thống tự động quy đổi về một chuẩn tuổi vàng duy nhất theo cấu hình của NCC, đảm bảo giá mua và giá bán áp dụng cùng một bảng tỷ lệ quy đổi cố định
+
+2. Công thức:
+Công vốn = Công gốc + (TLV * Tỷ lệ hao hụt (%) * Tỷ giá vàng (trong Lô hàng)) + Tiền thuế NCC lấy (nếu có trong Lô hàng) + Chi phí khác (nếu có trong Lô hàng).
+Công bán = Công vốn + Lợi nhuận mong muốn
+Tỷ lệ hao hụt (%)= [1-(Tuổi thu/Tuổi bán)]*100%
+Ví đụ tuổi thu 61 tuổi bán 63 => {1-(61/63)}*100%= 3.175%
+Tỷ lệ tính khách (%)= Tuỳ nhập
+

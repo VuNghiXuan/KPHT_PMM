@@ -1,0 +1,3 @@
+Bổ sung nội dung file NCC về công thức
+Nếu chỉ thiết lập tỷ lệ tính khách : chính là chi phí đưa vào công vốn
+Nếu thiết lập tỷ lệ tính khách có thể xem là 1 phân lợi nhuận mong muốn (hoặc tùy người muốn them vào LN mong muốn)
