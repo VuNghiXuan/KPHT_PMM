@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ group.name }} | vnxChatBot Workstation{% endblock %}
+
+<!-- Bổ sung block page_title để Navbar hiển thị đúng tên nhóm động -->
+{% block page_title %}Nhóm: {{ group.name }}{% endblock %}
+
+{% block content %}
+<!-- 
+  File: templates/group_chat/chat_detail.html
+  Mục đích: Workspace 3 cột chuẩn Zalo Web (Icon Navigation - Danh sách nhóm/Tenant - Main Workspace).
+  Thiết kế theo mô hình Group-Centric tuyệt đối của VnxChatBot.
+-->
+<div class="d-flex h-100 w-100 bg-white overflow-hidden" style="height: 100vh; position: fixed; top: 0; left: 0;">
+
+    <!-- ================= CỘT 1: Icon Navigation Sidebar ================= -->
+    <div class="d-flex flex-column align-items-center justify-content-between py-3 bg-dark text-white border-end"
+        style="width: 70px; min-width: 70px; z-index: 10;">
+        <div class="d-flex flex-column align-items-center gap-4">
+            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                style="width: 42px; height: 42px; font-size: 1.1rem;">
+                vX
+            </div>
+            <a href="{% url 'core:dashboard' %}"
+                class="text-white text-opacity-75 text-opacity-100-hover p-2 rounded active"
+                title="Danh sách nhóm & Chat chung">
+                <i class="fas fa-comment-alt fs-5"></i>
+            </a>
+            <a href="#" class="text-white text-opacity-75 text-opacity-100-hover p-2 rounded"
+                title="Kho tài liệu chung (Cloud)">
+                <i class="fas fa-cloud fs-5"></i>
+            </a>
+        </div>
+
+        <div class="d-flex flex-column align-items-center gap-3">
+            <button class="btn btn-link text-white text-opacity-75 p-0" type="button" title="Cài đặt tài khoản">
+                <i class="fas fa-cog fs-5"></i>
+            </button>
+            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+                style="width: 36px; height: 36px; font-size: 0.9rem;">
+                {{ request.user.username|slice:":2"|upper }}
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CỘT 2: Danh sách nhóm & Kênh chat chung ================= -->
+    <div class="d-flex flex-column border-end bg-light" style="width: 300px; min-width: 300px;">
+        <div class="p-3 border-bottom bg-white">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control border-start-0 ps-0" placeholder="Tìm kiếm nhóm, tin nhắn...">
+            </div>
+        </div>
+
+        <div class="flex-grow-1 overflow-auto p-2">
+            <div class="small fw-bold text-muted px-2 mb-2">NHÓM LÀM VIỆC (TENANT)</div>
+
+            {% for grp in user_groups %}
+            <a href="{% url 'group_chat:chat_detail' grp.id %}"
+                class="d-flex align-items-center gap-3 p-2 rounded text-decoration-none mb-1 {% if grp.id == group.id %}bg-primary bg-opacity-10 border border-primary border-opacity-25{% else %}hover-bg-light{% endif %}">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                    style="width: 40px; height: 40px; min-width: 40px;">
+                    {{ grp.name|slice:":2"|upper }}
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="fw-bold text-dark text-truncate">{{ grp.name }}</div>
+                    <small class="text-muted text-truncate d-block">Thảo luận nhóm & AI 🤖</small>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ================= CỘT 3: Main Workspace (Nội dung thay đổi linh hoạt) ================= -->
+    <div class="flex-grow-1 d-flex flex-column h-100 bg-white">
+
+        <!-- Header Nhóm -->
+        <!-- Cột 3: Main Workspace Header -->
+        <div class="px-4 py-2 border-bottom d-flex justify-content-between align-items-center bg-white shadow-sm"
+            style="height: 60px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                    style="width: 38px; height: 38px;">
+                    {{ group.name|slice:":2"|upper }}
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        {{ group.name }}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0"
+                            style="font-size: 0.7rem;">
+                            <i class="fas fa-circle" style="font-size: 0.4rem;"></i> Team & AI Active
+                        </span>
+                    </h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">Tenant ID: {{ group.id }} | Kênh trao đổi
+                        chung</small>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 text-secondary">
+                <button class="btn btn-light btn-sm rounded-circle p-2" type="button" title="Gọi thoại nhóm">
+                    <i class="fas fa-phone-alt"></i>
+                </button>
+                <button class="btn btn-light btn-sm rounded-circle p-2" type="button" title="Gọi video nhóm">
+                    <i class="fas fa-video"></i>
+                </button>
+                <div class="vr mx-1"></div>
+                <!-- Nút bấm chính xác để kích hoạt Offcanvas -->
+                <button class="btn btn-light btn-sm rounded-circle p-2" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#settingsSidebar" aria-controls="settingsSidebar" title="Thông tin & Cấu hình nhóm">
+                    <i class="fas fa-info-circle fs-5 text-primary"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Khung nội dung chính (Chat messages hoặc các view con) -->
+        {% block workspace_content %}
+        <div class="flex-grow-1 overflow-auto p-4 bg-light" id="chat-messages">
+            {% include "group_chat/partials/message_list.html" %}
+        </div>
+
+        <div class="p-3 border-top bg-white">
+            <div class="d-flex align-items-center gap-2 mb-2 text-muted">
+                <button type="button" class="btn btn-sm btn-light text-secondary border-0"
+                    onclick="document.getElementById('file-upload').click()"
+                    title="Tải lên tài liệu nạp vào Kho Tri thức RAG">
+                    <i class="fas fa-paperclip"></i> Đính kèm tài liệu 📁
+                </button>
+                <span class="text-muted small">| Chat chung với mọi người hoặc gõ <b>@ai</b> để hỏi trợ lý thông minh
+                    🧠</span>
+            </div>
+
+            <form id="chat-form" class="input-group">
+                <input type="file" id="file-upload" hidden>
+                <input type="text" id="chat-input" class="form-control rounded-start-3"
+                    placeholder="Nhập tin nhắn trao đổi chung hoặc gọi @ai...">
+                <button type="submit" class="btn btn-primary px-4 rounded-end-3">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+        {% endblock %}
+    </div>
+
+    <!-- ================= OFFCANVAS / PANEL PHẢI: Thông tin nhóm & Cấu hình ================= -->
+    <div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="settingsSidebar"
+        aria-labelledby="settingsSidebarLabel" style="width: 420px; z-index: 1050;">
+
+        <div class="offcanvas-header border-bottom bg-light">
+            <h5 class="offcanvas-title fw-bold text-primary fs-6" id="settingsSidebarLabel">
+                <i class="fas fa-info-circle me-2"></i> Thông tin & Quản lý Nhóm
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <!-- Thanh Navigation Tabs -->
+        <div class="card-header bg-white border-bottom px-3 py-2">
+            <ul class="nav nav-tabs card-header-tabs nav-fill small fw-bold" id="groupSettingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active py-2" id="ai-tab" data-bs-toggle="tab"
+                        data-bs-target="#ai-config-pane" type="button" role="tab" aria-controls="ai-config-pane"
+                        aria-selected="true">
+                        🤖 AI Provider
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-2" id="kb-tab" data-bs-toggle="tab" data-bs-target="#knowledge-pane"
+                        type="button" role="tab" aria-controls="knowledge-pane" aria-selected="false">
+                        🧠 Kho Tri thức
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-2" id="mem-tab" data-bs-toggle="tab" data-bs-target="#members-pane"
+                        type="button" role="tab" aria-controls="members-pane" aria-selected="false">
+                        👥 Thành viên
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Nội dung các Tab được bao bọc chuẩn bởi .tab-content -->
+        <div class="offcanvas-body bg-light p-3">
+            <div class="tab-content" id="groupSettingsContent">
+                <!-- Tab 1: AI Provider -->
+                <div class="tab-pane fade show active" id="ai-config-pane" role="tabpanel" aria-labelledby="ai-tab">
+                    {% include "group_chat/partials/ai_config_tab.html" %}
+                </div>
+                <!-- Tab 2: Kho Tri thức -->
+                <div class="tab-pane fade" id="knowledge-pane" role="tabpanel" aria-labelledby="kb-tab">
+                    {% include "group_chat/partials/knowledge_tab.html" %}
+                </div>
+                <!-- Tab 3: Thành viên -->
+                <div class="tab-pane fade" id="members-pane" role="tabpanel" aria-labelledby="mem-tab">
+                    {% include "group_chat/partials/members_tab.html" %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %} <!-- Đóng content chính -->
+
+{% block extra_js %}
+<script>
+    /**
+     * Quản lý kết nối WebSocket thời gian thực[cite: 1], xử lý hiển thị tin nhắn chat chung giữa các thành viên
+     * và phản hồi từ AI, tích hợp Feedback Loop[cite: 1] cùng tiến trình xử lý FileProcessor qua sự kiện Upload.
+     */
+    const groupId = "{{ group.id }}";
+    const currentUsername = "{{ request.user.username }}";
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${groupId}/`);
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        const chatMessages = document.getElementById('chat-messages');
+
+        const isMe = data.sender_name === currentUsername;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'} mb-3`;
+
+        let aiActionsHTML = '';
+        if (data.is_ai) {
+            aiActionsHTML = `
+                <div class="mt-2 d-flex gap-3 align-items-center pt-2 border-top">
+                    <i class="fas fa-thumbs-up text-success cursor-pointer" onclick="handleFeedback('${data.message_id}', 'like')" title="Thích phản hồi"></i>
+                    <i class="fas fa-thumbs-down text-danger cursor-pointer" onclick="handleFeedback('${data.message_id}', 'dislike')" title="Không thích phản hồi"></i>
+                    <i class="fas fa-heart text-danger cursor-pointer" onclick="handleFeedback('${data.message_id}', 'heart')" title="Yêu thích"></i>
+                    <button class="btn btn-sm btn-outline-primary py-0 px-2 ms-auto" onclick="promoteMessageToKnowledge('${data.message_id}')" title="Đưa tin nhắn này vào kho tri thức nhóm">
+                        <i class="fas fa-brain"></i> Học tri thức 🧠
+                    </button>
+                </div>
+            `;
+        }
+
+        messageDiv.innerHTML = `
+            <div class="p-3 rounded-4 shadow-sm ${data.is_ai ? 'bg-white border text-dark' : (isMe ? 'bg-primary text-white' : 'bg-white border text-dark')}" style="max-width: 75%;">
+                <small class="d-block mb-1 opacity-75 fw-bold">${data.sender_name} ${data.is_ai ? '🤖' : ''}</small>
+                <p class="mb-0 text-break">${data.content}</p>
+                ${aiActionsHTML}
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    document.getElementById('chat-form').onsubmit = function (e) {
+        e.preventDefault();
+        const inputDom = document.getElementById('chat-input');
+        const message = inputDom.value.trim();
+        if (message) {
+            chatSocket.send(JSON.stringify({ 'message': message }));
+            inputDom.value = '';
+        }
+    };
+
+    function handleFeedback(messageId, type) {
+        fetch(`/groups/message/${messageId}/feedback/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ type: type })
+        })
+            .then(res => res.json())
+            .then(data => alert(data.message))
+            .catch(err => console.error('Feedback Error:', err));
+    }
+
+    function promoteMessageToKnowledge(messageId) {
+        fetch(`/groups/message/${messageId}/promote-knowledge/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || "Đã gửi yêu cầu cập nhật tri thức vào kho học tập nhóm!");
+            })
+            .catch(err => console.error('Promote Knowledge Error:', err));
+    }
+
+    document.getElementById('file-upload').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const chatMessages = document.getElementById('chat-messages');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'upload-loading';
+        loadingDiv.className = 'd-flex justify-content-start mb-3';
+        loadingDiv.innerHTML = `
+            <div class="p-3 rounded-4 shadow-sm bg-white border text-primary">
+                <i class="fas fa-spinner fa-spin me-2"></i> Hệ thống đang xử lý và trích xuất tri thức từ file <b>${file.name}</b> qua FileProcessor... 🧠
+            </div>
+        `;
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        const uploadUrl = "{% url 'group_chat:upload_document' group.id %}";
+
+        fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+            .then(response => {
+                if (document.getElementById('upload-loading')) {
+                    document.getElementById('upload-loading').remove();
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    alert("✅ " + data.message);
+                    location.reload();
+                } else {
+                    alert('⚠️ Lỗi tải lên: ' + (data.message || 'Không thể xử lý định dạng tệp tin này.'));
+                }
+            })
+            .catch(error => {
+                if (document.getElementById('upload-loading')) {
+                    document.getElementById('upload-loading').remove();
+                }
+                console.error('Upload Error:', error);
+                alert('❌ Đã xảy ra lỗi kết nối hoặc lỗi hệ thống ngầm trong quá trình xử lý FileProcessor.');
+            });
+    });
+</script>
+{% endblock %}

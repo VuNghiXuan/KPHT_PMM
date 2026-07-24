@@ -1,32 +1,29 @@
-# """
-# ASGI config for config project.
-
-# It exposes the ASGI callable as a module-level variable named ``application``.
-
-# For more information on this file, see
-# https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
-# """
-
-# import os
-
-# from django.core.asgi import get_asgi_application
-
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-
-# application = get_asgi_application()
-
+# D:\ThanhVu\kpht\KPHT_PMM\vnxChatBot\config\asgi.py
+"""
+WSGI/ASGI config for config project.
+"""
 
 import os
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter, URLRouter
-from django.core.asgi import get_asgi_application
-import apps.group_chat.routing
 
+# 1. Thiết lập biến môi trường trỏ đến settings trước tiên
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
+# 2. Khởi tạo ASGI application của Django để kích hoạt App Registry (tránh lỗi AppRegistryNotReady)
+from django.core.asgi import get_asgi_application
+django_asgi_app = get_asgi_application()
+
+# 3. Sau khi Django đã sẵn sàng, tiến hành import Channels và các routing liên quan
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+import apps.group_chat.routing
+
 application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
+    "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
-        URLRouter(apps.group_chat.routing.websocket_urlpatterns)
+        URLRouter(
+            apps.group_chat.routing.websocket_urlpatterns
+        )
     ),
 })
+
+# uvicorn config.asgi:application --reload --port 8000

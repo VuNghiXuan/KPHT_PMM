@@ -1,0 +1,86 @@
+<!-- apps/group_chat/templates/group_chat/partials/knowledge_tab.html -->
+{% load static %}
+<div class="p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="fas fa-folder-open text-warning"></i> Danh mục tài liệu nhóm</h6>
+        <span class="badge bg-info text-dark" style="font-size: 0.65rem;">Tenant Isolation</span>
+    </div>
+
+    <!-- Danh sách file đã upload -->
+    <div class="list-group mb-4" style="max-height: 220px; overflow-y: auto;">
+        {% for doc in group.document_set.all %}
+        <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+            <div class="text-truncate" style="max-width: 240px;">
+                <i class="fas fa-file-alt text-primary me-2"></i>
+                <span class="small fw-semibold">{{ doc.file.name }}</span>
+                <small class="d-block text-muted" style="font-size: 0.7rem;">Tải lên: {{ doc.uploaded_at|date:"d/m/Y
+                    H:i" }}</small>
+            </div>
+            <button class="btn btn-outline-danger btn-sm py-0 px-1 border-0" onclick="deleteDocument('{{ doc.id }}')"
+                title="Xóa tài liệu">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted small py-3">Chưa có tài liệu nào được tải lên nhóm. 📁</div>
+        {% endfor %}
+    </div>
+
+    <h6 class="fw-bold mb-2"><i class="fas fa-brain text-success"></i> Kho Tri thức RAG</h6>
+    <div class="list-group list-group-flush" id="knowledge-list" style="max-height: 250px; overflow-y: auto;">
+        {% for ku in group.knowledgeunit_set.all %}
+        <div class="list-group-item px-0 py-2 border-bottom">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="mb-0 small fw-bold text-truncate" style="max-width: 200px;" title="{{ ku.title }}">
+                    {{ ku.title }}
+                </h6>
+                <div>
+                    {% if ku.status == 'approved' %}
+                    <span class="badge bg-success" style="font-size: 0.6rem;">Đã duyệt</span>
+                    {% elif ku.status == 'pending' %}
+                    <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">Chờ duyệt</span>
+                    {% else %}
+                    <span class="badge bg-secondary" style="font-size: 0.6rem;">Rollback</span>
+                    {% endif %}
+                </div>
+            </div>
+            <p class="text-muted small mb-1"
+                style="font-size: 0.75rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                {{ ku.content }}
+            </p>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted" style="font-size: 0.65rem;">Độ tin cậy: {{ ku.confidence_score|default:"1.0"
+                    }}</small>
+                <div class="d-flex gap-1">
+                    {% if ku.status == 'pending' %}
+                    <button class="btn btn-success btn-sm py-0 px-2" style="font-size: 0.65rem;"
+                        onclick="updateKnowledgeStatus('{{ ku.id }}', 'approve')">Duyệt ✅</button>
+                    {% endif %}
+                    {% if ku.status == 'approved' %}
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.65rem;"
+                        onclick="updateKnowledgeStatus('{{ ku.id }}', 'rollback')">Rollback 🔄</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted small py-3">Chưa có đơn vị tri thức nào. 🧠</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function deleteDocument(docId) {
+        if (!confirm('Bạn có chắc chắn muốn xóa tài liệu này? Toàn bộ Vector tri thức liên quan sẽ bị xóa sạch.')) return;
+        fetch(`/groups/document/${docId}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.status === 'success') location.reload();
+            })
+            .catch(err => console.error('Delete Error:', err));
+    }
+</script>

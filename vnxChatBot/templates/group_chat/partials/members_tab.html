@@ -1,0 +1,71 @@
+<!-- apps/group_chat/templates/group_chat/partials/members_tab.html -->
+{% load static %}
+<div class="p-3">
+    <h6 class="fw-bold mb-3"><i class="fas fa-users text-primary"></i> Thành viên trong nhóm</h6>
+
+    <!-- Form Thêm thành viên -->
+    <form id="add-member-form" class="mb-3 p-2 bg-light rounded border">
+        <div class="mb-2">
+            <input type="text" id="new-member-username" class="form-control form-control-sm"
+                placeholder="Nhập username..." required>
+        </div>
+        <div class="mb-2">
+            <select id="new-member-role" class="form-select form-select-sm">
+                <option value="member">Thành viên (Member)</option>
+                <option value="admin">Quản trị viên (Admin)</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm w-100 py-1" style="font-size: 0.8rem;">
+            <i class="fas fa-user-plus"></i> Thêm thành viên ➕
+        </button>
+    </form>
+
+    <!-- Danh sách thành viên hiện tại -->
+    <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+        {% for membership in memberships %}
+        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+            <div>
+                <span class="small fw-bold">
+                    {% if membership.user.profile.is_ai %}
+                    🤖 AI Assistant
+                    {% else %}
+                    {{ membership.user.username }}
+                    {% endif %}
+                </span>
+                <small class="d-block text-muted" style="font-size: 0.65rem;">Vai trò: {{ membership.get_role_display
+                    }}</small>
+            </div>
+            <span
+                class="badge {% if membership.role == 'owner' %}bg-danger{% elif membership.role == 'admin' %}bg-primary{% else %}bg-secondary{% endif %}"
+                style="font-size: 0.6rem;">
+                {{ membership.role }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.getElementById('add-member-form').onsubmit = function (e) {
+            e.preventDefault();
+            const username = document.getElementById('new-member-username').value.trim();
+            const role = document.getElementById('new-member-role').value;
+
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('role', role);
+
+            fetch("{% url 'group_chat:add_member_to_group' group.id %}", {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.status === 'success') {
+                        location.reload();
+                    }
+                })
+                .catch(err => console.error('Add Member Error:', err));
+        };
+    </script>

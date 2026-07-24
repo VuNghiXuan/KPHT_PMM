@@ -1,0 +1,31 @@
+<!-- Cấu trúc hiển thị một tin nhắn (Partial Template) -->
+<div class="d-flex {% if message.sender.is_ai %}justify-content-start{% else %}justify-content-end{% endif %} mb-3">
+    <div class="p-3 rounded-4 shadow-sm {% if message.sender.is_ai %}bg-white border{% else %}bg-primary text-white{% endif %}"
+        style="max-width: 70%;">
+
+        <small class="d-block mb-1 opacity-75 fw-bold">
+            {% if message.sender.is_ai %}
+            <i class="fas fa-robot"></i> AI Assistant 🤖
+            {% else %}
+            {{ message.sender.user.username }}
+            {% endif %}
+        </small>
+
+        <p class="mb-0">{{ message.content }}</p>
+
+        <!-- Khối nút bấm Feedback & Tri thức dành riêng cho AI -->
+        {% if message.sender.is_ai %}
+        <div class="mt-2 d-flex gap-3 align-items-center">
+            <i class="fas fa-thumbs-up text-success cursor-pointer" onclick="handleFeedback('{{ message.id }}', 'like')"
+                title="Thích"></i>
+            <i class="fas fa-thumbs-down text-danger cursor-pointer"
+                onclick="handleFeedback('{{ message.id }}', 'dislike')" title="Không thích"></i>
+            <button class="btn btn-sm btn-outline-primary py-0 px-2"
+                onclick="promoteMessageToKnowledge('{{ message.id }}')" title="Cập nhật tri thức">
+                <i class="fas fa-brain"></i> Học tri thức 🧠
+            </button>
+        </div>
+        {% endif %}
+
+    </div>
+</div>

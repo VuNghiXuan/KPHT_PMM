@@ -1,5 +1,10 @@
+"""
+Module: group_chat.routing
+Description: Định nghĩa WebSocket URL patterns cho tính năng chat realtime theo nhóm.
+"""
+
 from django.urls import re_path
-from . import consumers
+from apps.group_chat import consumers
 
 websocket_urlpatterns = [
     re_path(r'ws/chat/(?P<group_id>\d+)/$', consumers.ChatConsumer.as_asgi()),

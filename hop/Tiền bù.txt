@@ -1,0 +1,32 @@
+1.Tiền bù: Cùng loại vàng khi đổi thì khách bù thêm (ví dụ 60.000 /chỉ). Nếu thời gain đổi nằm trong thời gian cho phép đổi trả thì không có tiền bù và nếu vàng 9999 thì không có tiền bù, nghĩa là đổi ngang không bù
+2.Đơn giá đổi (Trong phần mềm mới):  là đơn giá thiết lập thay cho giá bù kết hợp giá mua và bán. Nghĩa là tính ra thành tiền mua và bán, lấy phần chênh lệch
+Ví dụ: TL vàng mới tính ra tổng giá trị tiền bán. Khách mag đến tính giá mua vào, sau đó cấn trừ nhau
+
+3.Phần đổi: cần xét đến thứ tự ưu tiên (Loiaj vàng nào thực hiện trước loại vàng nào thực hiện sau)
+Ví dụ: Khách magn đến nhiều laoij vàng để đổi thì cần phải xét đến thứ tự ưu tiên loại nào ưu tiên đôi trước, laoij nào sau, và đảm bảo bảo loiaj nào mới đổi được với loại nào.
+NẾu nó không cùng loại laoij vàng trong quy định chính sách đổi thì mua bán đứt đoạn.
+Thường thì vang 999 dổi dược với 999 và 980 (được xem là cùng loại), ngược lại xem như mua bán đứt đoạn.
+Riêng vàng 999 khi đổi với vàng 980 về mặt kế toán xem như là khác bản chất không trao đổi được nên cần thực hiện 1 chức năng thay đổi sao cho nó về lại hệ thống đúng bản chất thực của loiaj vàng (Phát triển pHần Soạn dẻ)
+4. Trong phần mềm mới thì có trường mới sau:
+- Căn cư tính giá đổi: Chọn giá mua hoặc bán, người dùng chọn giá nào trên bảng giá để làm cơ sở giao dịch đổi
+- Tiền bù nói ở trên chính là trường "Dổi ngang bù tiền trong Phần mềm mới"
+- Chênh lệch giá: là giá đổi + vào giá trị cảu trường căn cứ giá đổi
+- Thứ tự ưu tiên : Là đang xét thứ tự ưu tiên vàng nào ưu tiên đổi trước (Phụ thuộc cấu hình cùng loại và loại tương đồng
+- Nút sử dụng giá đổi: tức là cho phép lấy giá trị được hiện tại của cột căn cứ tính giá đổi (giá mua) + chênh lệch giá để tính được giá đổi
+
+Nếu sản phẩm trước thuộc trường hợp đổi thì khi khách mang tới đổi tiếp thì sẽ thuộc trườn hợp đổi
+Nếu sản phẩm trước thuộc trường hợp bán thì khi khách mang tới đổi tiếp sẽ rơi vào trường hợp đổi hoặc mua vào (Cái nào có lợi cho tiệm thì tính cái đó)
+
+Chú ý phân biệt vàng đổi trả (Khách trả vàng và đổi lại món khác trong thời hạn chính sách đổi trả), khác với vàng giao dịch đổi
+
+vàng 750gr tính theo hình nuyên cứu lại (thiết lập giá đổi, đagn sử dụng p/a này)
+
+==============AI soạn lại==========
+TÓM TẮT NGHIỆP VỤ: QUY TRÌNH ĐỔI VÀNG (GOLD EXCHANGE)
+1. Nguyên tắc cốt lõiGiá trị giao dịch: Luôn dựa trên Giá Mua và Giá Bán niêm yết thực tế. Không sử dụng "giá bù" làm giá niêm yết hóa đơn.  Xử lý tiền bù (Đổi ngang): Nếu cùng loại vàng hoặc trong thời gian được phép đổi trả: giao dịch "Đổi ngang" (không phát sinh tiền bù). Nếu ngoài chính sách: áp dụng "Đổi ngang bù tiền".  
+
+2. Cơ chế tính giá đổi (Pricing Formula)Công thức thiết lập cho phần mềm:Giá đổi = Căn cứ tính giá đổi (Giá Mua/Giá Bán) + Chênh lệch giá.  Nút "Sử dụng giá đổi": Tự động áp dụng công thức trên để thiết lập đơn giá cho món vàng mới.  Đổi ngang bù tiền: Là số tiền thực tế khách cần thanh toán sau khi cấn trừ giá trị vàng cũ (mua vào) và vàng mới (bán ra).  
+
+3. Chính sách & Thứ tự ưu tiênXét ưu tiên: Hệ thống kiểm tra các loại vàng khách mang đến, ưu tiên xử lý loại có "Thứ tự ưu tiên" cao hơn theo cấu hình.  Cùng loại: Vàng 999 đổi với 999/980 (được coi là cùng loại). Các loại khác không nằm trong chính sách được tính là "Mua bán đứt đoạn" (Tách làm 2 giao dịch độc lập).  Chức năng "Soạn dẻ": Nếu đổi vàng 999 sang 980 (hoặc ngược lại) cần thay đổi bản chất kế toán, hệ thống phải thực hiện thao tác chuyển đổi trung gian về đúng bản chất trước khi hoàn tất giao dịch. 
+ 
+4. Quy tắc chuyển đổi trạng thái khách hàngNếu món trước là "Đổi": Tiếp tục áp dụng quy trình "Đổi".  Nếu món trước là "Bán": Khi khách mang đổi tiếp, hệ thống tự động chọn phương án có lợi nhất cho tiệm giữa hai trường hợp: "Đổi" hoặc "Mua vào".  

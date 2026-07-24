@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VnxChatBot - Living Architecture Engine (Auto Introspection)</title>
+    <!-- Thư viện Mermaid.js phiên bản ổn định -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        // Cấu hình khởi tạo ban đầu cho Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .version-badge {
+            background: #007bff;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 8px 8px 0 0;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #ced4da;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .tab.active {
+            background: #28a745;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 8px 8px;
+            min-height: 450px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .mermaid {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .meta-box {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header-bar">
+        <div>
+            <h1>VnxChatBot Architecture Engine <span class="version-badge">Auto-Introspection v1.0</span></h1>
+        </div>
+        <div class="admin-actions">
+            <!-- Nút tải file Project Manifest cho AI học -->
+            <a href="{% url 'arch_manager:download_manifest' %}" class="btn btn-secondary"
+                style="background: #17a2b8; color: white;">📥 Tải Manifest (.md)</a>
+
+            <form method="POST" action="{% url 'arch_manager:systemblueprint_approve' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">🚀 Duyệt Cập Nhật Phiên Bản Mới</button>
+            </form>
+            <a href="{% url 'admin:index' %}" class="btn btn-secondary">⬅ Quay về Django Admin</a>
+        </div>
+    </div>
+
+    <div class="meta-box">
+        <h3>Hệ thống tự động nội soi mã nguồn (Living Documentation)</h3>
+        <p>Các sơ đồ bên dưới được phân tích trực tiếp từ các app, models và luồng logic của hệ thống mà không cần nhập
+            liệu thủ công.</p>
+    </div>
+
+    <!-- Thanh Tabs chuyển đổi sơ đồ -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab(event, 'tab-flow')">1. Sơ đồ Luồng (Code Flow)</div>
+        <div class="tab" onclick="switchTab(event, 'tab-erd')">2. Sơ đồ ERD (Tự động quét Models)</div>
+        <div class="tab" onclick="switchTab(event, 'tab-state')">3. Sơ đồ Trạng thái (Knowledge State)</div>
+        <div class="tab" onclick="switchTab(event, 'tab-component')">4. Sơ đồ Phân hệ (Components)</div>
+        <div class="tab" onclick="switchTab(event, 'tab-manifest')">5. Cấu trúc Mã nguồn (Manifest)</div>
+    </div>
+
+    <!-- Nội dung Tab 1: Code Flow -->
+    <div id="tab-flow" class="tab-content active">
+        <h3>Luồng dữ liệu: Upload File -> FileProcessor -> VectorStore -> LLM</h3>
+        <div class="mermaid">{{ code_flow|safe }}</div>
+    </div>
+
+    <!-- Nội dung Tab 2: ERD (Dynamic Introspection) -->
+    <div id="tab-erd" class="tab-content">
+        <h3>Mô hình thực thể mối quan hệ (Group-Centric ERD - Tự động quét từ Models)</h3>
+        <div class="mermaid">{{ dynamic_erd|safe }}</div>
+    </div>
+
+    <!-- Nội dung Tab 3: State Machine -->
+    <div id="tab-state" class="tab-content">
+        <h3>Vòng đời Tri thức (Knowledge Lifecycle State Machine)</h3>
+        <div class="mermaid">{{ state_machine|safe }}</div>
+    </div>
+
+    <!-- Nội dung Tab 4: Component Diagram -->
+    <div id="tab-component" class="tab-content">
+        <h3>Sơ đồ Kiến trúc Phân hệ (Modular Monolith)</h3>
+        <div class="mermaid">{{ component_diagram|safe }}</div>
+    </div>
+
+    <!-- Nội dung Tab 5: Cấu trúc Thư mục & Mã nguồn (Living Manifest) -->
+    <div id="tab-manifest" class="tab-content">
+        <h3>Bản đồ Cấu trúc Thư mục, Class & Hàm Thực tế (Living Architecture)</h3>
+        <p>Được nội soi tự động qua AST Parser từ mã nguồn thực tế của hệ thống.</p>
+        <div
+            style="background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; font-family: monospace; max-height: 600px; overflow-y: auto; white-space: pre-wrap;">
+            {{ project_manifest|safe }}</div>
+    </div>
+
+    <script>
+        // Lưu trữ nội dung văn bản gốc của các sơ đồ ngay khi DOM sẵn sàng
+        const originalDiagrams = {};
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Lưu trữ text content ban đầu của từng sơ đồ để tái sử dụng
+            document.querySelectorAll('.tab-content').forEach(tabContent => {
+                const container = tabContent.querySelector('.mermaid');
+                if (container) {
+                    originalDiagrams[tabContent.id] = container.textContent.trim();
+                }
+            });
+
+            // Render tab đầu tiên mặc định
+            renderMermaidSafely('tab-flow');
+        });
+
+        async function renderMermaidSafely(tabId) {
+            try {
+                const container = document.querySelector(`#${tabId} .mermaid`);
+                if (container && originalDiagrams[tabId]) {
+                    // Đặt lại nội dung văn bản gốc trước khi gọi Mermaid render
+                    container.textContent = originalDiagrams[tabId];
+
+                    // Xóa cờ đã xử lý của Mermaid nếu có
+                    container.removeAttribute('data-processed');
+
+                    // Chạy render lại sơ đồ
+                    await mermaid.run({
+                        nodes: [container]
+                    });
+                }
+            } catch (err) {
+                console.error("Lỗi render Mermaid tại tab " + tabId + ":", err);
+            }
+        }
+
+        async function switchTab(evt, tabId) {
+            // Ẩn tất cả các tab content
+            let contents = document.getElementsByClassName("tab-content");
+            for (let c of contents) { c.classList.remove("active"); }
+
+            // Bỏ active trên các nút tab
+            let tabs = document.getElementsByClassName("tab");
+            for (let t of tabs) { t.classList.remove("active"); }
+
+            // Kích hoạt tab được chọn
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            // Đợi bố cục layout hiển thị ổn định rồi gọi hàm vẽ biểu đồ
+            setTimeout(() => {
+                renderMermaidSafely(tabId);
+            }, 100);
+        }
+    </script>
+</body>
+
+</html>

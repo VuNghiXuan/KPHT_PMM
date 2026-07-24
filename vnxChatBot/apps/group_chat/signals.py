@@ -51,3 +51,4 @@ def sync_knowledge_to_vector_db(sender, instance, **kwargs):
         AIProcessorService.sync_unit_to_vector(instance)
     elif instance.status == 'rollback':
         AIProcessorService.remove_unit_from_vector(instance.id)
+

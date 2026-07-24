@@ -1,0 +1,37 @@
+Giải thích và mô tả Thuật ngữ và cách tính trong Toa hàng NCC>Chi tiết Toa hàng: 
+1. Quy đổi (cột quy đổi trong grid Chi tiết Toa hàng): là tỷ lệ giữa (tuổi bán) / (Tuổi quy công nợ)
+Trong đó: 
+	- Tuổi bán và tuổi quy công nợ được cấu hình theo NCC. 
+		Ví dụ: 63/62.2 (Tuổi bán là tuổi NCC bán cho mình / tuổi NCC ghi nhận công nợ )
+	- Tuổi bán:Lấy thông tin của Loại vàng trong grid Nhà cung cấp.Loại vàng giao dịch:
+		 Tuổi bán/Tuổi quy chuẩn
+	- Loại vàng ghi nhận công nợ (Lấy từ loại vàng quy công nợ grid NCC)
+
+2.Trọng lượng vàng ghi nhân công nợ (Chính là cột TLV quy trong grid Chi tiết Toa hàng)
+	Công thức: Cột Tổng TLV * Tuổi bán/ tuổi quy công nợ. Ví dụ = 3,5193*63/62.2 = 3,564564309 (chỉ)
+
+3 Chênh lệch giữa tuổi thu và tuổi bán gọi là line = Tuổi bán - tuổi thu (Đây xem là lợi nhuận Nhà cung cấp
+
+4. Loại vàng ghi nhận công nợ: 
+- Lấy thông tin Loại vàng quy trong grid Loại vàng giao dịch của Nhà cung cấp.
+-  Theo Điều kiện: Loại vàng, Đơn vị tính, Loại hàng NCC của Chi tiết toa hàng trùng với Loại vàn, Đơn vị tín, Loại hàng NCC trong Loại vàng giao dịch của Nhà cung cấp.
+
+5. Vàng tính bằng tiền:
+- Áp dụng với Vàng Ý 750 của PNJ bán theo Món.
+- Nếu đã có Tổng tiền thì sẽ không ghi nhận công nợ vàng. Khi thanh toán Toa hàng NCC sẽ lấy Tổng tiền và Không lấy TL vàng.
+Tổng tiền của Vàng Ý 750 PNJ bán theo Món, Khi sang phần Thanh toán Toa hàng NCC sẽ lấy Tổng tiền để thực hiện các phép tính toán và cấn trừ.
+Cột này người dùng nhập từ tổng tiền vàng theo toa: 
+-Cách kiểm tra giá trị vàng thành tiền theo toa nhà cung cấp: Đổi vàng 75 thành vàng 10 * giá vàng 10
+Ví dụ trong lượng vàng 75 là : 25 chỉ => TL vàng quy 10 là : 25*75/100 = 18.75 chỉ, sau đó * qía vàng 10 = 18.75*12.300.000 = 230.625.000 (đồng)
+
+II Lô hàng NCC
+Cột Tổng TL QĐ: = Tổng TL * Tỷ lệ quy đổi (có trong Cấu hình quy đổi tính giá vốn)
+trong đó:Tỷ lệ quy đổi (có trong Cấu hình quy đổi tính giá vốn), chính là quy đổi đơn vị tính từ chỉ qua gram hoặc ngược lại nhằm phục vụ việc nhập hàng đổi về đơn vị bán và xuất hoá đơn. Phần này cấu hình theo (Nhập hàng & Giá vốn >Cấu hình quy đổi tính giá vốn)
+Tỷ giá vốn:Được tính khi Tạo Lô hàng NCC từ Toa hàng NCC:
+	1. Nếu Vàng tính thành tiền > 0 : Tỷ giá vốn = Vàng tính thành tiền/ Tổng TLV QĐ.
+	2. Ngược lại, Vàng tính thành tiền <= 0: 
+	a. Nếu Loại vàng bán.ĐVT quy đổi = Chỉ: 
+	- Tỷ giá vốn = Giá vàng 10 * Tuổi bán (Theo Loại vàng, ĐVT, Loại hàng NCC trong grid Loại vàng giao dịch của Nhà cung cấp)/100
+	b. Nếu Loại vàng bán.ĐVT quy đổi = Gram: 
+	- Tỷ giá vốn =  (Giá vàng 10 * Tuổi bán (Theo Loại vàng, ĐVT, Loại hàng NCC trong grid Loại vàng giao dịch của Nhà cung cấp)/100)/3.75
+

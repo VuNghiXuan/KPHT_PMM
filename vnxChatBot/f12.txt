@@ -1,0 +1,17 @@
+const chatSocket = new WebSocket('ws://127.0.0.1:8000/ws/chat/1/');
+
+chatSocket.onopen = function(e) {
+    console.log("✅ Kết nối WebSocket thành công!");
+    chatSocket.send(JSON.stringify({
+        'message': 'Xin chào, test WebSocket từ client!'
+    }));
+};
+
+chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    console.log("📩 Nhận tin nhắn từ server:", data.message);
+};
+
+chatSocket.onclose = function(e) {
+    console.error("❌ WebSocket bị ngắt kết nối bất ngờ!");
+};

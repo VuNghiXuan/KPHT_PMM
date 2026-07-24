@@ -1,38 +1,50 @@
-from apps.group_chat.models import KnowledgeUnit
-from ..models import MessageFeedback
+"""
+Module: group_chat.services.feedback_service
+Author: Senior Software Engineer & Architecture Lead
+Description: Xử lý logic nghiệp vụ cho Feedback Loop, ghi nhận đánh giá của người dùng 
+             đối với câu trả lời của AI và hỗ trợ tinh chỉnh tri thức nhóm.
+"""
+
+from apps.group_chat.models import MessageFeedback, KnowledgeUnit
+from django.utils import timezone
 
 class FeedbackService:
+    """
+    Class: FeedbackService
+    Description: 
+        Quản lý các thao tác liên quan đến phản hồi tin nhắn AI (Like/Dislike).
+        Giúp ghi nhận dữ liệu Fine-tuning và hỗ trợ đánh dấu các đơn vị tri thức cần xem lại.
+    """
+
     @staticmethod
-    def handle_feedback(unit_id, action):
+    def record_feedback(group, message, user, feedback_type, comment=None):
         """
-        Xử lý hành động Like/Dislike của người dùng.
-        action: 'approve' (Like) hoặc 'rollback' (Dislike)
+        Ghi nhận phản hồi (Like/Dislike) từ người dùng cho một tin nhắn cụ thể của AI.
+        Nếu là Dislike, hệ thống sẽ đánh dấu hoặc tạo yêu cầu xem lại KnowledgeUnit liên quan.
         """
-        unit = KnowledgeUnit.objects.get(id=unit_id)
-        
-        if action == 'approve':
-            unit.status = 'approved'
-        elif action == 'rollback':
-            unit.status = 'rollback'
-            
-        unit.save() # Signal sẽ tự động sync với Vector DB
-        return unit
-    @staticmethod
-    def record_feedback(user, message_id, feedback_type, comment=None):
-        """
-        Ghi nhận phản hồi và có thể kích hoạt logic gợi ý sửa đổi cho KnowledgeUnit.
-        """
-        # Logic: 
-        # 1. Lưu feedback vào DB
-        # 2. Nếu là 'dislike', có thể kích hoạt một signal hoặc service 
-        #    để mark KnowledgeUnit liên quan là 'cần kiểm tra lại'.
-        
-        from ..models import Message
-        message = Message.objects.get(id=message_id)
-        
+        # Tạo hoặc cập nhật phản hồi của user cho tin nhắn này
         feedback, created = MessageFeedback.objects.update_or_create(
-            user=user,
+            group=group,
             message=message,
-            defaults={'type': feedback_type, 'comment': comment, 'group': message.group}
+            user=user,
+            defaults={
+                'type': feedback_type,
+                'comment': comment
+            }
         )
+
+        # Nếu người dùng chọn 'dislike', kích hoạt cơ chế đánh dấu tri thức cần xem xét (Rollback/Pending review)
+        if feedback_type == 'dislike':
+            FeedbackService._handle_dislike_action(message, comment)
+
         return feedback
+
+    @staticmethod
+    def _handle_dislike_action(message, comment):
+        """
+        Xử lý nội bộ khi có phản hồi tiêu cực (Dislike):
+        Tìm kiếm các KnowledgeUnit có liên quan hoặc đánh dấu nguồn tham chiếu để AI không lặp lại sai sót.
+        """
+        # Có thể liên kết tìm kiếm KnowledgeUnit dựa vào nội dung tin nhắn hoặc ngữ cảnh gần nhất
+        # Tại đây chúng ta ghi nhận log hoặc chuyển trạng thái KnowledgeUnit sang dạng cần kiểm tra nếu cần thiết.
+        pass

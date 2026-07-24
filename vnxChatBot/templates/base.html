@@ -4,45 +4,99 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>NexusChat | {% block title %}Dashboard{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VnxChatBot | {% block title %}Dashboard{% endblock %}</title>
 
+    <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="{% static 'css/fontawesome/css/all.min.css' %}">
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> -->
+    <!-- Ledger / Theme CSS -->
     <link rel="stylesheet" href="{% static 'css/ledger_theme.css' %}">
+
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body class="d-flex">
-    <div class="sidebar d-flex flex-column" id="sidebar">
-        <h4 class="p-3 text-white border-bottom border-secondary text-center">NexusChat</h4>
-        <nav class="nav flex-column mt-2">
-            <a href="{% url 'dashboard' %}" class="nav-link text-white"><i class="fas fa-tachometer-alt me-2"></i>
-                Dashboard</a>
-            <a href="/accounting/" class="nav-link text-white"><i class="fas fa-file-invoice me-2"></i> Kế toán lõi</a>
-            <a href="/admin/" target="_blank" class="nav-link text-white"><i class="fas fa-cog me-2"></i> Admin
-                Django</a>
+    <!-- Sidebar - Quản trị điều hướng Group-Centric -->
+    <div class="sidebar d-flex flex-column bg-dark text-white" id="sidebar" style="width: 260px; min-height: 100vh;">
+        <h4 class="p-3 text-white border-bottom border-secondary text-center m-0">
+            <i class="fas fa-comments text-primary me-2"></i>VnxChatBot
+        </h4>
+
+        <nav class="nav flex-column mt-3 px-2 flex-grow-1">
+            <a href="{% url 'dashboard' %}"
+                class="nav-link text-white rounded mb-1 {% if request.resolver_match.url_name == 'dashboard' %}active bg-primary{% endif %}">
+                <i class="fas fa-tachometer-alt me-2"></i> Tổng quan
+            </a>
+
+            <a href="{% url 'arch_manager:blueprint_dashboard' %}" class="nav-link text-white rounded mb-1"
+                target="_blank">
+                <i class="fas fa-network-wired me-2"></i> Kiến trúc hệ thống
+            </a>
+
+            <div class="dropdown-divider border-secondary my-3"></div>
+
+            <div class="px-3 text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Nhóm làm việc của bạn</div>
+
+            <!-- Danh sách nhóm động theo User -->
+            <div class="nav flex-column mt-2 overflow-auto" style="max-height: 350px;">
+                {% if user_groups %}
+                {% for group in user_groups %}
+                <a href="{% url 'group_chat:group_detail' group.id %}"
+                    class="nav-link text-white-50 rounded py-2 text-truncate">
+                    <i class="fas fa-users me-2 text-info"></i> {{ group.name }}
+                </a>
+                {% endfor %}
+                {% else %}
+                <span class="text-muted px-3 py-2" style="font-size: 0.85rem;">Chưa tham gia nhóm nào.</span>
+                {% endif %}
+            </div>
+
+            <div class="mt-auto p-2">
+                <a href="{% url 'group_chat:create_group' %}" class="btn btn-outline-primary btn-sm w-100 text-white">
+                    <i class="fas fa-plus me-1"></i> Tạo nhóm mới
+                </a>
+            </div>
         </nav>
+
+        <div class="p-3 border-top border-secondary text-center" style="font-size: 0.8rem;">
+            <a href="/admin/" target="_blank" class="text-decoration-none text-muted">
+                <i class="fas fa-cog me-1"></i> Django Admin
+            </a>
+        </div>
     </div>
 
-    <div class="main-content flex-grow-1">
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4">
-            <button class="btn btn-outline-dark btn-sm me-3" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-            <span class="navbar-brand mb-0 h1">{% block page_title %}Tổng quan{% endblock %}</span>
-            <div class="ms-auto">
+    <!-- Main Workspace Content -->
+    <div class="main-content flex-grow-1 d-flex flex-column" style="min-width: 0;">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4" style="height: 60px;">
+            <button class="btn btn-outline-dark btn-sm me-3" id="sidebarToggle" type="button">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="navbar-brand mb-0 h1 fs-6 fw-bold">{% block page_title %}Tổng quan hệ thống
+                {% endblock%}</span>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <span class="text-muted small">Xin chào, <strong>{{ request.user.username }}</strong></span>
                 <form action="{% url 'core:logout' %}" method="post" class="d-inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm">Đăng xuất</button>
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Đăng xuất</button>
                 </form>
             </div>
         </nav>
-        <div class="container-fluid p-4">{% block content %}{% endblock %}</div>
+
+        <div class="container-fluid p-0 flex-grow-1 bg-light">
+            {% block content %}{% endblock %}
+        </div>
     </div>
 
+    <!-- Bootstrap JS Bundle -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script>
         document.getElementById('sidebarToggle').addEventListener('click', function () {
             document.getElementById('sidebar').classList.toggle('collapsed');
         });
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>
