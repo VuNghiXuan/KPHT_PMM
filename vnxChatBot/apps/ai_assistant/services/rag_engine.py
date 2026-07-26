@@ -53,6 +53,7 @@ class RAGEngine:
         self.collection.add(
             ids=[str(knowledge_unit.id)],
             documents=[knowledge_unit.content],
+            # ✅ Sửa 'metadantas' thành 'metadatas' và bám sát kiến trúc Group-Centric
             metadatas=[{
                 "entity": knowledge_unit.entity_name,
                 "context": knowledge_unit.context_tag,

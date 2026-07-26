@@ -58,10 +58,11 @@ def upload_document(request, group_id):
         uploaded_file = request.FILES['file']
         
         try:
+            # Sửa lại 'chat_group' thành 'group' (hoặc tên field đúng trong models.py của bạn)
+            # và lược bỏ trường 'title' nếu Model Document không khai báo trường này.
             document = Document.objects.create(
-                chat_group=group,
+                group=group,             # Khớp với field 'group' trong ChatGroup
                 file=uploaded_file,
-                title=uploaded_file.name,
                 uploaded_by=request.user
             )
             return JsonResponse({
@@ -73,7 +74,6 @@ def upload_document(request, group_id):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
             
     return JsonResponse({'status': 'error', 'message': 'Không tìm thấy file hoặc sai phương thức.'}, status=400)
-
 
 def knowledge_management(request, group_id):
     """

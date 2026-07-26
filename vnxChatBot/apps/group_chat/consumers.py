@@ -161,7 +161,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Returns:
             bool: True nếu tồn tại Membership, ngược lại False.
         """
-        return Membership.objects.filter(user=user, chat_group_id=group_id).exists()
+        return Membership.objects.filter(user=user, group_id=group_id).exists()
 
     @database_sync_to_async
     def save_message(self, user, group_id, content, is_ai=False):
