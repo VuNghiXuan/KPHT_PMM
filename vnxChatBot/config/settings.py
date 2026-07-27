@@ -229,12 +229,35 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
-# --- CHANNELS & WEBSOCKET CONFIGURATION ---
+# --- CHANNELS & WEBSOCKET CONFIGURATION: Xử lý bất động bộ tin nhắn ---
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [("127.0.0.1", 6379)],
+            "capacity": 1500,          # Tăng dung lượng hàng đợi tin nhắn
+            "expiry": 60,              # Thời gian hết hạn message (giây)
         },
+    },
+}
+
+# Cấu hình Celery Broker trỏ tới Redis với timeout hợp lý
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Hiển thị log radeis:
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
     },
 }
