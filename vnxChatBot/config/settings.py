@@ -103,6 +103,14 @@ TEMPLATES = [
     },
 ]
 
+# Ví dụ cấu hình chuẩn cho Channels sử dụng InMemory (hoặc Redis)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
@@ -166,6 +174,9 @@ STATICFILES_DIRS = [
 
 # Thư mục lưu trữ khi chạy lệnh collectstatic (cho môi trường production)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Default primary key field type

@@ -5,6 +5,8 @@ Tác giả: Kiến trúc sư VnxChatBot
 Module liên kết: apps.group_chat.models, apps.ai_assistant.services, apps.core.models
 """
 import json
+import logging
+import traceback
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -14,6 +16,10 @@ from .services.feedback_service import FeedbackService
 from apps.ai_assistant.models import GroupAIProvider
 from apps.core.models import User
 from apps.subscriptions.models import Subscription
+
+
+logger = logging.getLogger(__name__)
+
 
 @login_required
 def create_group(request):
@@ -58,22 +64,33 @@ def upload_document(request, group_id):
         uploaded_file = request.FILES['file']
         
         try:
+            # Tạo bản ghi Document mới trong cơ sở dữ liệu liên kết chặt chẽ với ChatGroup
             document = Document.objects.create(
-                chat_group=group,
+                group=group,           # Hoặc thay bằng tên trường tương ứng trong models.py
                 file=uploaded_file,
-                title=uploaded_file.name,
+                name=uploaded_file.name, # Hoặc thay bằng tên trường tương ứng
                 uploaded_by=request.user
             )
+            
             return JsonResponse({
                 'status': 'success', 
                 'message': 'Upload file thành công. AI đang tiến hành xử lý tri thức!',
                 'document_id': document.id
-            })
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            }, status=200)
             
-    return JsonResponse({'status': 'error', 'message': 'Không tìm thấy file hoặc sai phương thức.'}, status=400)
-
+        except Exception as e:
+            # In chi tiết lỗi ra console để debug dễ dàng hơn
+            error_msg = str(e)
+            logger.error(f"Upload error details: {traceback.format_exc()}")
+            return JsonResponse({
+                'status': 'error', 
+                'message': f'Lỗi hệ thống khi lưu tài liệu: {error_msg}'
+            }, status=500)
+            
+    return JsonResponse({
+        'status': 'error', 
+        'message': 'Không tìm thấy file tải lên hoặc sai phương thức yêu cầu.'
+    }, status=400)
 
 def knowledge_management(request, group_id):
     """
@@ -121,9 +138,6 @@ def rollback_knowledge(request, unit_id):
         except Exception as e:
             return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render, redirect
-from apps.group_chat.models import ChatGroup, Membership, Document, KnowledgeUnit
 
 @login_required
 def group_chat_detail(request, group_id):
