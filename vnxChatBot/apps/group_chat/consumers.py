@@ -28,64 +28,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
         4. Kích hoạt cơ chế AI Listener (`@ai`) để gọi RAGEngine truy vấn tri thức và trả lời tự động.
     """
 
-    # async def connect(self):
-    #     """
-    #     Thiết lập kết nối WebSocket, kiểm tra xác thực người dùng và phân quyền 
-    #     truy cập vào ChatGroup cụ thể (Group-Centric Tenant).
-    #     """
-    #     self.group_id = self.scope['url_route']['kwargs']['group_id']
-    #     self.room_group_name = f"chat_group_{self.group_id}"
-        
-    #     # Kiểm tra user đã đăng nhập chưa
-    #     self.user = self.scope.get('user', AnonymousUser())
-    #     if isinstance(self.user, AnonymousUser) or not self.user.is_authenticated:
-    #         await self.close()
-    #         return
-
-    #     # Kiểm tra user có thuộc nhóm này không (Group-Centric Tenant Security)
-    #     is_member = await self.check_user_membership(self.user, self.group_id)
-    #     if not is_member:
-    #         await self.close()
-    #         return
-
-    #     # Tham gia vào Channel Layer Group của phòng chat
-    #     await self.channel_layer.group_add(
-    #         self.room_group_name,
-    #         self.channel_name
-    #     )
-    #     await self.accept()
-
     async def connect(self):
         """
-        Function: connect
-        Description: 
-            Xử lý khi có kết nối WebSocket từ client. 
-            Kiểm tra xác thực user, phân quyền thành viên trong nhóm (Tenant isolation) 
-            trước khi chấp nhận kết nối và đưa vào channel group.
+        Thiết lập kết nối WebSocket, kiểm tra xác thực người dùng và phân quyền 
+        truy cập vào ChatGroup cụ thể (Group-Centric Tenant).
         """
-        self.user = self.scope["user"]
-        self.group_id = self.scope["url_route"]["kwargs"].get("group_id")
-
-        # Kiểm tra xác thực người dùng
-        if not self.user.is_authenticated:
+        self.group_id = self.scope['url_route']['kwargs']['group_id']
+        self.room_group_name = f"chat_group_{self.group_id}"
+        
+        # Kiểm tra user đã đăng nhập chưa
+        self.user = self.scope.get('user', AnonymousUser())
+        if isinstance(self.user, AnonymousUser) or not self.user.is_authenticated:
             await self.close()
             return
 
-        # Kiểm tra quyền thành viên (Tenant-based Isolation)
+        # Kiểm tra user có thuộc nhóm này không (Group-Centric Tenant Security)
         is_member = await self.check_user_membership(self.user, self.group_id)
         if not is_member:
             await self.close()
             return
 
-        self.room_group_name = f"chat_{self.group_id}"
-
-        # 🛡️ Kiểm tra an toàn channel_layer trước khi gọi group_add
-        if self.channel_layer is None:
-            print("❌ [CRITICAL ERROR] Channel layer is not configured properly in settings.py!")
-            await self.close()
-            return
-
-        # Tham gia vào nhóm WebSocket
+        # Tham gia vào Channel Layer Group của phòng chat
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -198,9 +161,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Returns:
             bool: True nếu tồn tại Membership, ngược lại False.
         """
-        # return Membership.objects.filter(user=user, chat_group_id=group_id).exists()
         return Membership.objects.filter(user=user, group_id=group_id).exists()
-    
 
     @database_sync_to_async
     def save_message(self, user, group_id, content, is_ai=False):

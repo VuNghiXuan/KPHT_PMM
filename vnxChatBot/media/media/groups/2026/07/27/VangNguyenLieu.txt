@@ -1,0 +1,13 @@
+Nguồn Vàng NL:
+1. Mua từ khách: Ký hiệu D, DV
+2. Mua từ NCC: Thuộc nhóm Vàng NL
+Ghi chú:
+Vàng mua bán NCC là 4 số (9999) vàng mình bán là 3 số (99.9)
+Tuổi tính công nợ thực chất là chia bao nhiêu
+Vàng quy tính công nợ là (hàm lượng: 99.99), Loại vàng tính công nợ là loại vàng (9999)
+NCC: sử dụng Loại vàng quy , còn khách là sử dụng loại vàng
+
+Loại vàng: D610 - Vàng 610 (Mã-Tên)
+Mua Vàng NL : Chốt theo vàng quy 95, 99.99
+Bán vàng NL" Hiện nay cho bán vàng nào cũng được miễn quy về loại vàng quy
+Nấu đên vang nguyên liệu => Về là vàng thảo
