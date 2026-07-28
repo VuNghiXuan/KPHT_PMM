@@ -25,3 +25,4 @@ Google:
 	8. Học kế toán cơ bản: https://docs.google.com/spreadsheets/d/1sy5z_yK-cL-J2k5MS7AwtHI2ANWP3_b61patZNXjNXg/edit?gid=193485354#gid=193485354
 		
 	9. Log: https://qc.giaiphapvang.net/administrator/audit-log/
+	10. Quy trình test: https://docs.google.com/spreadsheets/d/1KGlBX5Z9dTcq7QxgOFcR0av5QbDB2O1z4_eoLsbGIvg/edit?gid=1406203907#gid=1406203907
