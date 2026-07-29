@@ -25,6 +25,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/dashboard/'), name='index'),
     path('chat/', include('apps.group_chat.urls', namespace='group_chat')),
     path('architecture/', include('apps.arch_manager.urls', namespace='arch_manager')),
+    
 ]
 
 # Phục vụ file media trong môi trường phát triển (Development)

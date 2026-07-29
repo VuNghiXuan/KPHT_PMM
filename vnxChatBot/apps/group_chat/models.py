@@ -32,6 +32,8 @@ class Membership(models.Model):
     """
     Quản lý thành viên trong nhóm.
     Tại sao (Why): Hỗ trợ AI thành viên (is_ai=True) mà không cần User ảo.
+    Thay vì liên kết trực tiếp bảng Message với bảng User, kiến trúc chuẩn của vnxChatBot liên kết thông qua bảng trung gian Membership (sender=sender_membership). 
+    Điều này giúp hệ thống dễ dàng quản lý quyền hạn của người dùng, phân biệt rõ vai trò thành viên hay tài khoản AI ảo trong từng ngữ cảnh nhóm cụ thể mà không cần tạo ra các User ảo trong hệ thống.
     """
     ROLE_CHOICES = [('admin', 'Admin'), ('member', 'Member')]
     
@@ -120,3 +122,10 @@ class MessageFeedback(models.Model):
     class Meta:
         verbose_name = "Phản hồi AI"
         verbose_name_plural = "Phản hồi AI"
+
+
+"""
+Khi nhìn vào các trường (fields) được định nghĩa thực tế bên trong class `KnowledgeUnit`, bạn có nhận ra tại sao khi script test truyền tham số `title='Kien thuc kiem tra'` lại bị báo lỗi `TypeError: KnowledgeUnit() got unexpected keyword arguments: 'title'` không[cite: 2]? 
+
+Theo cấu trúc model ở trên, trường nào dùng để lưu trữ tiêu đề hoặc tên gọi tương đương cho đơn vị kiến thức này?
+"""

@@ -58,7 +58,6 @@ def upload_document(request, group_id):
         uploaded_file = request.FILES['file']
         
         try:
-            # Sửa lại 'chat_group' thành 'group' (hoặc tên field đúng trong models.py của bạn)
             # và lược bỏ trường 'title' nếu Model Document không khai báo trường này.
             document = Document.objects.create(
                 group=group,             # Khớp với field 'group' trong ChatGroup
@@ -121,9 +120,6 @@ def rollback_knowledge(request, unit_id):
         except Exception as e:
             return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render, redirect
-from apps.group_chat.models import ChatGroup, Membership, Document, KnowledgeUnit
 
 @login_required
 def group_chat_detail(request, group_id):

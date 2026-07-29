@@ -9,6 +9,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from .models import SystemBlueprint
+from django.urls import reverse, NoReverseMatch
+from django.utils.html import format_html
 
 
 @admin.register(SystemBlueprint)
@@ -35,9 +37,22 @@ class SystemBlueprintAdmin(admin.ModelAdmin):
         }),
     )
 
+    # def view_architecture_btn(self, obj):
+    #     """Tạo nút bấm mở trang Living Documentation ngoài danh sách admin."""
+    #     url = reverse('arch_manager:blueprint_dashboard')
+    #     return format_html(
+    #         '<a class="button" href="{}" target="_blank" style="background-color: #28a745; color: white; padding: 4px 10px; border-radius: 4px; text-decoration: none;">🚀 Xem Giao Diện Sơ Đồ</a>',
+    #         url
+    #     )
+    # view_architecture_btn.short_description = "Living Doc"
+
     def view_architecture_btn(self, obj):
-        """Tạo nút bấm mở trang Living Documentation ngoài danh sách admin."""
-        url = reverse('arch_manager:blueprint_dashboard')
+        """Tạo nút bấm mở trang Living Documentation ngoài danh sách admin an toàn."""
+        try:
+            url = reverse('arch_manager:blueprint_dashboard')
+        except NoReverseMatch:
+            url = '#'
+        
         return format_html(
             '<a class="button" href="{}" target="_blank" style="background-color: #28a745; color: white; padding: 4px 10px; border-radius: 4px; text-decoration: none;">🚀 Xem Giao Diện Sơ Đồ</a>',
             url

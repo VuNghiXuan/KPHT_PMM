@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -117,13 +118,31 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Cấu hình Database hỗ trợ kiểm thử Channels (Tránh lỗi in-memory database)
+# if 'test' in sys.argv:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'test_db.sqlite3',  # Lưu ra file tạm khi chạy test
+#         }
+#     }
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',       # Sử dụng database thông thường khi chạy ứng dụng
+#         }
+#     }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'TEST': {
+            'NAME': BASE_DIR / 'test_db.sqlite3', # Ép buộc Django dùng file vật lý thay vì in-memory khi chạy test
+        }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -261,3 +280,7 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+
+# Cấu hình định tuyến ASGI cho Django Channels & WebSocket
+ASGI_APPLICATION = 'config.asgi.application'

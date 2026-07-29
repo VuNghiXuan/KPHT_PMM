@@ -1,0 +1,12 @@
+he file handles of TiffPages or TiffFrames may not be open.
+        shape:
+            Shape of image array in series.
+        dtype:
+            Data type of image array in series.
+        axes:
+            Character codes for dimensions in shape.
+            Length must match shape.
+        attr:
+            Arbitrary metadata associated with series.
+        index:
+            Index of series in

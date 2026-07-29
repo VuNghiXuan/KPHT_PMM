@@ -17,8 +17,9 @@ class RAGEngine:
         và sinh câu trả lời thông minh dựa trên tri thức nội bộ của từng nhóm làm việc (ChatGroup).
     """
     
-    def __init__(self):
+    def __init__(self, group_id=None):
         """Khởi tạo kết nối PersistentClient tới ChromaDB dựa trên đường dẫn cấu hình."""
+        self.group_id = group_id
         db_path = getattr(settings, 'VECTOR_DB_PATH', 'core/vector_db/')
         self.client = chromadb.PersistentClient(path=db_path)
         self.collection = self.client.get_or_create_collection(name="vnx_knowledge")
@@ -101,6 +102,34 @@ class RAGEngine:
                 })
                 
         return formatted_results
+
+    async def query(self, query: str, top_k: int = 3) -> str:
+        """
+        Phương thức giao tiếp trực tiếp với Consumer, thực hiện quy trình RAG 
+        bao gồm truy vấn Vector DB theo group_id và sinh câu trả lời qua LLM.
+        
+        Args:
+            query (str): Câu hỏi từ người dùng gửi qua WebSocket.
+            top_k (int): Số lượng kết quả tài liệu tối đa cần lấy từ VectorStore.
+            
+        Returns:
+            str: Câu trả lời hoàn chỉnh được tổng hợp từ AI Assistant dựa trên ngữ cảnh nhóm.
+        
+        Why:
+            Phương thức được định nghĩa là `async def` để tương thích hoàn toàn với vòng lặp 
+            sự kiện bất đồng bộ (async event loop) của Django Channels (`ChatConsumer`), 
+            giúp tránh nghẽn luồng (blocking) khi gọi các tác vụ I/O nặng như truy vấn Vector DB 
+            và gọi API LLM từ xa.
+        """
+        # Sử dụng lại phương thức generate_rag_answer đã được tích hợp sẵn group_id (Tenant Isolation)
+        # Nếu generate_rag_answer là hàm đồng bộ, ta dùng asgiref.sync.sync_to_async để bọc an toàn.
+        # Ở đây giả lập gọi trực tiếp bất đồng bộ hoặc thông qua sync_to_async tùy thuộc vào implementation của RAGEngine.
+        
+        # Gọi trực tiếp vì hàm query đã là async def
+        answer = await self.generate_rag_answer(group_id=self.group_id, query=query, top_k=top_k)
+        
+        return answer
+    
     
     def build_rag_prompt(self, context_text: str, query: str) -> str:
         """
@@ -116,23 +145,46 @@ class RAGEngine:
         return f"Dựa vào tri thức nội bộ của nhóm sau đây:\n{context_text}\n\nCâu hỏi từ thành viên: {query}\nHãy trả lời ngắn gọn, chính xác và bám sát tri thức được cung cấp."
 
     @database_sync_to_async
-    def generate_rag_answer(self, group_id: int, query: str) -> str:
+    def generate_rag_answer(self, group_id: int, query: str, top_k: int = 3) -> str:
         """
-        Sinh câu trả lời thông minh qua RAG tuân thủ tuyệt đối quy tắc Tenant Isolation.
+        Sinh câu trả lời thông minh qua RAG (Retrieval-Augmented Generation) 
+        tuân thủ tuyệt đối quy tắc Tenant Isolation theo group_id.
+
+        Args:
+            group_id (int): Định danh duy nhất của nhóm làm việc (ChatGroup).
+            query (str): Câu hỏi hoặc thông điệp cần truy vấn từ người dùng.
+            top_k (int): Số lượng kết quả tài liệu tối đa cần trích xuất từ Vector DB.
+
+        Returns:
+            str: Câu trả lời hoàn chỉnh được sinh ra từ LLM dựa trên ngữ cảnh tri thức của nhóm.
+            
+        Why:
+            - Sử dụng `@database_sync_to_async` để gói gọn các tác vụ kết nối ORM/Database 
+              an toàn trong môi trường bất đồng bộ của Django Channels.
+            - Phân lập dữ liệu tri thức theo `group_id` giúp bảo mật tuyệt đối, ngăn chặn 
+              việc rò rỉ thông tin giữa các nhóm khác nhau trong hệ thống Modular Monolith.
+            - Tích hợp `AIFactory` để linh hoạt thay đổi nhà cung cấp LLM (OpenAI, Gemini, Groq, Ollama) 
+              dựa trên cấu hình riêng biệt của từng nhóm.
         """
         try:
-            # 1. Truy vấn Vector DB lấy tri thức theo group_id
-            context_docs = self.query_knowledge(query=query, group_id=int(group_id), top_k=3)
+            # 1. Truy vấn Vector DB lấy tri thức đặc thù theo group_id (Bảo mật Tenant Isolation)
+            context_docs = self.query_knowledge(query=query, group_id=int(group_id), top_k=top_k)
             
-            # 2. Xử lý ngữ cảnh (Context)
-            context_text = "\n".join([doc['content'] for doc in context_docs]) if context_docs else "Không có tài liệu tri thức liên quan trong hệ thống."
+            # 2. Xử lý và tổng hợp ngữ cảnh (Context Aggregation)
+            if context_docs:
+                context_text = "\n".join([doc.get('content', '') for doc in context_docs])
+            else:
+                context_text = "Không có tài liệu tri thức liên quan trong hệ thống của nhóm."
 
-            # 3. Gọi hàm dựng prompt đã tối ưu (Thoát khỏi việc lặp code)
+            # 3. Gọi hàm dựng prompt đã được tối ưu hóa để định hình phong cách trả lời cho AI
             prompt = self.build_rag_prompt(context_text=context_text, query=query)
 
-            # 4. Gọi LLM thông qua AIFactory để đảm bảo bảo mật và linh hoạt Provider
+            # 4. Khởi tạo LLM client thông qua AIFactory (Bảo mật API Key & Tùy biến Provider theo nhóm)
             llm_client = AIFactory.get_provider(group_id=int(group_id))
+            
+            # 5. Sinh và trả về kết quả phản hồi từ mô hình AI
             return llm_client.generate(prompt)
             
         except Exception as e:
+            # Xử lý ngoại lệ an toàn, đảm bảo hệ thống không bị crash đột ngột tại luồng WebSocket
             return f"Xin lỗi, trợ lý AI đang gặp sự cố khi truy vấn tri thức nhóm: {str(e)}"

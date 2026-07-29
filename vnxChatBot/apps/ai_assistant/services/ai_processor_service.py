@@ -57,7 +57,7 @@ class AIProcessorService:
     @staticmethod
     def sync_unit_to_vector(knowledge_unit):
         """Đẩy dữ liệu vào Vector DB khi Unit được duyệt."""
-        VectorDBManager.upsert(
+        VectorDBManager.upsert_embedding(
             group_id=knowledge_unit.group.id,
             text=knowledge_unit.content,
             unit_id=knowledge_unit.id

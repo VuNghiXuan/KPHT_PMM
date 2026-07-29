@@ -103,17 +103,21 @@ def handle_knowledge_unit_cleanup(sender, instance, **kwargs):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_default_chat_group_for_new_user(sender, instance, created, **kwargs):
     """
-    Tự động khởi tạo Nhóm làm việc riêng và phân quyền Admin cho User mới đăng ký,
-    tuân thủ đúng quy tắc User chủ động tạo nhóm/quản lý nhóm riêng biệt[cite: 1].
+    Tự động khởi tạo Nhóm làm việc riêng cho User mới đăng ký,
+    tuân thủ đúng quy tắc User tự chủ động tạo nhóm/quản lý nhóm 
+    và mô hình cô lập dữ liệu theo nhóm (Group-Centric).
     """
     if created:
+        # Khởi tạo ChatGroup độc lập không chứa trường created_by thừa thãi
         group = ChatGroup.objects.create(
-            name=f"Nhóm làm việc của {instance.username}",
-            created_by=instance
+            name=f"Nhóm làm việc của {instance.username}"
         )
+        
+        # Gán quyền quản trị (admin) cho người dùng mới trong nhóm thông qua Membership
         Membership.objects.create(
             user=instance,
             group=group,
             role='admin'
         )
+        
         print(f"👥 Đã khởi tạo nhóm mặc định cho user mới: {instance.username}[cite: 1]")
