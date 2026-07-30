@@ -7,6 +7,7 @@ Module liên kết: apps.group_chat.models, apps.ai_assistant.services, apps.cor
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db import transaction  # Đảm bảo tính toàn vẹn dữ liệu
 from .models import ChatGroup, Membership, Document, KnowledgeUnit, Message
@@ -14,6 +15,9 @@ from .services.feedback_service import FeedbackService
 from apps.ai_assistant.models import GroupAIProvider
 from apps.core.models import User
 from apps.subscriptions.models import Subscription
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 @login_required
 def create_group(request):
@@ -126,33 +130,41 @@ def group_chat_detail(request, group_id):
     """
     Function: group_chat_detail
     Description: 
-        Hiển thị giao diện chat chính và không gian quản trị của nhóm làm việc, 
-        tích hợp WebSocket, danh sách tài liệu tri thức, thành viên và cấu hình AI. 
-        Đảm bảo kiểm tra tính cô lập dữ liệu (Tenant Isolation) dựa trên group_id 
-        và xác thực quyền thành viên trước khi ném dữ liệu vào template context.
+        Hiển thị giao diện chat chính của nhóm. Nếu người dùng xóa hết nhóm 
+        hoặc không tìm thấy nhóm, hệ thống sẽ tự động điều hướng về trang 
+        tạo nhóm mới hoặc dashboard để tránh lỗi 404.
     """
-    # 1. Kiểm tra và lấy thông tin nhóm dựa trên group_id (Tenant isolation cốt lõi)
-    group = get_object_or_404(ChatGroup, id=group_id)
+    # 1. Kiểm tra xem user có thuộc nhóm nào không, nếu không có nhóm nào -> chuyển hướng tạo nhóm
+    user_groups = ChatGroup.objects.filter(memberships__user=request.user)
+    if not user_groups.exists():
+        return redirect('group_chat:create_group') # Hoặc điều hướng về trang 'dashboard'
+
+    # 2. Lấy thông tin nhóm an toàn, nếu group_id không tồn tại nhưng user có nhóm khác -> lấy nhóm đầu tiên của họ
+    group = ChatGroup.objects.filter(id=group_id).first()
+    if not group:
+        first_group = user_groups.first()
+        return redirect('chat_detail', group_id=first_group.id)
     
-    # 2. Xác thực xem user hiện tại có phải là thành viên hợp lệ của nhóm này không
-    membership = get_object_or_404(Membership, group=group, user=request.user)
+    # 3. Xác thực xem user hiện tại có phải là thành viên hợp lệ của nhóm này không
+    membership = Membership.objects.filter(group=group, user=request.user).first()
+    if not membership:
+        # Nếu không phải thành viên nhưng nhóm tồn tại, chuyển về nhóm hợp lệ đầu tiên
+        valid_group = user_groups.first()
+        if valid_group:
+            return redirect('chat_detail', group_id=valid_group.id)
+        return redirect('group_chat:create_group')
     
-    # 3. Truy vấn 50 tin nhắn mới nhất và đảo ngược lại thứ tự hiển thị
+    # 4. Truy vấn tin nhắn và dữ liệu liên quan
     messages = list(group.messages.select_related('sender').order_by('-created_at')[:50])
     messages.reverse()
     
-    # 4. Tối ưu truy vấn danh sách thành viên
     memberships = group.memberships.select_related('user', 'user__profile').all()
-
-    # 5. Lấy tài liệu và tri thức của nhóm (Khắc phục lỗi bằng cách dùng -id hoặc approved_at)
     documents = group.documents.all().order_by('-uploaded_at')
     knowledge_units = KnowledgeUnit.objects.filter(document__group=group).order_by('-id')
 
-    # 6. Lấy thông tin gói cước và cấu hình AI riêng của nhóm
     subscription = getattr(group, 'subscription', None)
     ai_config = getattr(group, 'aiconfig', None)
 
-    # 7. Đóng gói toàn bộ biến ngữ cảnh (context) để truyền sang template
     context = {
         'group': group,
         'membership': membership,
@@ -285,39 +297,92 @@ def knowledge_action_view(request, knowledge_id, action):
         
     return JsonResponse({'status': 'error', 'message': 'Hành động không hợp lệ!'}, status=400)
 
+
+@login_required
+@require_POST
 def add_member_to_group(request, group_id):
     """
-    Xử lý logic thêm thành viên vào nhóm, tuân thủ giới hạn gói cước Subscription.
+    Function: add_member_to_group
+    Description: 
+        Xử lý yêu cầu thêm thành viên mới vào nhóm làm việc thông qua chuẩn JSON API.
+        Thực hiện các bước kiểm tra:
+        1. Phân quyền quản trị (Owner/Admin) dựa trên bảng trung gian Membership.
+        2. Xác thực định danh người dùng qua username hoặc email.
+        3. Kiểm tra hạn mức thành viên tối đa theo gói cước Subscription của nhóm.
     """
+    # Bước 1: Lấy thông tin nhóm làm việc (Group-Centric)
     group = get_object_or_404(ChatGroup, id=group_id)
     
-    # Kiểm tra quyền Admin nhóm (hoặc Owner)
-    is_admin = Membership.objects.filter(group=group, user=request.user, role__in=[Membership.Role.OWNER, Membership.Role.ADMIN]).exists()
+    # Bước 2: Kiểm tra quyền quản trị của người dùng hiện tại
+    is_admin = Membership.objects.filter(
+        group=group, 
+        user=request.user, 
+        role__in=['owner', 'admin']
+    ).exists()
+    
     if not is_admin:
-        return JsonResponse({'status': 'error', 'message': 'Bạn không có quyền thêm thành viên vào nhóm này!'}, status=403)
+        return JsonResponse({
+            'status': 'error', 
+            'message': 'Bạn không có quyền quản trị để thêm thành viên vào nhóm này!'
+        }, status=403)
 
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        role = request.POST.get('role', Membership.Role.MEMBER)
+    try:
+        # Bước 3: Đọc và phân tích dữ liệu JSON từ request body
+        data = json.loads(request.body)
+        identifier = data.get('username') or data.get('email')
+        role = data.get('role', 'member')
         
-        try:
-            user_to_add = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': f'Không tìm thấy người dùng có username: {username}'}, status=404)
+        if not identifier:
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Vui lòng cung cấp username hoặc email thành viên!'
+            }, status=400)
+        
+        # Bước 4: Tìm kiếm thông tin người dùng trong hệ thống core
+        user_to_add = User.objects.filter(username=identifier).first() or User.objects.filter(email=identifier).first()
+        
+        if not user_to_add:
+            return JsonResponse({
+                'status': 'error', 
+                'message': f'Không tìm thấy hệ thống người dùng với thông tin: {identifier}'
+            }, status=404)
             
-        # Kiểm tra xem đã là thành viên chưa
+        # Bước 5: Kiểm tra xem người dùng đã thuộc nhóm hay chưa
         if Membership.objects.filter(group=group, user=user_to_add).exists():
-            return JsonResponse({'status': 'error', 'message': 'Người dùng này đã là thành viên của nhóm!'}, status=400)
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Người dùng này đã là thành viên của nhóm làm việc!'
+            }, status=400)
             
-        # Kiểm tra giới hạn gói cước Subscription (Ví dụ Free tối đa 6 thành viên kể cả AI)
+        # Bước 6: Kiểm tra hạn mức gói cước Subscription của nhóm
         subscription, _ = Subscription.objects.get_or_create(group=group)
         current_members_count = Membership.objects.filter(group=group).count()
         
-        if current_members_count >= subscription.max_members:
-            return JsonResponse({'status': 'error', 'message': f'Nhóm đã đạt giới hạn tối đa ({subscription.max_members} thành viên) theo gói cước hiện tại!'}, status=400)
-            
-        # Thêm thành viên mới
-        Membership.objects.create(group=group, user=user_to_add, role=role)
-        return JsonResponse({'status': 'success', 'message': f'Đã thêm thành công {username} vào nhóm!'})
+        # Lưu ý: Thay thế thuộc tính 'max_members' bằng tên trường thực tế trong model Subscription nếu cần 
+        # (ví dụ: subscription.max_users hoặc xem cấu trúc model trong apps/subscriptions/models.py)
+        max_allowed_members = getattr(subscription, 'max_members', getattr(subscription, 'max_users', 6))
         
-    return JsonResponse({'status': 'error', 'message': 'Phương thức không hợp lệ.'}, status=405)
+        if current_members_count >= max_allowed_members:
+            return JsonResponse({
+                'status': 'error', 
+                'message': f'Nhóm đã đạt giới hạn tối đa ({max_allowed_members} thành viên) theo gói cước hiện tại!'
+            }, status=400)
+            
+        # Bước 7: Khởi tạo quan hệ thành viên mới trong nhóm
+        Membership.objects.create(group=group, user=user_to_add, role=role)
+        
+        return JsonResponse({
+            'status': 'success', 
+            'message': f'Đã thêm thành viên {user_to_add.username} vào nhóm thành công!'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error', 
+            'message': 'Dữ liệu gửi lên không đúng định dạng JSON chuẩn.'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error', 
+            'message': f'Lỗi hệ thống nội bộ: {str(e)}'
+        }, status=500)

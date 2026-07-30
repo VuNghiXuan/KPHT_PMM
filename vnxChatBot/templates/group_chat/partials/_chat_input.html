@@ -1,0 +1,22 @@
+<!-- 
+  File: templates/group_chat/partials/_chat_input.html
+  Mục đích: Khung nhập liệu tin nhắn kết hợp upload tài liệu vào RAG Pipeline.
+-->
+<div class="p-3 border-top bg-white">
+    <div class="d-flex align-items-center gap-2 mb-2 text-muted">
+        <button type="button" class="btn btn-sm btn-light text-secondary border-0"
+            onclick="document.getElementById('file-upload').click()" title="Tải lên tài liệu nạp vào Kho Tri thức RAG">
+            <i class="fas fa-paperclip"></i> Đính kèm tài liệu 📁
+        </button>
+        <span class="text-muted small">| Chat chung với mọi người hoặc gõ <b>@ai</b> để hỏi trợ lý thông minh 🧠</span>
+    </div>
+
+    <form id="chat-form" class="input-group">
+        <input type="file" id="file-upload" hidden>
+        <input type="text" id="chat-input" class="form-control rounded-start-3"
+            placeholder="Nhập tin nhắn trao đổi chung hoặc gọi @ai...">
+        <button type="submit" class="btn btn-primary px-4 rounded-end-3">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </form>
+</div>

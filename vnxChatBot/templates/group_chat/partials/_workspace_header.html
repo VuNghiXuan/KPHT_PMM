@@ -1,0 +1,38 @@
+<!-- 
+  File: templates/group_chat/partials/_workspace_header.html
+  Mục đích: Tiêu đề không gian làm việc chính của nhóm hiện tại.
+-->
+<div class="px-4 py-2 border-bottom d-flex justify-content-between align-items-center bg-white shadow-sm"
+    style="height: 60px;">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+            style="width: 38px; height: 38px;">
+            {{ group.name|slice:":2"|upper }}
+        </div>
+        <div>
+            <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                {{ group.name }}
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0"
+                    style="font-size: 0.7rem;">
+                    <i class="fas fa-circle" style="font-size: 0.4rem;"></i> Team & AI Active
+                </span>
+            </h6>
+            <small class="text-muted" style="font-size: 0.75rem;">Tenant ID: {{ group.id }} | Kênh trao đổi
+                chung</small>
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-3 text-secondary">
+        <button class="btn btn-light btn-sm rounded-circle p-2" type="button" title="Gọi thoại nhóm">
+            <i class="fas fa-phone-alt"></i>
+        </button>
+        <button class="btn btn-light btn-sm rounded-circle p-2" type="button" title="Gọi video nhóm">
+            <i class="fas fa-video"></i>
+        </button>
+        <div class="vr mx-1"></div>
+        <button class="btn btn-light btn-sm rounded-circle p-2" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#settingsSidebar" aria-controls="settingsSidebar" title="Thông tin & Cấu hình nhóm">
+            <i class="fas fa-info-circle fs-5 text-primary"></i>
+        </button>
+    </div>
+</div>

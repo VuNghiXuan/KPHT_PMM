@@ -1,6 +1,7 @@
 """
 File: apps/ai_assistant/apps.py
 Mô tả: Cấu hình App ai_assistant và kiểm tra kết nối Redis chủ động khi khởi động.
+Tác giả: Kiến trúc sư VnxChatBot
 """
 import logging
 import sys
@@ -21,10 +22,11 @@ class AiAssistantConfig(AppConfig):
         from .utils import check_redis_status
         
         if not check_redis_status():
-            msg = "⚠️ [CẢNH BÁO HỆ THỐNG - VnxChatBot]: Không thể kết nối tới Redis tại 127.0.0.1:6379. Vui lòng khởi động Docker/Redis để sử dụng WebSocket và tác vụ nền!"
+            msg = "[CANH BAO HE THONG - VnxChatBot]: Khong the ket noi toi Redis tai 127.0.0.1:6379. Vui long khoi dong Docker/Redis de su dung WebSocket va tac vu nen!"
             logger.warning(msg)
-            print("\n" + "="*80 + f"\n{msg}\n" + "="*80 + "\n", file=sys.stderr)
+            # Sử dụng ký tự ASCII thuần túy thay vì emoji để tránh UnicodeEncodeError trên Windows cp1252
+            print("\n" + "="*80 + f"\n[!] {msg}\n" + "="*80 + "\n", file=sys.stderr)
         else:
-            msg = "✅ [HỆ THỐNG - VnxChatBot]: Kết nối Redis thành công và sẵn sàng phục vụ RAG/WebSocket."
+            msg = "[HE THONG - VnxChatBot]: Ket noi Redis thanh cong va san sang phuc vu RAG/WebSocket."
             logger.info(msg)
-            print("\n" + "="*80 + f"\n{msg}\n" + "="*80 + "\n")
+            print("\n" + "="*80 + f"\n[OK] {msg}\n" + "="*80 + "\n")
