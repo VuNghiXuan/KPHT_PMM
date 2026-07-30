@@ -3,72 +3,40 @@
 {% block page_title %}Bảng điều khiển{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    {% if user_profile %}
-    <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-muted">Thông tin công ty</h6>
-                    <h4 class="mt-2 text-primary">{{ user_profile.company.name }}</h4>
-                    <p class="text-muted mb-0"><strong>MST:</strong> {{ user_profile.company.tax_code }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 bg-light h-100">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-muted">Gói dịch vụ hiện tại</h6>
-                    {% if user_profile.company.plan %}
-                    <h4 class="mt-2 text-success">{{ user_profile.company.plan.name }}</h4>
-                    {% else %}
-                    <h5 class="mt-2 text-danger">Chưa chọn gói dịch vụ</h5>
-                    {% endif %}
-                </div>
-            </div>
+<div class="container-fluid py-4">
+    <!-- Header khu vực nhóm -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h4 class="fw-bold"><i class="fas fa-users text-primary me-2"></i> Nhóm làm việc của bạn</h4>
+            <a href="{% url 'group_chat:create_group' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Tạo nhóm mới
+            </a>
         </div>
     </div>
-    {% endif %}
 
-    <div class="row mt-4">
+    <!-- Danh sách nhóm chat -->
+    <div class="row">
         <div class="col-12">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0"><i class="fas fa-comments text-primary me-2"></i> Nhóm chat của bạn</h5>
-                </div>
                 <div class="list-group list-group-flush">
                     {% for group in my_groups %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">{{ group.name }}</span>
-                        <a href="{% url 'group_chat:detail' group.id %}" class="btn btn-sm btn-primary">
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ group.name }}</h6>
+                            <small class="text-muted">Được tạo ngày: {{ group.created_at|date:"d/m/Y" }}</small>
+                        </div>
+                        <a href="{% url 'group_chat:chat_detail' group.id %}"
+                            class="btn btn-sm btn-outline-primary px-3">
                             <i class="fas fa-sign-in-alt me-1"></i> Vào chat
                         </a>
                     </div>
                     {% empty %}
-                    <div class="list-group-item text-muted">Bạn chưa có nhóm chat nào để dùng thử.</div>
+                    <div class="list-group-item text-muted py-4 text-center">
+                        <i class="fas fa-comments fa-2x mb-2 opacity-50"></i><br>
+                        Bạn chưa thuộc nhóm nào. Hãy tạo nhóm đầu tiên để bắt đầu công việc!
+                    </div>
                     {% endfor %}
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-12">
-            <h5 class="mb-3">Danh sách các gói dịch vụ khả dụng</h5>
-            <div class="row g-3">
-                {% for plan in all_plans %}
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5>{{ plan.name }}</h5>
-                            <h4 class="text-primary">{{ plan.price }} VNĐ/tháng</h4>
-                            <p class="small text-muted">{{ plan.description }}</p>
-                            <a href="{% url 'subscriptions:upgrade' plan.id %}" class="btn btn-primary w-100">Nâng cấp
-                                ngay</a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
             </div>
         </div>
     </div>

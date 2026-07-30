@@ -8,7 +8,7 @@
     <title>VnxChatBot | {% block title %}Dashboard{% endblock %}</title>
 
     <!-- Bootstrap 5 CSS -->
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.8-dist/css/bootstrap.min.css' %}">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="{% static 'css/fontawesome/css/all.min.css' %}">
     <!-- Ledger / Theme CSS -->
@@ -18,81 +18,21 @@
 </head>
 
 <body class="d-flex">
-    <!-- Sidebar - Quản trị điều hướng Group-Centric -->
-    <div class="sidebar d-flex flex-column bg-dark text-white" id="sidebar" style="width: 260px; min-height: 100vh;">
-        <h4 class="p-3 text-white border-bottom border-secondary text-center m-0">
-            <i class="fas fa-comments text-primary me-2"></i>VnxChatBot
-        </h4>
-
-        <nav class="nav flex-column mt-3 px-2 flex-grow-1">
-            <a href="{% url 'dashboard' %}"
-                class="nav-link text-white rounded mb-1 {% if request.resolver_match.url_name == 'dashboard' %}active bg-primary{% endif %}">
-                <i class="fas fa-tachometer-alt me-2"></i> Tổng quan
-            </a>
-
-            <a href="{% url 'arch_manager:blueprint_dashboard' %}" class="nav-link text-white rounded mb-1"
-                target="_blank">
-                <i class="fas fa-network-wired me-2"></i> Kiến trúc hệ thống
-            </a>
-
-            <div class="dropdown-divider border-secondary my-3"></div>
-
-            <div class="px-3 text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Nhóm làm việc của bạn</div>
-
-            <!-- Danh sách nhóm động theo User -->
-            <div class="nav flex-column mt-2 overflow-auto" style="max-height: 350px;">
-                {% if user_groups %}
-                {% for group in user_groups %}
-                <a href="{% url 'group_chat:group_detail' group.id %}"
-                    class="nav-link text-white-50 rounded py-2 text-truncate">
-                    <i class="fas fa-users me-2 text-info"></i> {{ group.name }}
-                </a>
-                {% endfor %}
-                {% else %}
-                <span class="text-muted px-3 py-2" style="font-size: 0.85rem;">Chưa tham gia nhóm nào.</span>
-                {% endif %}
-            </div>
-
-            <div class="mt-auto p-2">
-                <a href="{% url 'group_chat:create_group' %}" class="btn btn-outline-primary btn-sm w-100 text-white">
-                    <i class="fas fa-plus me-1"></i> Tạo nhóm mới
-                </a>
-            </div>
-        </nav>
-
-        <div class="p-3 border-top border-secondary text-center" style="font-size: 0.8rem;">
-            <a href="/admin/" target="_blank" class="text-decoration-none text-muted">
-                <i class="fas fa-cog me-1"></i> Django Admin
-            </a>
-        </div>
-    </div>
+    <!-- Nhúng Sidebar từ component riêng -->
+    {% include 'components/sidebar.html' %}
 
     <!-- Main Workspace Content -->
     <div class="main-content flex-grow-1 d-flex flex-column" style="min-width: 0;">
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4" style="height: 60px;">
-            <button class="btn btn-outline-dark btn-sm me-3" id="sidebarToggle" type="button">
-                <i class="fas fa-bars"></i>
-            </button>
-            <span class="navbar-brand mb-0 h1 fs-6 fw-bold">{% block page_title %}Tổng quan hệ thống
-                {% endblock%}</span>
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <span class="text-muted small">Xin chào, <strong>{{ request.user.username }}</strong></span>
-                <form action="{% url 'core:logout' %}" method="post" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Đăng xuất</button>
-                </form>
-            </div>
-        </nav>
+        <!-- Nhúng Navbar từ component riêng -->
+        {% include 'components/navbar.html' %}
 
         <div class="container-fluid p-0 flex-grow-1 bg-light">
             {% block content %}{% endblock %}
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle (Sử dụng CDN chính thức để đồng bộ toàn hệ thống) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+    <!-- Bootstrap JS Bundle -->
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
     <script>
         document.getElementById('sidebarToggle').addEventListener('click', function () {
             document.getElementById('sidebar').classList.toggle('collapsed');

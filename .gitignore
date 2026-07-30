@@ -16,19 +16,17 @@ dist/
 *.swp
 *.swo
 
+# --- Database & Vector Store Local Data ---
+# Tránh theo dõi các file dữ liệu cục bộ thay đổi ngầm khi chạy ứng dụng hoặc test
+db.sqlite3
+*.sqlite3
+vnxChatBot/core/vector_db/
+
 # --- Excel & Temporary Files ---
-# Tránh đẩy file data chạy thử lên Git
-#*.xlsx
-#*.xls
-#*.csv
-# File tạm của Excel khi đang mở (thường bắt đầu bằng ~$)
 ~$*.xlsx
 ~$*.xls
 
 # --- App Specific ---
-# Không đẩy file cấu hình cá nhân hoặc dữ liệu người dùng
-# (Nếu mày muốn người khác dùng cấu hình mặc định, hãy đẩy file sample)
-# rules_config.json
 logs/
 *.log
 
