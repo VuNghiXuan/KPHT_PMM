@@ -3,16 +3,7 @@ NỘI DUNG CHỈ DẪN CHO AI (SYSTEM INSTRUCTIONS - NEXUSCHAT)1. Vai trò & Đ�
 
 
 Phần chưa làm:
-Phát triển chi tiết WebSocket Consumer (ChatConsumer): Hoàn thiện logic trò chuyện thời gian thực, cơ chế AI tự động lắng nghe thảo luận và gọi RagEngine để truy xuất tri thức từ ChromaDB theo group_id.
-
-Xây dựng Feedback Loop & Giao diện Quản trị Tri thức: Hiện thực hóa luồng xử lý khi người dùng phản hồi (Like/Dislike) câu trả lời của AI, từ đó kích hoạt cơ chế hỏi lại, tóm tắt và cập nhật phiên bản tri thức mới.
-
-Kiểm thử & Viết Test Cases: Viết unit test cho các luồng Django Signals (tự động tạo nhóm, gán AI member, đồng bộ vector) để đảm bảo tính toàn vẹn dữ liệu.
-
-Yêu cầu khác: Anh/chị muốn viết mã nguồn hoặc tinh chỉnh một module cụ thể nào khác trong hệ thống?
+Kiểm tra luồng Chat & AI Assistant: Gửi tin nhắn trực tiếp qua giao diện nhóm chat để kiểm tra xem ChatConsumer và mô hình AI phản hồi qua WebSocket có hoạt động trơn tru không.
 
 
-Tóm tắt công việc trọng tâm cần làm tiếp theo:
-Kiểm tra và sửa lỗi template (chat_detail.html) bằng cách tách partial template như đã định hướng để triệt tiêu tận gốc lỗi cú pháp {% endfor %}.
-
-Tối ưu hóa vòng đời tri thức (Knowledge Lifecycle) và kết nối chặt chẽ dữ liệu theo group_id (Group-Centric).
+🗓️ Tóm tắt kế hoạch công việc cho ngày mai khi bạn quay lại:Ôn lại ngữ cảnh: Tiếp tục từ phần hoàn thiện tính năng chat thời gian thực giữa các thành viên trong nhóm thông qua WebSocket (ChatConsumer) kết hợp với luồng gọi trợ lý AI (@ai) và RAG Engine.  Triển khai code chi tiết:Hoàn thiện mã nguồn Consumer quản lý group_id (Tenant Isolation).  Tích hợp giao diện chat động (chat_detail.html và các partial templates).  Đảm bảo luồng xử lý tài liệu thông qua FileProcessor và kích hoạt tự động qua Django Signals.  

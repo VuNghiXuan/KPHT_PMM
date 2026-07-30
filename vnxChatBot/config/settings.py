@@ -104,35 +104,13 @@ TEMPLATES = [
     },
 ]
 
-# Ví dụ cấu hình chuẩn cho Channels sử dụng InMemory (hoặc Redis)
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-}
+
 
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# Cấu hình Database hỗ trợ kiểm thử Channels (Tránh lỗi in-memory database)
-# if 'test' in sys.argv:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'test_db.sqlite3',  # Lưu ra file tạm khi chạy test
-#         }
-#     }
-# else:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'db.sqlite3',       # Sử dụng database thông thường khi chạy ứng dụng
-#         }
-#     }
 
 DATABASES = {
     'default': {
@@ -248,17 +226,6 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
-# --- CHANNELS & WEBSOCKET CONFIGURATION: Xử lý bất động bộ tin nhắn ---
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-            "capacity": 1500,          # Tăng dung lượng hàng đợi tin nhắn
-            "expiry": 60,              # Thời gian hết hạn message (giây)
-        },
-    },
-}
 
 # Cấu hình Celery Broker trỏ tới Redis với timeout hợp lý
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
@@ -282,5 +249,39 @@ LOGGING = {
 }
 
 
+# --- CHANNELS & WEBSOCKET CONFIGURATION: Xử lý bất đồng bộ tin nhắn ---
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("127.0.0.1", 6379)],
+#             "capacity": 1500,         # Tăng dung lượng hàng đợi tin nhắn
+#             "expiry": 60,             # Thời gian hết hạn message (giây)
+#             "symmetric_encryption_keys": [SECRET_KEY],
+#         },
+#     },
+# }
+
+# # Khi đưa lên server: Đọc cấu hình Redis từ biến môi trường, mặc định trỏ về localhost nếu chạy local
+# REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
+# REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [(REDIS_HOST, int(REDIS_PORT))],
+#             "capacity": 1500,
+#             "expiry": 60,
+#         },
+#     },
+# }
+
+# Dùng tạm khi debug local nếu không muốn phụ thuộc Redis service
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 # Cấu hình định tuyến ASGI cho Django Channels & WebSocket
 ASGI_APPLICATION = 'config.asgi.application'

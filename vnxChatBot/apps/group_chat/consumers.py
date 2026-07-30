@@ -1,4 +1,3 @@
-
 """
 Module: group_chat.consumers
 Author: Senior Software Engineer & Architecture Lead
@@ -20,6 +19,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     
     Description: 
         Quản lý vòng đời kết nối WebSocket dựa trên định danh `group_id` (Tenant Isolation).
+        Điều phối việc nhận tin nhắn từ User, lưu trữ DB, broadcast thời gian thực 
+        và kích hoạt AI RAG Engine phản hồi tự động.
     """
 
     async def connect(self):
@@ -49,6 +50,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         """
         Rời khỏi Channel Layer Group khi client ngắt kết nối WebSocket.
+        
+        Args:
+            close_code (int): Mã trạng thái ngắt kết nối từ WebSocket.
         """
         if hasattr(self, 'room_group_name'):
             await self.channel_layer.group_discard(
@@ -58,7 +62,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         """
-        Xử lý dữ liệu nhận từ Client, lưu tin nhắn User và kích hoạt AI RAG Engine.
+        Xử lý dữ liệu nhận từ Client qua WebSocket, thực hiện:
+        1. Giải mã JSON payload.
+        2. Lưu tin nhắn của User vào Database (bất đồng bộ).
+        3. Broadcast tin nhắn của User tới toàn bộ thành viên trong nhóm.
+        4. Kích hoạt AI RAG Engine xử lý và phản hồi tự động.
         """
         try:
             data = json.loads(text_data)
@@ -92,7 +100,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         """
-        Nhận sự kiện từ Channel Layer và đẩy dữ liệu JSON về client.
+        Nhận sự kiện từ Channel Layer Group và đẩy dữ liệu JSON về client WebSocket.
+        
+        Args:
+            event (dict): Dữ liệu sự kiện được truyền từ group_send.
         """
         await self.send(text_data=json.dumps({
             'message_id': event.get('message_id'),
@@ -103,7 +114,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def trigger_ai_response(self, user_query):
         """
-        Khởi tạo RAGEngine gắn với `group_id` để truy vấn ChromaDB và gọi LLM.
+        Khởi tạo RAGEngine gắn với `group_id` để truy vấn ChromaDB, gọi LLM 
+        và gửi câu trả lời của AI lên kênh chat nhóm.
+        
+        Args:
+            user_query (str): Câu hỏi hoặc nội dung tin nhắn của người dùng.
         """
         rag_engine = RAGEngine(group_id=self.group_id)
         ai_reply_text = await rag_engine.query(query=user_query)
@@ -123,7 +138,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def check_user_membership(self, user, group_id):
-        """Kiểm tra quyền thành viên nhóm (Tenant Isolation)."""
+        """
+        Kiểm tra xem người dùng có phải là thành viên hợp lệ của nhóm hay không (Tenant Isolation).
+        
+        Args:
+            user (User): Đối tượng người dùng cần kiểm tra.
+            group_id (int/str): Định danh nhóm làm việc.
+            
+        Returns:
+            bool: True nếu tồn tại Membership, ngược lại False.
+        """
         return Membership.objects.filter(user=user, group_id=group_id).exists()
 
     @database_sync_to_async
@@ -135,6 +159,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             user (User): Người gửi tin nhắn.
             group_id (int/str): Định danh nhóm làm việc.
             content (str): Nội dung tin nhắn.
+            
+        Returns:
+            Message: Đối tượng tin nhắn vừa được tạo trong Database.
         """
         group = ChatGroup.objects.get(id=group_id)
         sender_membership = Membership.objects.filter(group=group, user=user).first()
@@ -147,15 +174,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
     
     @database_sync_to_async
     def save_ai_message(self, group_id, content):
-        """Lưu tin nhắn phản hồi từ AI với cờ nhận diện thành viên AI."""
+        """
+        Lưu tin nhắn phản hồi từ AI vào Database với thông tin sender là thành viên AI của nhóm.
+        
+        Args:
+            group_id (int/str): Định danh nhóm làm việc.
+            content (str): Nội dung phản hồi từ AI Assistant.
+            
+        Returns:
+            Message: Đối tượng tin nhắn AI vừa được tạo trong Database.
+        """
         group = ChatGroup.objects.get(id=group_id)
         ai_membership = Membership.objects.filter(group=group, is_ai=True).first()
         return Message.objects.create(
             group=group,
             sender=ai_membership,
-            content=content,
-            # is_ai=True
+            content=content
         )
-
-
-# python manage.py test_flow

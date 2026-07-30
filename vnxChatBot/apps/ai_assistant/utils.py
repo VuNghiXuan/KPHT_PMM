@@ -1,3 +1,4 @@
+# apps\ai_assistant\utils.py
 import redis
 
 def check_redis_status(host='127.0.0.1', port=6379, timeout=2):
