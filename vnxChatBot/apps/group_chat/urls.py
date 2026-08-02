@@ -23,5 +23,7 @@ urlpatterns = [
     
     # 🤖 Cấu hình AI riêng cho nhóm (Group-Centric AI Configuration)
     path('<int:group_id>/ai-config/', views.update_ai_config_view, name='update_ai_config'),
+    path('groups/<uuid:group_id>/members-api/', views.get_group_members_api, name='get_group_members_api'),
+    path('group-chat/message/<int:message_id>/feedback/', views.knowledge_feedback_view, name='message_feedback'),
     
 ]

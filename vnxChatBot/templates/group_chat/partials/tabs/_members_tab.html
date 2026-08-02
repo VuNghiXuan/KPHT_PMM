@@ -22,33 +22,95 @@
 
     <!-- Danh sách thành viên hiện tại -->
     <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
-        {% for membership in memberships %}
-        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
-            <div>
-                <span class="small fw-bold">
-                    {% if membership.user.profile.is_ai %}
-                    🤖 AI Assistant
+        {% for membership in group.memberships.all %}
+        <div class="list-group-item d-flex align-items-center justify-content-between py-2 px-1 border-0 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <!-- Avatar & Trạng thái Online/Offline -->
+                <div class="position-relative">
+                    {% if membership.is_ai %}
+                    <!-- Avatar AI -->
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm"
+                        style="width: 36px; height: 36px; font-size: 1rem;">
+                        🤖
+                    </div>
+                    <!-- AI luôn online -->
+                    <span
+                        class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"
+                        title="AI luôn sẵn sàng">
+                        <span class="visually-hidden">Online</span>
+                    </span>
+                    {% elif membership.user %}
+                    <!-- Avatar User (Lấy từ Profile hoặc hiển thị chữ cái đầu nếu chưa có ảnh) -->
+                    {% if membership.user.profile and membership.user.profile.avatar %}
+                    <img src="{{ membership.user.profile.avatar.url }}" class="rounded-circle shadow-sm"
+                        style="width: 36px; height: 36px; object-fit: cover;" alt="Avatar">
                     {% else %}
-                    {{ membership.user.username }}
+                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                        style="width: 36px; height: 36px; font-size: 0.85rem;">
+                        {{ membership.user.username|slice:":2"|upper }}
+                    </div>
                     {% endif %}
-                </span>
-                <small class="d-block text-muted" style="font-size: 0.65rem;">Vai trò: {{ membership.get_role_display
-                    }}</small>
+
+                    <!-- Chấm trạng thái Online/Offline (Ví dụ check dựa vào last_login hoặc logic active) -->
+                    {% if membership.user.is_active %}
+                    <span
+                        class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"
+                        title="Online">
+                        <span class="visually-hidden">Online</span>
+                    </span>
+                    {% else %}
+                    <span
+                        class="position-absolute bottom-0 end-0 translate-middle p-1 bg-secondary border border-light rounded-circle"
+                        title="Offline">
+                        <span class="visually-hidden">Offline</span>
+                    </span>
+                    {% endif %}
+                    {% else %}
+                    <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center"
+                        style="width: 36px; height: 36px;">
+                        ❓
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tên thành viên -->
+                <div>
+                    <h6 class="mb-0 text-dark fw-semibold" style="font-size: 0.9rem;">
+                        {% if membership.is_ai %}
+                        AI Assistant
+                        {% elif membership.user %}
+                        {{ membership.user.username }}
+                        {% else %}
+                        Thành viên ẩn danh
+                        {% endif %}
+                    </h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">
+                        {% if membership.is_ai %}
+                        Trợ lý 24/7
+                        {% elif membership.user.is_active %}
+                        <span class="text-success">● Đang hoạt động</span>
+                        {% else %}
+                        <span class="text-muted">○ Ngoại tuyến</span>
+                        {% endif %}
+                    </small>
+                </div>
             </div>
-            <span
-                class="badge {% if membership.role == 'owner' %}bg-danger{% elif membership.role == 'admin' %}bg-primary{% else %}bg-secondary{% endif %}"
-                style="font-size: 0.6rem;">
-                {{ membership.role }}
+
+            <!-- Huy hiệu vai trò -->
+            <span class="badge {% if membership.role == 'admin' %}bg-danger{% else %}bg-secondary{% endif %} text-white"
+                style="font-size: 0.7rem;">
+                {% if membership.is_ai %}
+                AI Member
+                {% else %}
+                {{ membership.get_role_display }}
+                {% endif %}
             </span>
         </div>
         {% endfor %}
     </div>
 
+    <!-- Đoạn mã xử lý sự kiện JavaScript giữ nguyên như cũ -->
     <script>
-        /**
-         * Xử lý sự kiện submit form thêm thành viên qua chuẩn JSON API,
-         * đảm bảo gửi đúng định dạng và xử lý phản hồi an toàn từ backend Django.
-         */
         document.getElementById('add-member-form').onsubmit = function (e) {
             e.preventDefault();
             const identifier = document.getElementById('new-member-username').value.trim();
@@ -59,50 +121,30 @@
                 return;
             }
 
-            // Gọi hàm thực thi gửi request chuẩn JSON với group_id hiện tại
             addMemberToGroup("{{ group.id }}", identifier, role);
         };
 
-        /**
-         * Function: addMemberToGroup
-         * Description: Gửi yêu cầu thêm thành viên mới vào nhóm qua chuẩn JSON API,
-         * xử lý phản hồi trả về từ backend Django tránh lỗi trả về trang HTML.
-         */
         function addMemberToGroup(groupId, identifier, role = 'member') {
-            // In log kiểm tra URL thực tế được sinh ra
             const url = `/groups/${groupId}/add-member/`;
-            console.log("🚀 [DEBUG JS] Chuẩn bị gửi fetch request tới URL:", url);
-            console.log("🚀 [DEBUG JS] Dữ liệu gửi đi:", { username: identifier, role: role });
-
             fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({
-                    username: identifier,
-                    role: role
-                })
+                body: JSON.stringify({ username: identifier, role: role })
             })
                 .then(async response => {
-                    console.log("📥 [DEBUG JS] Nhận HTTP Status code:", response.status);
                     const contentType = response.headers.get("content-type");
-
                     if (!contentType || !contentType.includes("application/json")) {
                         const text = await response.text();
-                        console.error("❌ [DEBUG JS] Server trả về HTML thay vì JSON. Nội dung:", text.substring(0, 300));
-                        throw new Error(`Server trả về mã lỗi HTTP ${response.status} (có thể sai URL hoặc lỗi trang HTML).`);
+                        throw new Error(`Server trả về mã lỗi HTTP ${response.status}`);
                     }
-
                     const data = await response.json();
-                    if (!response.ok) {
-                        throw new Error(data.message || 'Lỗi hệ thống không xác định.');
-                    }
+                    if (!response.ok) throw new Error(data.message || 'Lỗi hệ thống.');
                     return data;
                 })
                 .then(data => {
-                    console.log("✨ [DEBUG JS] Phản hồi thành công từ server:", data);
                     if (data.status === 'success') {
                         alert("✅ " + data.message);
                         location.reload();
@@ -111,14 +153,10 @@
                     }
                 })
                 .catch(error => {
-                    console.error('❌ [DEBUG JS] Bắt được lỗi tại catch:', error);
                     alert('❌ Thêm thành viên thất bại: ' + error.message);
                 });
         }
 
-        /**
-         * Hàm hỗ trợ lấy CSRF Token từ cookie của Django
-         */
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {

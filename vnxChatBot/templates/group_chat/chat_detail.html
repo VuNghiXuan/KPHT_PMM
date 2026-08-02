@@ -1,258 +1,117 @@
-<!-- 
-  File: templates/group_chat/chat_detail.html
-  Mục đích: Workspace 4 cột chuẩn Zalo Web (Sidebar Nav, Sidebar Groups, Main Chat, Right Sidebar Info/AI Config).
--->
-{% extends "base.html" %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
 
-{% block title %}{{ group.name }} | vnxChatBot Workstation{% endblock %}
-{% block page_title %}Nhóm: {{ group.name }}{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ group.name }} | vnxChatBot Workstation</title>
 
-{% block content %}
-<div class="d-flex h-100 w-100 bg-white overflow-hidden" style="height: 100vh; position: fixed; top: 0; left: 0;">
+    {% load static %}
 
-    <!-- ================= CỘT 1: Icon Navigation Sidebar ================= -->
-    {% include "group_chat/partials/_sidebar_nav.html" %}
+    <!-- Bootstrap 5 & FontAwesome Local CSS -->
+    <link href="{% static 'bootstrap-5.3.8-dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/fontawesome/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/ledger_theme.css' %}" rel="stylesheet">
 
-    <!-- ================= CỘT 2: Danh sách nhóm & Kênh chat chung ================= -->
-    {% include "group_chat/partials/_sidebar_groups.html" %}
-
-    <!-- ================= CỘT 3: Main Workspace (Khung Chat chính) ================= -->
-    <div class="flex-grow-1 d-flex flex-column h-100 bg-white border-end">
-        {% include "group_chat/partials/_workspace_header.html" %}
-
-        {% block workspace_content %}
-        <div class="flex-grow-1 overflow-auto p-4 bg-light" id="chat-messages">
-            {% include "group_chat/partials/message_list.html" %}
-        </div>
-
-        {% include "group_chat/partials/_chat_input.html" %}
-        {% endblock %}
-    </div>
-
-    <!-- ================= CỘT 4: Panel Phải Cố Định (Thông tin nhóm, Thành viên, Cấu hình AI & Tri thức) ================= -->
-    <div class="d-flex flex-column bg-white border-start"
-        style="width: 340px; min-width: 340px; height: 100vh; overflow-y: auto;">
-        {% include "group_chat/partials/_settings_offcanvas.html" %}
-    </div>
-
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const groupId = "{{ group.id }}";
-        const currentUsername = "{{ request.user.username }}";
-        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-        const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/groups/${groupId}/`);
-
-        function scrollToBottom() {
-            const chatMessages = document.getElementById('chat-messages');
-            if (chatMessages) {
-                setTimeout(() => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 50);
-            }
+    <style>
+        /* Tinh chỉnh scrollbar gọn gàng, hiện đại cho workspace nhóm */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
 
-        scrollToBottom();
+        ::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
 
-        chatSocket.onmessage = function (e) {
-            const data = JSON.parse(e.data);
-            const chatMessages = document.getElementById('chat-messages');
-            if (!chatMessages) return;
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
 
-            const isMe = data.sender_name === currentUsername;
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'} mb-3`;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
 
-            let aiActionsHTML = '';
-            if (data.is_ai) {
-                aiActionsHTML = `
-                    <div class="mt-2 d-flex gap-3 align-items-center pt-2 border-top">
-                        <i class="fas fa-thumbs-up text-success cursor-pointer" onclick="handleFeedback('${data.message_id}', 'like')" title="Thích phản hồi"></i>
-                        <i class="fas fa-thumbs-down text-danger cursor-pointer" onclick="handleFeedback('${data.message_id}', 'dislike')" title="Không thích phản hồi"></i>
-                        <i class="fas fa-heart text-danger cursor-pointer" onclick="handleFeedback('${data.message_id}', 'heart')" title="Yêu thích"></i>
-                        <button class="btn btn-sm btn-outline-primary py-0 px-2 ms-auto" onclick="promoteMessageToKnowledge('${data.message_id}')" title="Đưa tin nhắn này vào kho tri thức nhóm">
-                            <i class="fas fa-brain"></i> Học tri thức 🧠
-                        </button>
-                    </div>
-                `;
-            }
+        .cursor-pointer {
+            cursor: pointer;
+        }
 
-            messageDiv.innerHTML = `
-                <div class="p-3 rounded-4 shadow-sm ${data.is_ai ? 'bg-white border text-dark' : (isMe ? 'bg-primary text-white' : 'bg-white border text-dark')}" style="max-width: 75%;">
-                    <small class="d-block mb-1 opacity-75 fw-bold">${data.sender_name} ${data.is_ai ? '🤖' : ''}</small>
-                    <p class="mb-0 text-break">${data.content}</p>
-                    ${aiActionsHTML}
+        /* Hiệu ứng bóng mờ nhẹ cho khung workspace tập trung theo ChatGroup */
+        .workspace-shadow {
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.03);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-light overflow-hidden" style="height: 100vh; margin: 0; padding: 0;">
+
+    <!-- 
+      File: templates/group_chat/chat_detail.html
+      Mục đích: Workspace độc lập toàn màn hình (Group-Centric Workspace) của VnxChatBot,
+                tích hợp giao diện tin nhắn chuẩn xác, phân luồng User (phải) - AI/Others (trái)
+                dựa trên định danh tenant ChatGroup.
+    -->
+    <div class="container-fluid p-0 m-0 h-100 overflow-hidden">
+        <div class="d-flex h-100 w-100 bg-white workspace-shadow">
+
+            <!-- ================= CỘT 1: Icon Navigation Sidebar (Tích hợp nút Home) ================= -->
+            <div class="flex-shrink-0 d-flex flex-column align-items-center py-3 border-end bg-dark text-white"
+                style="width: 75px;">
+                <!-- Nút Home / Quay về tổng quan hệ thống -->
+                <a href="{% url 'dashboard' %}"
+                    class="btn btn-outline-light mb-4 rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                    style="width: 48px; height: 48px; transition: all 0.2s;" title="Quay về trang Tổng quan hệ thống">
+                    <i class="fas fa-home fa-lg"></i>
+                </a>
+
+                <hr class="w-75 text-secondary my-2">
+
+                <!-- Các icon điều hướng nội bộ của nhóm -->
+                <div class="flex-grow-1 w-100">
+                    {% include "group_chat/partials/_sidebar_nav.html" %}
                 </div>
-            `;
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        };
 
-        // 🛡️ Xử lý sự kiện submit form chat an toàn
-        const chatForm = document.getElementById('chat-form');
-        if (chatForm) {
-            chatForm.onsubmit = function (e) {
-                e.preventDefault();
-                const inputDom = document.getElementById('chat-input');
-                if (!inputDom) return;
-                const message = inputDom.value.trim();
-                if (message) {
-                    chatSocket.send(JSON.stringify({ 'message': message }));
-                    inputDom.value = '';
-                    scrollToBottom();
-                }
-            };
-        }
+                <!-- User Profile / Trạng thái dưới cùng -->
+                <div class="mt-auto text-center text-secondary small py-2">
+                    <i class="fas fa-user-shield fa-lg" title="Logged in as {{ request.user.username }}"></i>
+                </div>
+            </div>
 
-        // Xử lý sự kiện chọn file upload qua FileProcessor
-        const fileUpload = document.getElementById('file-upload');
-        if (fileUpload) {
-            fileUpload.addEventListener('change', function (e) {
-                const file = e.target.files[0];
-                if (!file) return;
+            <!-- ================= CỘT 2: Danh sách nhóm & Kênh chat (Rộng vừa phải) ================= -->
+            <div class="flex-shrink-0 border-end bg-white" style="width: 290px;">
+                {% include "group_chat/partials/_sidebar_groups.html" %}
+            </div>
 
-                const chatMessages = document.getElementById('chat-messages');
-                const loadingDiv = document.createElement('div');
-                loadingDiv.id = 'upload-loading';
-                loadingDiv.className = 'd-flex justify-content-start mb-3';
-                loadingDiv.innerHTML = `
-                    <div class="p-3 rounded-4 shadow-sm bg-white border text-primary">
-                        <i class="fas fa-spinner fa-spin me-2"></i> Hệ thống đang xử lý và trích xuất tri thức từ file <b>${file.name}</b> qua FileProcessor... 🧠
-                    </div>
-                `;
-                chatMessages.appendChild(loadingDiv);
-                scrollToBottom();
+            <!-- ================= CỘT 3: Main Workspace (Khu vực chat chính co giãn linh hoạt) ================= -->
+            <div class="flex-grow-1 d-flex flex-column h-100 bg-white overflow-hidden">
+                {% include "group_chat/partials/_workspace_header.html" %}
 
-                const formData = new FormData();
-                formData.append('file', file);
-                const uploadUrl = "{% url 'group_chat:upload_document' group.id %}";
+                <!-- Khung chứa tin nhắn cuộn độc lập -->
+                <div class="flex-grow-1 overflow-auto p-4 bg-light" id="chat-messages" data-group-id="{{ group.id }}"
+                    data-current-username="{{ request.user.username }}" data-csrf-token="{{ csrf_token }}">
+                    {% include "group_chat/partials/message_list.html" %}
+                </div>
 
-                fetch(uploadUrl, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-                })
-                    .then(response => {
-                        const loadingElem = document.getElementById('upload-loading');
-                        if (loadingElem) loadingElem.remove();
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.status === 'success') {
-                            alert("✅ " + data.message);
-                            location.reload();
-                        } else {
-                            alert('⚠️ Lỗi tải lên: ' + (data.message || 'Không thể xử lý định dạng tệp tin này.'));
-                        }
-                    })
-                    .catch(error => {
-                        const loadingElem = document.getElementById('upload-loading');
-                        if (loadingElem) loadingElem.remove();
-                        console.error('Upload Error:', error);
-                        alert('❌ Đã xảy ra lỗi kết nối hoặc lỗi hệ thống ngầm trong quá trình xử lý FileProcessor.');
-                    });
-            });
-        }
-    });
+                <!-- Khung nhập nội dung chat ở đáy -->
+                <div class="flex-shrink-0 bg-white border-top p-3 shadow-sm">
+                    {% include "group_chat/partials/_chat_input.html" %}
+                </div>
+            </div>
 
-    // Các hàm global gọi từ HTML onclick
-    function handleFeedback(messageId, type) {
-        fetch(`/groups/message/${messageId}/feedback/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ type: type })
-        })
-            .then(res => res.json())
-            .then(data => alert(data.message))
-            .catch(err => console.error('Feedback Error:', err));
-    }
+            <!-- ================= PANEL PHẢI: Thông tin & Quản trị nhóm ================= -->
+            <div class="flex-shrink-0 border-start bg-white overflow-auto" style="width: 380px;">
+                {% include "group_chat/partials/_settings_offcanvas.html" %}
+            </div>
 
-    function promoteMessageToKnowledge(messageId) {
-        fetch(`/groups/message/${messageId}/promote-knowledge/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message || "Đã gửi yêu cầu cập nhật tri thức vào kho học tập nhóm!");
-            })
-            .catch(err => console.error('Promote Knowledge Error:', err));
-    }
+        </div>
+    </div>
 
-    function updateGroupAIModel() {
-        const selectedModel = document.getElementById('active-ai-model').value;
-        fetch(`/groups/{{ group.id }}/update-ai-model/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ ai_model: selectedModel })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert("✨ Đã chuyển đổi model AI thành công sang: " + selectedModel);
-                } else {
-                    alert("⚠️ Không thể cập nhật model: " + data.message);
-                }
-            })
-            .catch(err => console.error('AI Model Update Error:', err));
-    }
+    <!-- Bootstrap 5 Local JS Bundle -->
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
 
-    function toggleApiKeyField() {
-        const providerElem = document.getElementById('ai-provider');
-        const apiKeyContainer = document.getElementById('api-key-container');
-        if (!providerElem || !apiKeyContainer) return;
+    <script src="{% static 'group_chat/js/chat_workspace.js' %}"></script>
+</body>
 
-        if (providerElem.value === 'ollama') {
-            apiKeyContainer.style.display = 'none';
-        } else {
-            apiKeyContainer.style.display = 'block';
-        }
-    }
-
-    function updateGroupAIConfig(groupId) {
-        const providerElem = document.getElementById('ai-provider');
-        const modelElem = document.getElementById('active-ai-model');
-        const apiKeyElem = document.getElementById('custom-api-key');
-
-        const provider = providerElem ? providerElem.value : '';
-        const model = modelElem ? modelElem.value : '';
-        const apiKey = apiKeyElem ? apiKeyElem.value : '';
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '';
-
-        fetch(`/groups/${groupId}/update-ai-config/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({ ai_provider: provider, ai_model: model, custom_api_key: apiKey })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert("✨ Cập nhật cấu hình AI cho nhóm thành công!");
-                    location.reload();
-                } else {
-                    alert("⚠️ Lỗi: " + (data.message || 'Không thể cập nhật cấu hình'));
-                }
-            })
-            .catch(err => {
-                console.error('AI Config Error:', err);
-                alert("⚠️ Đã xảy ra lỗi kết nối khi lưu cấu hình.");
-            });
-    }
-</script>
-{% endblock %}
+</html>

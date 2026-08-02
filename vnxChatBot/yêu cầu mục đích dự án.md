@@ -5,5 +5,7 @@ NỘI DUNG CHỈ DẪN CHO AI (SYSTEM INSTRUCTIONS - NEXUSCHAT)1. Vai trò & Đ�
 Phần chưa làm:
 Kiểm tra luồng Chat & AI Assistant: Gửi tin nhắn trực tiếp qua giao diện nhóm chat để kiểm tra xem ChatConsumer và mô hình AI phản hồi qua WebSocket có hoạt động trơn tru không.
 
+Cải tiến logic should_trigger_ai trong consumers.py: Tối ưu hóa điều kiện kích hoạt phản hồi của AI (ví dụ: chỉ phản hồi khi được gọi tên @AI hoặc khi có câu hỏi mang tính chất tra cứu tri thức).
+
 
 🗓️ Tóm tắt kế hoạch công việc cho ngày mai khi bạn quay lại:Ôn lại ngữ cảnh: Tiếp tục từ phần hoàn thiện tính năng chat thời gian thực giữa các thành viên trong nhóm thông qua WebSocket (ChatConsumer) kết hợp với luồng gọi trợ lý AI (@ai) và RAG Engine.  Triển khai code chi tiết:Hoàn thiện mã nguồn Consumer quản lý group_id (Tenant Isolation).  Tích hợp giao diện chat động (chat_detail.html và các partial templates).  Đảm bảo luồng xử lý tài liệu thông qua FileProcessor và kích hoạt tự động qua Django Signals.  

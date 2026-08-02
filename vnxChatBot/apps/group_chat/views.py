@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db import transaction  # Đảm bảo tính toàn vẹn dữ liệu
-from .models import ChatGroup, Membership, Document, KnowledgeUnit, Message
+from .models import ChatGroup, Membership, Document, KnowledgeUnit, Message, MessageFeedback
 from .services.feedback_service import FeedbackService
 from apps.ai_assistant.models import GroupAIProvider
 from apps.core.models import User
@@ -347,3 +347,97 @@ def add_member_to_group(request, group_id):
             'status': 'error', 
             'message': f'Lỗi hệ thống nội bộ: {str(e)}'
         }, status=500)
+
+@login_required
+def get_group_members_api(request, group_id):
+    """
+    API trả về danh sách thành viên và AI trong nhóm dưới dạng JSON
+    phục vụ tính năng gán thẻ (@mention) trên giao diện chat.
+    """
+    try:
+        chat_group = ChatGroup.objects.get(id=group_id)
+        # Kiểm tra quyền thành viên (Tenant Isolation theo ChatGroup)
+        if not Membership.objects.filter(group=chat_group, user=request.user).exists():
+            return JsonResponse({'status': 'error', 'message': 'Không có quyền truy cập'}, status=403)
+        
+        memberships = Membership.objects.filter(group=chat_group).select_related('user__profile')
+        
+        members_data = []
+        for m in memberships:
+            if m.is_ai:
+                members_data.append({
+                    'id': 'ai',
+                    'name': 'AI Assistant',
+                    'username': 'ai',
+                    'is_ai': True,
+                    'avatar': '🤖'
+                })
+            elif m.user:
+                avatar_url = m.user.profile.avatar.url if hasattr(m.user, 'profile') and m.user.profile.avatar else None
+                members_data.append({
+                    'id': m.user.id,
+                    'name': m.user.get_full_name() or m.user.username,
+                    'username': m.user.username,
+                    'is_ai': False,
+                    'avatar': avatar_url
+                })
+                
+        return JsonResponse({'status': 'success', 'members': members_data})
+    except ChatGroup.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Nhóm không tồn tại'}, status=404)
+
+
+@login_required
+def handle_message_feedback_ajax(request, message_id):
+    """
+    Xử lý thả cảm xúc (Like, Heart, Dislike) cho tin nhắn qua AJAX,
+    đảm bảo lưu trữ dữ liệu gắn chặt với ChatGroup và Membership của User.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            feedback_type = data.get('type') # 'like', 'heart', 'dislike'
+            
+            if feedback_type not in ['like', 'heart', 'dislike']:
+                return JsonResponse({'status': 'error', 'message': 'Loại tương tác không hợp lệ.'}, status=400)
+            
+            message = Message.objects.get(id=message_id)
+            
+            # Lấy Membership của user hiện tại trong nhóm chứa tin nhắn này
+            membership = Membership.objects.filter(user=request.user, group=message.group).first()
+            if not membership:
+                return JsonResponse({'status': 'error', 'message': 'Bạn không phải thành viên của nhóm này.'}, status=403)
+            
+            # Kiểm tra xem user này đã thả cảm xúc này chưa (nếu rồi thì có thể toggle/hủy hoặc cập nhật)
+            # Ở đây ta làm logic: Nếu đã thả đúng loại này rồi thì xóa đi (bỏ thả), chưa thì tạo mới/cập nhật.
+            existing_feedback = MessageFeedback.objects.filter(message=message, member=membership, feedback_type=feedback_type).first()
+            
+            if existing_feedback:
+                existing_feedback.delete()
+                action = 'removed'
+            else:
+                # Tùy chọn: Nếu muốn mỗi user chỉ có tối đa 1 reaction trên 1 tin nhắn, có thể xóa các reaction cũ trước
+                MessageFeedback.objects.filter(message=message, member=membership).delete()
+                
+                MessageFeedback.objects.create(
+                    message=message,
+                    member=membership,
+                    feedback_type=feedback_type
+                )
+                action = 'added'
+                
+            # Tính toán lại tổng số lượng và nhóm các reaction để trả về cho giao diện cập nhật realtime
+            total_count = message.feedbacks.count()
+            
+            return JsonResponse({
+                'status': 'success',
+                'action': action,
+                'total_count': total_count,
+            })
+            
+        except Message.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Không tìm thấy tin nhắn.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Phương thức không được hỗ trợ.'}, status=405)

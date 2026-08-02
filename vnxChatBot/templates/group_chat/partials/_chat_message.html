@@ -1,0 +1,32 @@
+<!-- Ví dụ cấu trúc hiển thị avatar cho từng tin nhắn trong luồng chat -->
+<div class="d-flex align-items-start gap-2 mb-3">
+    <!-- Avatar người gửi -->
+    <div class="position-relative">
+        {% if message.membership.is_ai %}
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+            style="width: 32px; height: 32px;">🤖</div>
+        <span
+            class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"></span>
+        {% elif message.membership.user %}
+        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold"
+            style="width: 32px; height: 32px; font-size: 0.8rem;">
+            {{ message.membership.user.username|slice:":2"|upper }}
+        </div>
+        <span
+            class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"></span>
+        {% endif %}
+    </div>
+
+    <!-- Nội dung tin nhắn -->
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="fw-bold small">
+                {% if message.membership.is_ai %}AI Assistant{% else %}{{ message.membership.user.username }}{% endif %}
+            </span>
+            <span class="text-muted" style="font-size: 0.7rem;">{{ message.timestamp|date:"H:i" }}</span>
+        </div>
+        <div class="p-2 rounded bg-light text-dark small">
+            {{ message.content }}
+        </div>
+    </div>
+</div>

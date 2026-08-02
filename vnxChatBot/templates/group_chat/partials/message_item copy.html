@@ -1,0 +1,70 @@
+{# apps/group_chat/templates/group_chat/partials/message_item.html #}
+{% load static %}
+
+<div class="d-flex {% if message.sender.is_ai or message.sender.user != request.user %}justify-content-start{% else %}justify-content-end{% endif %} mb-3 message-item"
+    data-message-id="{{ message.id }}">
+
+    {# Nếu là tin nhắn của người khác hoặc AI: Hiển thị Avatar ở bên TRÁI #}
+    {% if message.sender.is_ai or message.sender.user != request.user %}
+    <div class="flex-shrink-0 me-2">
+        {% if message.sender.is_ai %}
+        <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center"
+            style="width: 38px; height: 38px; font-size: 1.2rem;">
+            🤖
+        </div>
+        {% elif message.sender.user.profile.avatar %}
+        <img src="{{ message.sender.user.profile.avatar.url }}" alt="{{ message.sender.user.username }}"
+            class="rounded-circle object-fit-cover" width="38" height="38">
+        {% else %}
+        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold"
+            style="width: 38px; height: 38px;">
+            {{ message.sender.user.username|slice:":1"|upper }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {# Khung chứa nội dung tin nhắn #}
+    <div class="card shadow-sm {% if message.sender.is_ai %}bg-light border-info{% elif message.sender.user == request.user %}bg-primary text-white{% else %}bg-white border{% endif %}"
+        style="max-width: 70%;">
+
+        <!-- Header: Tên người gửi & Thời gian -->
+        <div
+            class="card-header py-1 px-3 small d-flex justify-content-between align-items-center {% if message.sender.user == request.user %}bg-primary text-white-50{% else %}text-muted{% endif %}">
+            <span class="me-3">
+                {% if message.sender.is_ai %}
+                <strong>AI Assistant</strong>
+                {% elif message.sender.user == request.user %}
+                <strong>Bạn</strong>
+                {% else %}
+                <strong>{{ message.sender.user.username }}</strong>
+                {% endif %}
+            </span>
+            <span style="font-size: 0.75rem;">
+                {{ message.created_at|date:"H:i" }}
+            </span>
+        </div>
+
+        <!-- Nội dung tin nhắn -->
+        <div class="card-body py-2 px-3">
+            <p class="mb-0 text-break">{{ message.content|linebreaksbr }}</p>
+        </div>
+
+    </div>
+
+    {# Nếu là tin nhắn của CHÍNH USER đang đăng nhập: Hiển thị Avatar ở bên PHẢI #}
+    {% if not message.sender.is_ai and message.sender.user == request.user %}
+    <div class="flex-shrink-0 ms-2">
+        {% if request.user.profile.avatar %}
+        <img src="{{ request.user.profile.avatar.url }}" alt="{{ request.user.username }}"
+            class="rounded-circle object-fit-cover" width="38" height="38">
+        {% else %}
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+            style="width: 38px; height: 38px;">
+            {{ request.user.username|slice:":1"|upper }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
