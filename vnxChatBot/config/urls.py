@@ -23,7 +23,7 @@ urlpatterns = [
     path('dev/architecture/download/', download_manifest, name='download_manifest'),
 
     path('', RedirectView.as_view(url='/dashboard/'), name='index'),
-    path('chat/', include('apps.group_chat.urls', namespace='group_chat')),
+    path('groups/', include('apps.group_chat.urls', namespace='group_chat')),
     path('architecture/', include('apps.arch_manager.urls', namespace='arch_manager')),
     
 ]

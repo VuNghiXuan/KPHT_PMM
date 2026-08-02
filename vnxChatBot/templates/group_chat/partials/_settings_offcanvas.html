@@ -1,51 +1,41 @@
 <!-- 
   File: templates/group_chat/partials/_settings_offcanvas.html
-  Mục đích: Offcanvas quản lý thông tin nhóm, AI Provider, Kho tri thức và Thành viên.
+  Mục đích: Chuyển đổi từ Offcanvas drawer sang Panel cố định 4 cột bên phải, giữ nguyên hệ thống Tab con.
 -->
-<div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="settingsSidebar" aria-labelledby="settingsSidebarLabel"
-    style="width: 420px; z-index: 1050;">
-
-    <div class="offcanvas-header border-bottom bg-light">
-        <h5 class="offcanvas-title fw-bold text-primary fs-6" id="settingsSidebarLabel">
-            <i class="fas fa-info-circle me-2"></i> Thông tin & Quản lý Nhóm
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+<div class="h-100 d-flex flex-column bg-white w-100">
+    <!-- Header của Cột Phải -->
+    <div class="p-3 bg-light border-bottom">
+        <h6 class="mb-0 fw-bold text-primary">
+            <i class="fas fa-info-circle me-2"></i> Thông tin & Quản trị nhóm
+        </h6>
     </div>
 
-    <div class="card-header bg-white border-bottom px-3 py-2">
-        <ul class="nav nav-tabs card-header-tabs nav-fill small fw-bold" id="groupSettingsTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active py-2" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai-config-pane"
-                    type="button" role="tab" aria-controls="ai-config-pane" aria-selected="true">
-                    🤖 AI Provider
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link py-2" id="kb-tab" data-bs-toggle="tab" data-bs-target="#knowledge-pane"
-                    type="button" role="tab" aria-controls="knowledge-pane" aria-selected="false">
-                    🧠 Kho Tri thức
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link py-2" id="mem-tab" data-bs-toggle="tab" data-bs-target="#members-pane"
-                    type="button" role="tab" aria-controls="members-pane" aria-selected="false">
-                    👥 Thành viên
-                </button>
-            </li>
-        </ul>
-    </div>
+    <!-- Navigation Tabs cho Panel -->
+    <ul class="nav nav-tabs nav-fill bg-white border-bottom flex-shrink-0" id="offcanvasTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active py-2 fw-semibold small px-1" id="members-tab" data-bs-toggle="tab"
+                data-bs-target="#members-pane" type="button" role="tab">
+                <i class="fas fa-users me-1"></i> Thành viên (<span id="member-count">{{ group.members.count }}</span>)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link py-2 fw-semibold small px-1" id="ai-config-tab" data-bs-toggle="tab"
+                data-bs-target="#ai-config-pane" type="button" role="tab">
+                <i class="fas fa-robot me-1"></i> Model AI
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link py-2 fw-semibold small px-1" id="knowledge-tab" data-bs-toggle="tab"
+                data-bs-target="#knowledge-pane" type="button" role="tab">
+                <i class="fas fa-brain me-1"></i> Tri thức
+            </button>
+        </li>
+    </ul>
 
-    <div class="offcanvas-body bg-light p-3">
-        <div class="tab-content" id="groupSettingsContent">
-            <div class="tab-pane fade show active" id="ai-config-pane" role="tabpanel" aria-labelledby="ai-tab">
-                {% include "group_chat/partials/ai_config_tab.html" %}
-            </div>
-            <div class="tab-pane fade" id="knowledge-pane" role="tabpanel" aria-labelledby="kb-tab">
-                {% include "group_chat/partials/knowledge_tab.html" %}
-            </div>
-            <div class="tab-pane fade" id="members-pane" role="tabpanel" aria-labelledby="mem-tab">
-                {% include "group_chat/partials/members_tab.html" %}
-            </div>
-        </div>
+    <!-- Tab Contents (Giữ nguyên các file include con của bạn) -->
+    <div class="tab-content flex-grow-1 overflow-auto bg-light p-3" id="offcanvasTabContent">
+        {% include "group_chat/partials/tabs/_members_tab.html" %}
+        {% include "group_chat/partials/tabs/_ai_config_tab.html" %}
+        {% include "group_chat/partials/tabs/_knowledge_tab.html" %}
     </div>
 </div>

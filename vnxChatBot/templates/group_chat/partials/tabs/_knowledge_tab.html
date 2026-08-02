@@ -1,0 +1,63 @@
+<!-- File: templates/group_chat/partials/tabs/_knowledge_tab.html -->
+<div class="tab-pane fade" id="knowledge-pane" role="tabpanel">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted small fw-bold">KHO TRI THỨC NHÓM</span>
+        <span class="badge bg-secondary">{{ group.knowledge_items.count|default:0 }} tài liệu</span>
+    </div>
+
+    <!-- Accordion phân tách Đã duyệt / Chưa duyệt -->
+    <div class="accordion accordion-flush shadow-sm rounded-3 overflow-hidden" id="knowledgeAccordion">
+
+        <!-- Phần Chưa duyệt (Pending) -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingUnapproved">
+                <button
+                    class="accordion-button collapsed bg-warning-subtle text-warning-emphasis fw-semibold small py-2"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnapproved">
+                    <i class="fas fa-clock me-2"></i> Chờ duyệt (<span id="unapproved-count">3</span>)
+                </button>
+            </h2>
+            <div id="collapseUnapproved" class="accordion-collapse collapse" data-bs-parent="#knowledgeAccordion">
+                <div class="accordion-body bg-white p-2">
+                    <div class="p-2 border-bottom small d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1 fw-semibold text-truncate" style="max-width: 200px;"
+                                title="Quy trình đổi vàng ngang mới">Quy trình đổi vàng ngang mới</p>
+                            <span class="text-muted" style="font-size: 0.7rem;">Đề xuất từ: Thanh Vũ</span>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-success py-0 px-1" onclick="approveKnowledge(1)"
+                                title="Duyệt"><i class="fas fa-check"></i></button>
+                            <button class="btn btn-outline-danger py-0 px-1" onclick="rejectKnowledge(1)"
+                                title="Từ chối"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần Đã duyệt (Approved) -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingApproved">
+                <button class="accordion-button bg-success-subtle text-success-emphasis fw-semibold small py-2"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseApproved">
+                    <i class="fas fa-check-circle me-2"></i> Đã duyệt vào RAG (<span id="approved-count">12</span>)
+                </button>
+            </h2>
+            <div id="collapseApproved" class="accordion-collapse collapse show" data-bs-parent="#knowledgeAccordion">
+                <div class="accordion-body bg-white p-2">
+                    <div class="p-2 border-bottom small d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1 fw-semibold text-truncate" style="max-width: 220px;"
+                                title="Bảng giá chuẩn vàng nguyên liệu SJC">Bảng giá chuẩn vàng nguyên liệu SJC</p>
+                            <span class="text-success" style="font-size: 0.7rem;"><i class="fas fa-shield-alt"></i> Sẵn
+                                sàng cho RAG</span>
+                        </div>
+                        <button class="btn btn-sm text-danger p-0" onclick="deleteKnowledge(1)"
+                            title="Gỡ khỏi tri thức"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

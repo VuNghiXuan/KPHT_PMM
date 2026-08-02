@@ -56,7 +56,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await self.accept()
-        logger.info(f"[WebSocket] Kết nối thành công: User '{self.user.username}' đã tham gia phòng {self.room_group_name}")
+        # logger.info(f"[WebSocket] Kết nối thành công: User '{self.user.username}' đã tham gia phòng {self.room_group_name}")
+        # Sửa lại trong file apps/group_chat/consumers.py tại dòng 59:
+        logger.info(f"[WebSocket] Connected successfully: User '{self.user.username}' joined room {self.room_group_name}")
 
     async def disconnect(self, close_code):
         """
@@ -237,3 +239,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender=ai_membership,
             content=content
         )
+
+    @database_sync_to_async
+    def check_user_membership(self, user, group_id):
+        """
+        Kiểm tra xem người dùng có phải là thành viên hợp lệ của nhóm hay không (Tenant Isolation).
+        """
+        return Membership.objects.filter(user=user, group_id=group_id).exists()

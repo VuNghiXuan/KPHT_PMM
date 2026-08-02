@@ -60,7 +60,7 @@ class WebSocketRAGAndFeedbackTestCase(ChannelsLiveServerTestCase):
         from channels.testing import WebsocketCommunicator
         from config.asgi import application
 
-        path = f"/ws/chat/{self.group.id}/"
+        path = f"/ws/group/{self.group.id}/"
         communicator = WebsocketCommunicator(application, path)
         
         # Gán scope user đã xác thực cho communicator

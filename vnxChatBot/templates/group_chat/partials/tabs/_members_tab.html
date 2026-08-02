@@ -1,0 +1,137 @@
+<!-- File: apps/group_chat/templates/group_chat/partials/members_tab.html -->
+{% load static %}
+<div class="p-3">
+    <h6 class="fw-bold mb-3"><i class="fas fa-users text-primary"></i> Thành viên trong nhóm</h6>
+
+    <!-- Form Thêm thành viên -->
+    <form id="add-member-form" class="mb-3 p-2 bg-light rounded border">
+        <div class="mb-2">
+            <input type="text" id="new-member-username" class="form-control form-control-sm"
+                placeholder="Nhập username hoặc email..." required>
+        </div>
+        <div class="mb-2">
+            <select id="new-member-role" class="form-select form-select-sm">
+                <option value="member">Thành viên (Member)</option>
+                <option value="admin">Quản trị viên (Admin)</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm w-100 py-1" style="font-size: 0.8rem;">
+            <i class="fas fa-user-plus"></i> Thêm thành viên ➕
+        </button>
+    </form>
+
+    <!-- Danh sách thành viên hiện tại -->
+    <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+        {% for membership in memberships %}
+        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+            <div>
+                <span class="small fw-bold">
+                    {% if membership.user.profile.is_ai %}
+                    🤖 AI Assistant
+                    {% else %}
+                    {{ membership.user.username }}
+                    {% endif %}
+                </span>
+                <small class="d-block text-muted" style="font-size: 0.65rem;">Vai trò: {{ membership.get_role_display
+                    }}</small>
+            </div>
+            <span
+                class="badge {% if membership.role == 'owner' %}bg-danger{% elif membership.role == 'admin' %}bg-primary{% else %}bg-secondary{% endif %}"
+                style="font-size: 0.6rem;">
+                {{ membership.role }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        /**
+         * Xử lý sự kiện submit form thêm thành viên qua chuẩn JSON API,
+         * đảm bảo gửi đúng định dạng và xử lý phản hồi an toàn từ backend Django.
+         */
+        document.getElementById('add-member-form').onsubmit = function (e) {
+            e.preventDefault();
+            const identifier = document.getElementById('new-member-username').value.trim();
+            const role = document.getElementById('new-member-role').value;
+
+            if (!identifier) {
+                alert('⚠️ Vui lòng nhập thông tin username hoặc email!');
+                return;
+            }
+
+            // Gọi hàm thực thi gửi request chuẩn JSON với group_id hiện tại
+            addMemberToGroup("{{ group.id }}", identifier, role);
+        };
+
+        /**
+         * Function: addMemberToGroup
+         * Description: Gửi yêu cầu thêm thành viên mới vào nhóm qua chuẩn JSON API,
+         * xử lý phản hồi trả về từ backend Django tránh lỗi trả về trang HTML.
+         */
+        function addMemberToGroup(groupId, identifier, role = 'member') {
+            // In log kiểm tra URL thực tế được sinh ra
+            const url = `/groups/${groupId}/add-member/`;
+            console.log("🚀 [DEBUG JS] Chuẩn bị gửi fetch request tới URL:", url);
+            console.log("🚀 [DEBUG JS] Dữ liệu gửi đi:", { username: identifier, role: role });
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    username: identifier,
+                    role: role
+                })
+            })
+                .then(async response => {
+                    console.log("📥 [DEBUG JS] Nhận HTTP Status code:", response.status);
+                    const contentType = response.headers.get("content-type");
+
+                    if (!contentType || !contentType.includes("application/json")) {
+                        const text = await response.text();
+                        console.error("❌ [DEBUG JS] Server trả về HTML thay vì JSON. Nội dung:", text.substring(0, 300));
+                        throw new Error(`Server trả về mã lỗi HTTP ${response.status} (có thể sai URL hoặc lỗi trang HTML).`);
+                    }
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Lỗi hệ thống không xác định.');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    console.log("✨ [DEBUG JS] Phản hồi thành công từ server:", data);
+                    if (data.status === 'success') {
+                        alert("✅ " + data.message);
+                        location.reload();
+                    } else {
+                        alert("⚠️ " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ [DEBUG JS] Bắt được lỗi tại catch:', error);
+                    alert('❌ Thêm thành viên thất bại: ' + error.message);
+                });
+        }
+
+        /**
+         * Hàm hỗ trợ lấy CSRF Token từ cookie của Django
+         */
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</div>

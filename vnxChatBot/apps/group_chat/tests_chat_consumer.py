@@ -92,7 +92,7 @@ class ChatConsumerWebSocketTestCase(TransactionTestCase):
         
         communicator = WebsocketCommunicator(
             self.application, 
-            f"/ws/chat/{self.chat_group.id}/"
+            f"/ws/group/{self.chat_group.id}/"
         )
         communicator.scope['user'] = self.user
 
@@ -138,7 +138,7 @@ class ChatConsumerWebSocketTestCase(TransactionTestCase):
 
         communicator = WebsocketCommunicator(
             self.application, 
-            f"/ws/chat/{self.chat_group.id}/"
+            f"/ws/group/{self.chat_group.id}/"
         )
         communicator.scope['user'] = outsider_user
 

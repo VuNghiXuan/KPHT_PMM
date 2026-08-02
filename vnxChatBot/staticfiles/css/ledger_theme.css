@@ -3,34 +3,53 @@ body {
     background: #f4f6f9;
 }
 
-/* Sidebar */
+/* 🎨 Cố định kích thước sidebar, ngăn chặn co giãn gây đè chữ */
 .sidebar {
     width: 260px;
+    min-width: 260px;
+    max-width: 260px;
     min-height: 100vh;
     background: #2c3e50;
     transition: margin-left 0.3s ease;
     position: sticky;
     top: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    word-break: break-word;
 }
 
 .sidebar.collapsed {
     margin-left: -260px;
 }
 
-/* Nav Links */
-.nav-link {
-    transition: 0.2s;
-    border-left: 4px solid transparent;
+/* 📝 Ép buộc toàn bộ văn bản và thẻ con trong sidebar tự động rớt dòng */
+.sidebar *,
+.sidebar .nav-link,
+.sidebar h6,
+.sidebar span,
+.sidebar a,
+.sidebar small {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
 }
 
-.nav-link:hover {
+/* Tối ưu hóa khoảng cách và hiển thị khối cho các mục menu trong sidebar */
+.sidebar .nav-link {
+    padding: 10px 15px;
+    display: block;
+    line-height: 1.4;
+}
+
+.sidebar .nav-link:hover {
     background: #34495e;
     border-left: 4px solid #3498db;
 }
 
-/* Main Content */
-.main-content {
-    min-width: 0;
+/* Xử lý các khối hiển thị tên nhóm dài trong nội dung chính */
+.main-content .list-group-item {
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .navbar {

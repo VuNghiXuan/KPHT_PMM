@@ -14,9 +14,9 @@ class ChatGroupAdmin(admin.ModelAdmin):
     Class: ChatGroupAdmin
     Description: Quản lý hiển thị danh sách các nhóm làm việc (tenant isolation) trên Django Admin.
     """
-    list_display = ('name', 'plan_type', 'is_active', 'created_at')
-    list_filter = ('is_active', 'plan_type')
-    search_fields = ('name',)
+    list_display = ('name', 'plan_type', 'ai_model', 'is_active', 'created_at')
+    list_filter = ('is_active', 'plan_type', 'ai_model')
+    search_fields = ('name', 'description')
 
 @admin.register(Membership)
 class MembershipAdmin(admin.ModelAdmin):

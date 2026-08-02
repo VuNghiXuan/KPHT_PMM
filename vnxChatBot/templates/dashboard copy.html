@@ -5,15 +5,14 @@
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row">
-        <!-- 📊 Khu vực Nội dung chính (Main Content) -->
+        <!-- 📊 Khu vực Nội dung chính (Main Content) - Đã mở rộng full width do thanh điều hướng & thông tin tài khoản nằm ở base.html -->
         <div class="col-12">
             <!-- 👥 Danh sách Nhóm làm việc & Không gian RAG -->
             <div class="row">
                 <div class="col-12">
                     <div class="card shadow-sm border-0">
-                        <div
-                            class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h5 class="mb-0 fw-bold text-break">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold">
                                 <i class="fas fa-users text-primary me-2"></i> Nhóm làm việc & Không gian RAG của bạn
                             </h5>
                             <div>
@@ -24,38 +23,35 @@
                         </div>
                         <div class="list-group list-group-flush">
                             {% for item in user_groups_with_subs %}
-                            <div
-                                class="list-group-item d-flex justify-content-between align-items-center py-3 flex-wrap gap-3">
-                                <!-- Khối thông tin nhóm: Sử dụng w-75 hoặc flex-grow để tự co giãn và rớt dòng tốt hơn -->
-                                <div class="flex-grow-1 pe-2" style="min-width: 250px;">
-                                    <h6 class="mb-1 fw-bold text-break">
+                            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">
                                         {{ item.group.name }}
                                         <!-- Hiển thị nhãn gói cước tương ứng theo ChatGroup -->
                                         {% if item.subscription.plan_type == 'free' %}
-                                        <span class="badge bg-secondary ms-2 align-middle"
+                                        <span class="badge bg-secondary ms-2"
                                             title="Gói miễn phí (Tối đa 6 thành viên bao gồm 1 AI)">Gói Free</span>
                                         {% else %}
-                                        <span class="badge bg-warning text-dark ms-2 align-middle">
-                                            <i class="fas fa-crown me-1"></i> Gói Nâng cấp
-                                        </span>
+                                        <span class="badge bg-warning text-dark ms-2"><i class="fas fa-crown me-1"></i>
+                                            Gói Nâng cấp</span>
                                         {% endif %}
                                     </h6>
-                                    <small class="text-muted text-break d-block">
+                                    <small class="text-muted">
                                         <i class="far fa-calendar-alt me-1"></i> Tạo ngày: {{
                                         item.group.created_at|date:"d/m/Y" }} |
                                         <i class="fas fa-users me-1"></i> Thành viên: {{ item.member_count }}
                                     </small>
                                 </div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <!-- Nút vào nhóm chat -->
+                                <div class="d-flex gap-2">
+                                    <!-- Chỗ vào nhóm chat: Nếu đã có nhóm thì click vào để vào chat -->
                                     <a href="{% url 'group_chat:chat_detail' item.group.id %}"
-                                        class="btn btn-sm btn-primary px-3 text-nowrap">
+                                        class="btn btn-sm btn-primary px-3">
                                         <i class="fas fa-sign-in-alt me-1"></i> Vào chat
                                     </a>
                                 </div>
                             </div>
                             {% empty %}
-                            <!-- Nếu chưa có nhóm nào -->
+                            <!-- Nếu chưa có nhóm nào thì hiển thị lời nhắc điều hướng đi tạo nhóm mới -->
                             <div class="list-group-item text-muted py-5 text-center">
                                 <i class="fas fa-comments fa-3x mb-3 opacity-50"></i><br>
                                 <p class="mb-2">Bạn chưa tham gia nhóm làm việc nào.</p>

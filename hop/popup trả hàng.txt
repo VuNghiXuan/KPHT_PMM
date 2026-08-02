@@ -1,0 +1,14 @@
+Ghi chú cột tích lũy điểm trên giao dịch mua bán là điểm cộng dồn tích lũy từng món trên 1 hóa đơn
+Còn điểm đổi: lấy từ điểm tích lũy của khách hàng để quy ra điểm, sau quy trừ đi điểm tích lũy hiện tại
+Số lần đổi trả: là số lần đổi trả trên 1 hóa đơn
+Ví dụ: Hóa dơn 01 có 3 sản phẩm
+- Trả lần 1: 1 món (hoặc mấy món)-> cập nhập lần 1 -> Hình thành hóa đơn 2 (sản phẩm này là sản phẩm 4)
+
+- Lần 2 mấy món cũng được cũng là lần 2 (nếu đem sản phẩm chỉ ở hóa đơn 1). Còn nếu có trả cả 2 loại sản phẩm trên cả hóa ssown 1 và 2, thì hóa đơn 1 đổi trả làn này là 2, còn hóa đơn 2 thì là lần đổi trả 1.
+
+Liên kết với Giao địch mau bán:
+Phần này rollback lại các giao dịch mua bán trước đó (đổi điểm, vorcher, chiết khấu,...)
+Khi hoàn tất cập nhật lại sp đổi trả, và chi nhánh đổi trả, trọng lượng thực lấy từ trọng lượng hóa đơn trước (Ko cho sửa trọng lượng.)
+- Giảm trừ tích lũy khách hàng, doanh số nhân viên
+
+Ghi chú:là check chihs sách thu đổi xem loại vàng đó có nằm trong chính sách thu đổi không

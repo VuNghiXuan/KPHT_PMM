@@ -37,13 +37,15 @@ class AIFactory:
                 target_group = None
 
         # 1. Thử lấy cấu hình riêng của nhóm nếu tìm thấy target_group hợp lệ
+        # 1. Thử lấy cấu hình riêng của nhóm nếu tìm thấy target_group hợp lệ
         if target_group:
             try:
-                group_config = target_group.ai_config
+                # Sử dụng getattr hoặc bọc try-except an toàn tuyệt đối
+                group_config = getattr(target_group, 'ai_config', None)
                 if group_config and getattr(group_config, 'api_key', None):
                     logger.info(f"[AIFactory.get_provider]: Sử dụng cấu hình RIÊNG của nhóm {target_group.name} (Provider: {group_config.provider})")
                     return group_config
-            except GroupAIProvider.DoesNotExist:
+            except Exception:
                 logger.info(f"[AIFactory.get_provider]: Nhóm {target_group.name} chưa cấu hình AI riêng, chuyển sang fallback.")
                 pass
 

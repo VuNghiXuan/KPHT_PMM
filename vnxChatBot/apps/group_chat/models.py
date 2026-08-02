@@ -10,23 +10,45 @@ from django.conf import settings
 User = get_user_model()
 
 class ChatGroup(models.Model):
-    """
-    Đại diện cho một nhóm làm việc độc lập. 
-    Tại sao (Why): Phân tách dữ liệu triệt để (Tenant Isolation) theo nhóm.
-    """
     name = models.CharField(max_length=255, verbose_name="Tên nhóm")
-    plan_type = models.CharField(max_length=50, default="free", verbose_name="Gói dịch vụ", help_text="Xác định giới hạn tính năng của nhóm")
+    plan_type = models.CharField(max_length=50, default="free", verbose_name="Gói dịch vụ")
     max_members = models.IntegerField(default=6, verbose_name="Số thành viên tối đa")
     is_active = models.BooleanField(default=True, verbose_name="Nhóm đang hoạt động")
     description = models.TextField(null=True, blank=True, verbose_name="Mô tả nhóm")
+    
+    # ➕ Các trường phục vụ cấu hình AI riêng cho nhóm
+    # ai_provider = models.CharField(max_length=50, default="gemini", verbose_name="Provider AI", choices=[('gemini', 'Gemini'), ('groq', 'Groq'), ('ollama', 'Ollama')])
+    # ai_model = models.CharField(max_length=100, blank=True, null=True, verbose_name="Model AI đang dùng")
+    # custom_api_key = models.CharField(max_length=255, blank=True, null=True, verbose_name="API Key riêng của nhóm")
+    # is_admin_group = models.BooleanField(default=False, verbose_name="Là nhóm Admin hệ thống?", help_text="Nhóm này sẽ dùng chung cấu hình gốc từ LLMService")
+
+
+    ai_provider = models.CharField(max_length=50, default="gemini", verbose_name="Provider AI", choices=[('gemini', 'Gemini'), ('groq', 'Groq'), ('ollama', 'Ollama')])
+    ai_model = models.CharField(max_length=100, blank=True, null=True, verbose_name="Model AI đang dùng")
+    custom_api_key = models.CharField(max_length=255, blank=True, null=True, verbose_name="API Key riêng của nhóm")
+    is_admin_group = models.BooleanField(default=False, verbose_name="Là nhóm Admin hệ thống?")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
 
     class Meta:
         verbose_name = "Nhóm chat"
-        verbose_name_plural = "Các nhóm chat"
+        verbose_name_plural = "Danh sách nhóm chat"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.plan_type})"
+    
+
+    # ➕ THÊM CÁC THUỘC TÍNH NÀY ĐỂ DÙNG TRONG TEMPLATE TUYỆT ĐỐI AN TOÀN
+    @property
+    def is_gemini(self):
+        return self.ai_provider == 'gemini'
+
+    @property
+    def is_groq(self):
+        return self.ai_provider == 'groq'
+
+    @property
+    def is_ollama(self):
+        return self.ai_provider == 'ollama'
 
 class Membership(models.Model):
     """
