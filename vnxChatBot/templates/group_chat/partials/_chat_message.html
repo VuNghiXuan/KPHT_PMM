@@ -1,32 +1,57 @@
-<!-- Ví dụ cấu trúc hiển thị avatar cho từng tin nhắn trong luồng chat -->
-<div class="d-flex align-items-start gap-2 mb-3">
-    <!-- Avatar người gửi -->
-    <div class="position-relative">
-        {% if message.membership.is_ai %}
-        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-            style="width: 32px; height: 32px;">🤖</div>
-        <span
-            class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"></span>
-        {% elif message.membership.user %}
-        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold"
-            style="width: 32px; height: 32px; font-size: 0.8rem;">
-            {{ message.membership.user.username|slice:":2"|upper }}
-        </div>
-        <span
-            class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"></span>
-        {% endif %}
-    </div>
+<!-- Khung chứa bong bóng chat -->
+<div class="d-flex {% if is_me %}justify-content-end{% else %}justify-content-start{% endif %} mb-3 px-2">
 
-    <!-- Nội dung tin nhắn -->
-    <div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="fw-bold small">
-                {% if message.membership.is_ai %}AI Assistant{% else %}{{ message.membership.user.username }}{% endif %}
-            </span>
-            <span class="text-muted" style="font-size: 0.7rem;">{{ message.timestamp|date:"H:i" }}</span>
-        </div>
-        <div class="p-2 rounded bg-light text-dark small">
+    {% if is_me %}
+    <!-- Trường hợp: Tin nhắn của CHÍNH BẠN (Màu xanh dương nhạt) -->
+    <div class="p-3 rounded-4 shadow-sm text-dark"
+        style="max-width: 75%; background-color: rgba(13, 110, 253, 0.1) !important; border: 1px solid rgba(13, 110, 253, 0.2);">
+
+        <small class="d-block mb-1 opacity-75 fw-bold text-muted">
+            {{ message.membership.user.username }}
+        </small>
+
+        <p class="mb-0 text-break" style="line-height: 1.5;">
             {{ message.content }}
+        </p>
+    </div>
+    {% elif message.membership.is_ai %}
+    <!-- Trường hợp: Tin nhắn của AI Assistant (Màu trắng tinh khiết) -->
+    <div class="p-3 rounded-4 shadow-sm border text-dark" style="max-width: 75%; background-color: #ffffff !important;">
+
+        <small class="d-block mb-1 opacity-75 fw-bold text-muted">
+            AI Assistant 🤖
+        </small>
+
+        <p class="mb-0 text-break" style="line-height: 1.5;">
+            {{ message.content }}
+        </p>
+
+        <!-- Feedback Loop cho AI -->
+        <div class="mt-2 d-flex gap-3 align-items-center pt-2 border-top border-light">
+            <i class="fas fa-thumbs-up text-success cursor-pointer" onclick="handleFeedback('{{ message.id }}', 'like')"
+                title="Thích phản hồi"></i>
+            <i class="fas fa-thumbs-down text-danger cursor-pointer"
+                onclick="handleFeedback('{{ message.id }}', 'dislike')" title="Không thích phản hồi"></i>
+            <i class="fas fa-heart text-danger cursor-pointer" onclick="handleFeedback('{{ message.id }}', 'heart')"
+                title="Yêu thích / Thả tim"></i>
+            <button class="btn btn-sm btn-outline-primary py-0 px-2 ms-auto rounded-pill"
+                onclick="promoteMessageToKnowledge('{{ message.id }}')" title="Đưa tin nhắn này vào kho tri thức nhóm">
+                <i class="fas fa-brain"></i> Học tri thức 🧠
+            </button>
         </div>
     </div>
+    {% else %}
+    <!-- Trường hợp: Tin nhắn của THÀNH VIÊN KHÁC (Màu xám sáng nhẹ) -->
+    <div class="p-3 rounded-4 shadow-sm border text-dark" style="max-width: 75%; background-color: #f8f9fa !important;">
+
+        <small class="d-block mb-1 opacity-75 fw-bold text-muted">
+            {{ message.membership.user.username }}
+        </small>
+
+        <p class="mb-0 text-break" style="line-height: 1.5;">
+            {{ message.content }}
+        </p>
+    </div>
+    {% endif %}
+
 </div>

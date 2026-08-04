@@ -94,19 +94,30 @@ Module liên kết: group_chat.models.Message, group_chat.models.MessageFeedback
                 <p class="mb-0 text-break">{{ message.content|linebreaksbr }}</p>
             </div>
 
-            <!-- KHUNG HIỂN THỊ ĐẾM CẢM XÚC KIỂU ZALO (Chỉ hiện khi có tương tác > 0) -->
+            <!-- KHUNG HIỂN THỊ ĐẾM CẢM XÚC KIỂU ZALO -->
             {% if message.feedbacks.exists %}
+            <!-- KHUNG HIỂN THỊ ĐẾM CẢM XÚC KIỂU ZALO -->
             <div class="reactions-badge-container position-absolute {% if message.sender.user == request.user %}reaction-left{% else %}reaction-right{% endif %}"
                 style="bottom: -10px; z-index: 5;">
-                <div class="bg-white border shadow-sm rounded-pill px-2 py-0.5 d-flex align-items-center gap-1 text-dark"
-                    style="font-size: 0.75rem;">
-                    {% regroup message.feedbacks.all by feedback_type as feedback_list %}
-                    {% for group in feedback_list %}
-                    {% if group.grouper == 'like' %}<span>👍</span>{% endif %}
-                    {% if group.grouper == 'heart' %}<span>❤️</span>{% endif %}
-                    {% if group.grouper == 'dislike' %}<span>👎</span>{% endif %}
-                    {% endfor %}
-                    <span class="fw-bold ms-1 text-muted">{{ message.feedbacks.count }}</span>
+
+                <div class="reactions-badge-wrapper bg-white border shadow-sm rounded-pill px-2 py-0.5 d-flex align-items-center gap-1 text-dark cursor-pointer position-relative"
+                    style="font-size: 0.75rem;" data-bs-toggle="tooltip" data-bs-html="true"
+                    title="{% for fb in message.feedbacks.all %}{{ fb.membership.user.username }} ({{ fb.type }})<br>{% endfor %}">
+
+                    <!-- Hiển thị các icon đại diện độc nhất đã được thả -->
+                    {% regroup message.feedbacks.all by type as feedback_groups %}
+                    <span class="d-flex align-items-center">
+                        {% for group in feedback_groups %}
+                        {% if group.grouper == 'like' %}👍{% endif %}
+                        {% if group.grouper == 'heart' %}❤️{% endif %}
+                        {% if group.grouper == 'dislike' %}👎{% endif %}
+                        {% endfor %}
+                    </span>
+
+                    <!-- Tổng số lượng tương tác -->
+                    <span class="fw-bold text-muted total-reactions-count ms-1">
+                        {{ message.feedbacks.count }}
+                    </span>
                 </div>
             </div>
             {% endif %}

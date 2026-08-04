@@ -35,7 +35,7 @@
             {% if user_groups %}
             {% for group in user_groups %}
             <!-- Đã loại bỏ 'text-truncate' để tên nhóm dài tự động rớt dòng xuống phía dưới -->
-            <a href="{% url 'group_chat:chat_detail' group.id %}"
+            <a href="{% url 'group_chat:group_detail' group.id %}"
                 class="nav-link text-light rounded py-2 {% if request.resolver_match.kwargs.group_id == group.id|stringformat:'s' %}active bg-secondary text-white{% endif %}"
                 style="white-space: normal !important; word-break: break-word !important;">
                 <i class="fas fa-users me-2 text-warning"></i> {{ group.name }}

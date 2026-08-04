@@ -5,6 +5,7 @@ Tác giả: Kiến trúc sư VnxChatBot
 Module liên kết: apps.group_chat.models, apps.ai_assistant.services, apps.core.models
 """
 import json
+import traceback  # 🔍 Thêm thư viện trace lỗi
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -43,8 +44,8 @@ def create_group(request):
                 role='admin'
             )
             
-            # 3. Điều hướng chính xác vào route 'chat_detail' kèm theo tham số group_id
-            return redirect('group_chat:chat_detail', group_id=group.id)
+            # 3. Điều hướng chính xác vào route 'group_detail' kèm theo tham số group_id
+            return redirect('group_chat:group_detail', group_id=group.id)
             
     return render(request, 'group_chat/create.html')
 
@@ -143,7 +144,7 @@ def group_chat_detail(request, group_id):
     group = ChatGroup.objects.filter(id=group_id).first()
     if not group:
         first_group = user_groups.first()
-        return redirect('chat_detail', group_id=first_group.id)
+        return redirect('group_detail', group_id=first_group.id)
     
     # 3. Xác thực xem user hiện tại có phải là thành viên hợp lệ của nhóm này không
     membership = Membership.objects.filter(group=group, user=request.user).first()
@@ -151,7 +152,7 @@ def group_chat_detail(request, group_id):
         # Nếu không phải thành viên nhưng nhóm tồn tại, chuyển về nhóm hợp lệ đầu tiên
         valid_group = user_groups.first()
         if valid_group:
-            return redirect('chat_detail', group_id=valid_group.id)
+            return redirect('group_detail', group_id=valid_group.id)
         return redirect('group_chat:create_group')
     
     # 4. Truy vấn tin nhắn và dữ liệu liên quan
@@ -176,48 +177,142 @@ def group_chat_detail(request, group_id):
         'ai_config': ai_config,
     }
     
-    return render(request, 'group_chat/chat_detail.html', context)
+    return render(request, 'group_chat/group_detail.html', context)
+
+
+# @login_required
+# @require_POST
+# def knowledge_feedback_view(request, message_id):
+#     """
+#     🚀 API Endpoint: knowledge_feedback_view
+#     Mục đích: 
+#         Nhận yêu cầu POST chứa loại cảm xúc phản hồi từ người dùng đối với tin nhắn AI, 
+#         tích hợp cơ chế Feedback Loop và trả về số lượng thống kê chính xác.
+#     """
+#     try:
+#         # 📦 Giải mã dữ liệu JSON từ frontend
+#         data = json.loads(request.body)
+#         feedback_type = data.get('type') 
+#         comment = data.get('comment', '')
+        
+#         # 🛡️ Kiểm tra tính hợp lệ của loại phản hồi
+#         valid_feedback_types = ['like', 'dislike', 'heart']
+#         if feedback_type not in valid_feedback_types:
+#             return JsonResponse({
+#                 'status': 'error', 
+#                 'message': 'Loại phản hồi không hợp lệ. Chỉ chấp nhận like, dislike hoặc heart.'
+#             }, status=400)
+
+#         # 🔍 Truy vấn tin nhắn bảo đảm tính toàn vẹn dữ liệu thuộc về nhóm (Group-Centric)
+#         message = get_object_or_404(Message, id=message_id)
+#         group = message.group
+
+#         # ⚙️ Gọi service ghi nhận phản hồi
+#         FeedbackService.record_feedback(
+#             group=group,
+#             message=message,
+#             user=request.user,
+#             feedback_type=feedback_type,
+#             comment=comment
+#         )
+        
+#         # 📊 Tính toán lại tổng số lượng tương tác hiện tại của tin nhắn (Sử dụng đúng trường 'type')
+#         counts = {
+#             'like': MessageFeedback.objects.filter(message=message, type='like').count(),
+#             'dislike': MessageFeedback.objects.filter(message=message, type='dislike').count(),
+#             'heart': MessageFeedback.objects.filter(message=message, type='heart').count(),
+#         }
+        
+#         return JsonResponse({
+#             'status': 'success', 
+#             'message': 'Đã ghi nhận phản hồi của bạn. Cảm ơn bạn đã giúp tinh chỉnh AI!',
+#             'feedback_type': feedback_type,
+#             'counts': counts
+#         })
+        
+#     except json.JSONDecodeError:
+#         return JsonResponse({
+#             'status': 'error', 
+#             'message': 'Dữ liệu JSON không hợp lệ.'
+#         }, status=400)
+#     except Exception as e:
+#         print("=" * 80)
+#         print("❌ LỖI TẠI KNOWLEDGE_FEEDBACK_VIEW:")
+#         traceback.print_exc()
+#         print("=" * 80)
+        
+#         return JsonResponse({
+#             'status': 'error', 
+#             'message': f'Đã xảy ra lỗi hệ thống: {str(e)}'
+#         }, status=500)
 
 @login_required
+@require_POST
 def knowledge_feedback_view(request, message_id):
     """
-    Function: knowledge_feedback_view
-    Description: 
-        API endpoint nhận yêu cầu POST chứa loại feedback (like/dislike), 
-        gọi FeedbackService để ghi nhận vào Database phục vụ Fine-tuning Data.
+    🚀 API Endpoint: knowledge_feedback_view
+    Mục đích: 
+        Nhận yêu cầu POST chứa loại cảm xúc phản hồi (like, dislike, heart) từ người dùng 
+        đối với tin nhắn của AI, ghi nhận feedback và trả về số lượng đếm cập nhật.
     """
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            feedback_type = data.get('type') 
-            comment = data.get('comment', '')
-            
-            if feedback_type not in ['like', 'dislike']:
-                return JsonResponse({'status': 'error', 'message': 'Loại phản hồi không hợp lệ.'}, status=400)
-
-            message = get_object_or_404(Message, id=message_id)
-            group = message.group
-
-            FeedbackService.record_feedback(
-                group=group,
-                message=message,
-                user=request.user,
-                feedback_type=feedback_type,
-                comment=comment
-            )
-            
+    try:
+        # 📦 Giải mã dữ liệu JSON từ frontend
+        data = json.loads(request.body)
+        feedback_type = data.get('type') 
+        comment = data.get('comment', '')
+        
+        # 🛡️ Kiểm tra tính hợp lệ của loại phản hồi
+        valid_feedback_types = ['like', 'dislike', 'heart']
+        if feedback_type not in valid_feedback_types:
             return JsonResponse({
-                'status': 'success', 
-                'message': 'Đã ghi nhận phản hồi của bạn. Cảm ơn bạn đã giúp tinh chỉnh AI!'
-            })
-            
-        except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Dữ liệu JSON không hợp lệ.'}, status=400)
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-            
-    return JsonResponse({'status': 'error', 'message': 'Chỉ chấp nhận phương thức POST.'}, status=405)
+                'status': 'error', 
+                'message': 'Loại phản hồi không hợp lệ. Chỉ chấp nhận like, dislike hoặc heart.'
+            }, status=400)
 
+        # 🔍 Truy vấn tin nhắn bảo đảm tính toàn vẹn dữ liệu thuộc về nhóm (Group-Centric)
+        message = get_object_or_404(Message, id=message_id)
+        group = message.group
+
+        # ⚙️ Gọi service ghi nhận phản hồi (Feedback Loop)
+        FeedbackService.record_feedback(
+            group=group,
+            message=message,
+            user=request.user,
+            feedback_type=feedback_type,
+            comment=comment
+        )
+        
+        # 📊 Tính toán lại tổng số lượng tương tác hiện tại của tin nhắn từ Database
+        counts = {
+            'like': MessageFeedback.objects.filter(message=message, type='like').count(),
+            'dislike': MessageFeedback.objects.filter(message=message, type='dislike').count(),
+            'heart': MessageFeedback.objects.filter(message=message, type='heart').count(),
+        }
+        
+        return JsonResponse({
+            'status': 'success', 
+            'message': 'Đã ghi nhận phản hồi của bạn. Cảm ơn bạn đã giúp tinh chỉnh AI!',
+            'feedback_type': feedback_type,
+            'counts': counts
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error', 
+            'message': 'Dữ liệu JSON không hợp lệ.'
+        }, status=400)
+    except Exception as e:
+        print("=" * 80)
+        print("❌ LỖI TẠI KNOWLEDGE_FEEDBACK_VIEW:")
+        traceback.print_exc()
+        print("=" * 80)
+        
+        return JsonResponse({
+            'status': 'error', 
+            'message': f'Đã xảy ra lỗi hệ thống: {str(e)}'
+        }, status=500)
+
+    
 @login_required
 def update_ai_config_view(request, group_id):
     """
