@@ -7,6 +7,7 @@ from . import views
 app_name = 'group_chat'
 
 
+
 urlpatterns = [
     path('create/', views.create_group, name='create_group'),
     path('<int:group_id>/', views.group_chat_detail, name='group_detail'),
@@ -16,6 +17,11 @@ urlpatterns = [
     # 🧠 Quản lý vòng đời tri thức và Feedback Loop qua message_id
     path('message/<int:message_id>/feedback/', views.knowledge_feedback_view, name='knowledge_feedback'),
     
+    # 🔍 Sửa lại đường dẫn này (bỏ chữ 'groups/' ở đầu)
+    path('message/<int:message_id>/reactions-detail/', views.message_reactions_detail_view, name='message_reactions_detail'),
+    path('message/<int:message_id>/promote-knowledge/', views.promote_knowledge_view, name='promote_knowledge'),
+
+    
     # 🧠 Quản lý tri thức theo group_id
     path('<int:group_id>/knowledge/', views.knowledge_management, name='knowledge_management'),
     path('knowledge/<int:knowledge_id>/<str:action>/', views.knowledge_action_view, name='knowledge_action'),
@@ -23,7 +29,6 @@ urlpatterns = [
     
     # 🤖 Cấu hình AI riêng cho nhóm (Group-Centric AI Configuration)
     path('<int:group_id>/ai-config/', views.update_ai_config_view, name='update_ai_config'),
-    path('groups/<uuid:group_id>/members-api/', views.get_group_members_api, name='get_group_members_api'),
-    # path('group-chat/message/<int:message_id>/feedback/', views.knowledge_feedback_view, name='message_feedback'),
-    
+    path('<uuid:group_id>/members-api/', views.get_group_members_api, name='get_group_members_api'),
+    # path('groups/<uuid:group_id>/members-api/', views.get_group_members_api, name='get_group_members_api'),
 ]

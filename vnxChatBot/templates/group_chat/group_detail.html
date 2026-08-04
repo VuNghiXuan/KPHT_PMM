@@ -41,6 +41,23 @@
         .workspace-shadow {
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.03);
         }
+
+        /* Đặc trị đồng bộ màu vàng gold cho tin nhắn cá nhân/admin */
+        #chat-messages .d-flex.justify-content-end .card,
+        #chat-messages .d-flex.justify-content-end .card-body,
+        .vnx-user-message-box {
+            background-color: #fffdf0 !important;
+            color: #000000 !important;
+            border: 1px solid #ffd700 !important;
+        }
+
+        #chat-messages .d-flex.justify-content-end .card-header,
+        .vnx-user-header-box {
+            background-color: #faecc5 !important;
+            color: #000000 !important;
+            border-bottom: 1px solid #ffd700 !important;
+            font-weight: bold !important;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -49,7 +66,7 @@
 
     <!-- 
       File: templates/group_chat/chat_detail.html
-      Mục đích: Workspace độc lập toàn màn hình (Group-Centric Workspace) của VnxChatBot,
+      Mục đích: Workspace độc lập toàn màn hình (Group-Centric Workspace) của vnxChatBot,
                 tích hợp giao diện tin nhắn chuẩn xác, phân luồng User (phải) - AI/Others (trái)
                 dựa trên định danh tenant ChatGroup.
     -->
@@ -97,6 +114,23 @@
                 <!-- Khung nhập nội dung chat ở đáy -->
                 <div class="flex-shrink-0 bg-white border-top p-3 shadow-sm">
                     {% include "group_chat/partials/_chat_input.html" %}
+                </div>
+            </div>
+
+            <!-- Modal hiển thị chi tiết danh sách cảm xúc kiểu Zalo -->
+            <div class="modal fade" id="reactionsDetailModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                        <div class="modal-header border-bottom px-4 py-3">
+                            <h6 class="modal-title fw-bold text-dark mb-0">Biểu cảm 💬</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-3" id="reactionsModalBody"
+                            style="max-height: 300px; overflow-y: auto;">
+                            <!-- Dữ liệu danh sách người dùng sẽ được load động bằng JavaScript -->
+                            <p class="text-muted text-center small mb-0">Đang tải...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

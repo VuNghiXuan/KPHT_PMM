@@ -9,3 +9,6 @@ Cải tiến logic should_trigger_ai trong consumers.py: Tối ưu hóa điều 
 
 
 🗓️ Tóm tắt kế hoạch công việc cho ngày mai khi bạn quay lại:Ôn lại ngữ cảnh: Tiếp tục từ phần hoàn thiện tính năng chat thời gian thực giữa các thành viên trong nhóm thông qua WebSocket (ChatConsumer) kết hợp với luồng gọi trợ lý AI (@ai) và RAG Engine.  Triển khai code chi tiết:Hoàn thiện mã nguồn Consumer quản lý group_id (Tenant Isolation).  Tích hợp giao diện chat động (chat_detail.html và các partial templates).  Đảm bảo luồng xử lý tài liệu thông qua FileProcessor và kích hoạt tự động qua Django Signals.  
+
+
+Tao mô tả lại nhé: Hiện tại ở màn hành chat người đang đăng nhập khi vừa mới gởi tin nhắn xong thì nó là nền xanh cho đến khi nhấn f5 thì tin nhắn đó mới hiện đúng fỏm và mẫu tao cần màu vàng (khung này hiện nay thiếu tên hoặc bị mờ người đăng nhập). Tao muốn đồng bộ tin trước khi nhắn và đang nhắn đều có màu vàng form chữ rõ nét và đồng bộ. Mày mô tả lại xem hiểu ý chưa

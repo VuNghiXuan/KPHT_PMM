@@ -148,6 +148,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Args:
             event (dict): Dữ liệu sự kiện được truyền từ group_send.
         """
+        
         await self.send(text_data=json.dumps({
             'message_id': event.get('message_id'),
             'sender_name': event.get('sender_name', 'System'),

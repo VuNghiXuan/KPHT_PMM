@@ -1,22 +1,28 @@
-{# apps/group_chat/templates/group_chat/partials/message_item.html #}
 {% load static %}
+{% comment %}
+File: apps/group_chat/templates/group_chat/partials/message_item.html
+Mục đích: Hiển thị chi tiết từng tin nhắn trong phòng chat, tích hợp sẵn các công cụ
+Feedback Loop (Like, Dislike, Heart với bộ đếm kiểu Zalo), Knowledge Promotion (Học tri thức) và Thanh công cụ nổi thông
+minh (Hover Action Menu).
+Module liên kết: group_chat.models.Message, group_chat.models.MessageFeedback
+{% endcomment %}
 
-<div class="d-flex {% if message.sender.is_ai or message.sender.user != request.user %}justify-content-start{% else %}justify-content-end{% endif %} mb-3 message-item"
+<div class="d-flex {% if message.sender.is_ai or message.sender.user != request.user %}justify-content-start{% else %}justify-content-end{% endif %} mb-3 message-item position-relative"
     data-message-id="{{ message.id }}">
 
-    {# Nếu là tin nhắn của người khác hoặc AI: Hiển thị Avatar ở bên TRÁI #}
+    {# Nếu là tin nhắn của người khác hoặc AI: Hiển thị Avatar ở bên TRÁI[cite: 1] #}
     {% if message.sender.is_ai or message.sender.user != request.user %}
     <div class="flex-shrink-0 me-2">
         {% if message.sender.is_ai %}
-        <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center"
+        <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center shadow-sm"
             style="width: 38px; height: 38px; font-size: 1.2rem;">
             🤖
         </div>
         {% elif message.sender.user.profile.avatar %}
         <img src="{{ message.sender.user.profile.avatar.url }}" alt="{{ message.sender.user.username }}"
-            class="rounded-circle object-fit-cover" width="38" height="38">
+            class="rounded-circle object-fit-cover shadow-sm" width="38" height="38">
         {% else %}
-        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold"
+        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
             style="width: 38px; height: 38px;">
             {{ message.sender.user.username|slice:":1"|upper }}
         </div>
@@ -24,32 +30,99 @@
     </div>
     {% endif %}
 
-    {# Khung chứa nội dung tin nhắn #}
-    <div class="card shadow-sm {% if message.sender.is_ai %}bg-light border-info{% elif message.sender.user == request.user %}bg-primary text-white{% else %}bg-white border{% endif %}"
-        style="max-width: 70%;">
+    {# Khung chứa nội dung tin nhắn kết hợp vùng chứa hover #}
+    <div class="message-bubble-wrapper position-relative" style="max-width: 70%;">
 
-        <!-- Header: Tên người gửi & Thời gian -->
+        <!-- Thanh công cụ nổi thông minh (Hover Action Menu kiểu Zalo) -->
+        <div class="message-hover-toolbar position-absolute shadow bg-white border rounded-pill px-3 py-1 d-flex gap-2 align-items-center {% if message.sender.user == request.user %}toolbar-left{% else %}toolbar-right{% endif %}"
+            style="top: -22px; display: none; z-index: 10; font-size: 0.85rem;">
+
+            <!-- Nút Reply / Trả lời tin nhắn -->
+            <span class="cursor-pointer text-secondary hover-scale"
+                onclick="prepareReplyMessage('{{ message.id }}', '{% if message.sender.is_ai %}AI Assistant{% else %}{{ message.sender.user.username }}{% endif %}')"
+                title="Trả lời tin nhắn này">
+                <i class="fas fa-reply"></i>
+            </span>
+            <span class="border-start mx-1"></span>
+
+            <!-- Nút Học nhanh ngay trên thanh Hover (Có icon & chữ Học 🧠) -->
+            <span class="cursor-pointer text-primary hover-scale fw-bold d-flex align-items-center gap-1"
+                onclick="promoteMessageToKnowledge('{{ message.id }}')" title="Đưa tin nhắn này vào kho tri thức nhóm">
+                <i class="fas fa-graduation-cap"></i> Học 🧠
+            </span>
+
+            <span class="border-start mx-1"></span>
+            <!-- Nhóm công cụ Thả cảm xúc trực tiếp trên thanh Hover -->
+            <span class="cursor-pointer text-success hover-scale" onclick="handleFeedback('{{ message.id }}', 'like')"
+                title="Thích">
+                <i class="far fa-thumbs-up"></i>
+            </span>
+            <span class="cursor-pointer text-danger hover-scale" onclick="handleFeedback('{{ message.id }}', 'heart')"
+                title="Thả tim">
+                <i class="far fa-heart"></i>
+            </span>
+            <span class="cursor-pointer text-muted hover-scale" onclick="handleFeedback('{{ message.id }}', 'dislike')"
+                title="Không thích">
+                <i class="far fa-thumbs-down"></i>
+            </span>
+
+        </div>
+
+        <!-- Khung Card chính hiển thị nội dung tin nhắn -->
         <div
-            class="card-header py-1 px-3 small d-flex justify-content-between align-items-center {% if message.sender.user == request.user %}bg-primary text-white-50{% else %}text-muted{% endif %}">
-            <span class="me-3">
-                {% if message.sender.is_ai %}
-                <strong>AI Assistant</strong>
-                {% elif message.sender.user == request.user %}
-                <strong>Bạn</strong>
-                {% else %}
-                <strong>{{ message.sender.user.username }}</strong>
-                {% endif %}
-            </span>
-            <span style="font-size: 0.75rem;">
-                {{ message.created_at|date:"H:i" }}
-            </span>
-        </div>
+            class="card shadow-sm position-relative {% if message.sender.is_ai %}bg-light border-info text-dark{% elif message.sender.user == request.user %}bg-user-message text-white border-0{% else %}bg-white border text-dark{% endif %}">
 
-        <!-- Nội dung tin nhắn -->
-        <div class="card-body py-2 px-3">
-            <p class="mb-0 text-break">{{ message.content|linebreaksbr }}</p>
-        </div>
+            <!-- Header: Tên người gửi & Thời gian[cite: 1] -->
+            <div
+                class="card-header py-1 px-3 small d-flex justify-content-between align-items-center {% if message.sender.user == request.user %}bg-transparent text-white-50 border-bottom-0{% else %}text-muted bg-light border-bottom{% endif %}">
+                <span class="me-3">
+                    {% if message.sender.is_ai %}
+                    <strong>AI Assistant</strong>
+                    {% elif message.sender.user == request.user %}
+                    <strong>Bạn</strong>
+                    {% else %}
+                    <strong>{{ message.sender.user.username }}</strong>
+                    {% endif %}
+                </span>
+                <span style="font-size: 0.75rem;">
+                    {{ message.created_at|date:"H:i" }}[cite: 1]
+                </span>
+            </div>
 
+            <!-- Nội dung tin nhắn -->
+            <div class="card-body py-2 px-3">
+                <p class="mb-0 text-break">{{ message.content|linebreaksbr }}</p>
+            </div>
+
+            <!-- KHUNG HIỂN THỊ ĐẾM CẢM XÚC KIỂU ZALO -->
+            {% if message.feedbacks.exists %}
+            <!-- KHUNG HIỂN THỊ ĐẾM CẢM XÚC KIỂU ZALO -->
+            <div class="reactions-badge-container position-absolute {% if message.sender.user == request.user %}reaction-left{% else %}reaction-right{% endif %}"
+                style="bottom: -10px; z-index: 5;">
+
+                <div class="reactions-badge-wrapper bg-white border shadow-sm rounded-pill px-2 py-0.5 d-flex align-items-center gap-1 text-dark cursor-pointer position-relative"
+                    style="font-size: 0.75rem;" data-bs-toggle="tooltip" data-bs-html="true"
+                    title="{% for fb in message.feedbacks.all %}{{ fb.membership.user.username }} ({{ fb.type }})<br>{% endfor %}">
+
+                    <!-- Hiển thị các icon đại diện độc nhất đã được thả -->
+                    {% regroup message.feedbacks.all by type as feedback_groups %}
+                    <span class="d-flex align-items-center">
+                        {% for group in feedback_groups %}
+                        {% if group.grouper == 'like' %}👍{% endif %}
+                        {% if group.grouper == 'heart' %}❤️{% endif %}
+                        {% if group.grouper == 'dislike' %}👎{% endif %}
+                        {% endfor %}
+                    </span>
+
+                    <!-- Tổng số lượng tương tác -->
+                    <span class="fw-bold text-muted total-reactions-count ms-1">
+                        {{ message.feedbacks.count }}
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
     </div>
 
     {# Nếu là tin nhắn của CHÍNH USER đang đăng nhập: Hiển thị Avatar ở bên PHẢI #}
@@ -57,9 +130,9 @@
     <div class="flex-shrink-0 ms-2">
         {% if request.user.profile.avatar %}
         <img src="{{ request.user.profile.avatar.url }}" alt="{{ request.user.username }}"
-            class="rounded-circle object-fit-cover" width="38" height="38">
+            class="rounded-circle object-fit-cover shadow-sm" width="38" height="38">
         {% else %}
-        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
             style="width: 38px; height: 38px;">
             {{ request.user.username|slice:":1"|upper }}
         </div>
@@ -68,3 +141,46 @@
     {% endif %}
 
 </div>
+
+<!-- CSS cấu hình màu nền và hiệu ứng tương tác -->
+<style>
+    .bg-user-message {
+        background-color: #0084ff !important;
+    }
+
+    .message-bubble-wrapper .message-hover-toolbar {
+        display: none !important;
+        opacity: 0;
+        transition: opacity 0.15s ease-in-out;
+    }
+
+    .message-bubble-wrapper:hover .message-hover-toolbar {
+        display: flex !important;
+        opacity: 1;
+    }
+
+    .message-bubble-wrapper .toolbar-left {
+        left: 10px;
+    }
+
+    .message-bubble-wrapper .toolbar-right {
+        right: 10px;
+    }
+
+    /* Định vị Badge đếm cảm xúc lệch sang góc dưới của khung chat giống Zalo */
+    .reaction-left {
+        left: 12px;
+    }
+
+    .reaction-right {
+        right: 12px;
+    }
+
+    .hover-scale {
+        transition: transform 0.15s ease;
+    }
+
+    .hover-scale:hover {
+        transform: scale(1.15);
+    }
+</style>

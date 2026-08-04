@@ -1,38 +1,111 @@
+/* ==========================================================================
+   vnxChatBot - Custom Workspace & Message Styling (Group-Centric Theme)
+   ========================================================================== */
+
 body {
     min-height: 100vh;
     background: #f4f6f9;
 }
 
-/* Sidebar */
-.sidebar {
-    width: 260px;
-    min-height: 100vh;
-    background: #2c3e50;
-    transition: margin-left 0.3s ease;
-    position: sticky;
-    top: 0;
+/* ==========================================================================
+   🛠️ ĐẶC TRỊ STYLE TIN NHẮN THEO CLASS ĐỊNH DANH (Bỏ phụ thuộc chọn sâu)
+   ========================================================================== */
+
+/* 1. Tin nhắn của User hiện tại (Bên phải) - Màu vàng gold chuẩn chỉnh */
+.vnx-user-message-card {
+    background-color: #fffdf0 !important;
+    color: #000000 !important;
+    border: 1px solid #ffd700 !important;
 }
 
-.sidebar.collapsed {
-    margin-left: -260px;
+.vnx-user-message-card .card-body,
+.vnx-user-message-card .card-body p,
+.vnx-user-message-card .card-body span {
+    color: #000000 !important;
 }
 
-/* Nav Links */
-.nav-link {
-    transition: 0.2s;
-    border-left: 4px solid transparent;
+.vnx-user-header-box {
+    background-color: #faecc5 !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #ffd700 !important;
+    font-weight: bold !important;
 }
 
-.nav-link:hover {
-    background: #34495e;
-    border-left: 4px solid #3498db;
+/* 2. Tin nhắn của AI Assistant */
+.vnx-ai-message-card {
+    background-color: #f0f8ff !important;
+    color: #000000 !important;
+    border: 1px solid #17a2b8 !important;
 }
 
-/* Main Content */
-.main-content {
-    min-width: 0;
+.vnx-ai-header-box {
+    background-color: #d1ecf1 !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #17a2b8 !important;
+    font-weight: bold !important;
 }
 
-.navbar {
-    height: 60px;
+/* 3. Tin nhắn của người dùng khác trong nhóm */
+.vnx-other-message-card {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #ced4da !important;
+}
+
+.vnx-other-header-box {
+    background-color: #f8f9fa !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #ced4da !important;
+    font-weight: bold !important;
+}
+
+/* Interactive Floating Elements & Animations (Zalo-style Hover & Reactions) */
+.message-bubble-wrapper .message-hover-toolbar {
+    display: none !important;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+}
+
+.message-bubble-wrapper:hover .message-hover-toolbar {
+    display: flex !important;
+    opacity: 1;
+}
+
+.message-bubble-wrapper .toolbar-left {
+    left: 10px;
+}
+
+.message-bubble-wrapper .toolbar-right {
+    right: 10px;
+}
+
+.reaction-left {
+    left: 12px;
+}
+
+.reaction-right {
+    right: 12px;
+}
+
+.hover-scale {
+    transition: transform 0.15s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.15);
+}
+
+/* Custom Scrollbar chuẩn F12 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f8f9fa;
 }

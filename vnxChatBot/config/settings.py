@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import sys
+import codecs
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,8 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # VECTOR_DB_PATH = os.path.join(BASE_DIR, 'vector_db')
 VECTOR_DB_PATH = os.path.join(BASE_DIR, 'core', 'vector_db')
 
-import os
-from dotenv import load_dotenv
+
+# Lấy api_key các modles
 load_dotenv()
 
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
@@ -29,6 +31,12 @@ GEMINI_MODEL = os.getenv('GEMINI_MODEL')
 OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL')
 
 
+
+# Hố trợ tiếng việt file log: Đảm bảo standard output luôn dùng UTF-8 trên mọi môi trường Windows/Linux
+if sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+if sys.stderr.encoding.lower() != 'utf-8':
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/

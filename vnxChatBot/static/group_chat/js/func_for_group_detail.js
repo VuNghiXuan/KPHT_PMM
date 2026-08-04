@@ -26,9 +26,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/groups/${groupId}/`);
 
     /**
-     * Sự kiện: Lắng nghe tin nhắn thời gian thực từ WebSocket Server gửi về.
-     * Xử lý dựng khung giao diện tin nhắn, phân biệt tin nhắn của bản thân hay thành viên khác,
-     * tích hợp các nút tương tác AI (Like, Dislike, Heart, Đưa vào kho tri thức) và tự động cuộn xuống cuối.
+     * Lắng nghe tin nhắn real-time từ WebSocket Server.
+     * Đã chuẩn hóa hiển thị Avatar (hình ảnh thực tế hoặc chữ cái dự phòng).
      */
     chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
@@ -36,38 +35,125 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const isMe = data.sender_name === currentUsername;
         const messageDiv = document.createElement('div');
-        messageDiv.className = `d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'} mb-3 px-2`;
 
-        let aiActionsHTML = '';
+        // 1. Phân định vị trí hiển thị trái / phải (Tenant / Sender Isolation)
+        messageDiv.className = `d-flex ${data.is_ai || !isMe ? 'justify-content-start' : 'justify-content-end'} mb-3 message-item position-relative`;
+        messageDiv.setAttribute('data-message-id', data.message_id);
+
+        // 2. Xác định class màu sắc card và header box
+        let cardClass = '';
+        let headerBoxClass = '';
+        let toolbarPosition = isMe && !data.is_ai ? 'toolbar-left' : 'toolbar-right';
+
         if (data.is_ai) {
-            aiActionsHTML = `
-                <div class="mt-2 d-flex gap-3 align-items-center pt-2 border-top border-light">
-                    <i class="fas fa-thumbs-up text-success cursor-pointer" onclick="handleFeedback('${data.message_id}', 'like')" title="Thích phản hồi"></i>
-                    <i class="fas fa-thumbs-down text-danger cursor-pointer" onclick="handleFeedback('${data.message_id}', 'dislike')" title="Không thích phản hồi"></i>
-                    <i class="fas fa-heart text-danger cursor-pointer" onclick="handleFeedback('${data.message_id}', 'heart')" title="Yêu thích / Thả tim"></i>
-                    <button class="btn btn-sm btn-outline-primary py-0 px-2 ms-auto rounded-pill" onclick="promoteMessageToKnowledge('${data.message_id}')" title="Đưa tin nhắn này vào kho tri thức nhóm">
-                        <i class="fas fa-brain"></i> Học tri thức 🧠
-                    </button>
-                </div>
-            `;
+            cardClass = 'vnx-ai-message-card';
+            headerBoxClass = 'vnx-ai-header-box';
+        } else if (isMe) {
+            cardClass = 'vnx-user-message-card';
+            headerBoxClass = 'vnx-user-header-box';
+        } else {
+            cardClass = 'vnx-other-message-card';
+            headerBoxClass = 'vnx-other-header-box';
         }
 
-        const bubbleStyle = isMe
-            ? 'bg-primary text-white shadow-sm'
-            : 'bg-white border shadow-sm text-dark';
+        const timeString = data.created_at || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        messageDiv.innerHTML = `
-            <div class="p-3 rounded-4 ${bubbleStyle}" style="max-width: 75%;">
-                <small class="d-block mb-1 opacity-75 fw-bold ${isMe ? 'text-white-50' : 'text-muted'}">
-                    ${data.sender_name} ${data.is_ai ? '🤖' : ''}
-                </small>
-                <p class="mb-0 text-break" style="line-height: 1.5;">${data.content}</p>
-                ${aiActionsHTML}
-            </div>
+        // 3. Logic render Avatar thông minh (Kiểm tra xem có ảnh avatar_url thật hay không)
+        let avatarHTML = '';
+        if (data.is_ai) {
+            avatarHTML = `
+            <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center shadow-sm"
+                style="width: 38px; height: 38px; font-size: 1.2rem;">🤖</div>
         `;
-        chatMessages.appendChild(messageDiv);
+        } else if (data.avatar_url) {
+            // Nếu có đường dẫn ảnh avatar từ profile user
+            avatarHTML = `
+            <img src="${data.avatar_url}" alt="${data.sender_name}"
+                class="rounded-circle object-fit-cover shadow-sm" width="38" height="38">
+        `;
+        } else {
+            // Fallback: Hiển thị chữ cái đầu nếu chưa có ảnh
+            avatarHTML = `
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                style="width: 38px; height: 38px;">${data.sender_name.charAt(0).toUpperCase()}</div>
+        `;
+        }
 
-        // 🚀 TỰ ĐỘNG CUỘN XUỐNG DÒNG TIN NHẮN CUỐI CÙNG (Giúp người dùng không phải thao tác thủ công)
+        // Riêng user đang đăng nhập (isMe) thì dùng avatar của chính họ (nếu có)
+        let myAvatarHTML = '';
+        if (!data.is_ai && isMe) {
+            // Lấy avatar của current user (có thể lưu biến toàn cục currentAvatarUrl từ template Django ra)
+            if (typeof currentUserAvatarUrl !== 'undefined' && currentUserAvatarUrl) {
+                myAvatarHTML = `
+                <div class="flex-shrink-0 ms-2">
+                    <img src="${currentUserAvatarUrl}" alt="${data.sender_name}"
+                        class="rounded-circle object-fit-cover shadow-sm" width="38" height="38">
+                </div>
+            `;
+            } else {
+                myAvatarHTML = `
+                <div class="flex-shrink-0 ms-2">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                        style="width: 38px; height: 38px;">${data.sender_name.charAt(0).toUpperCase()}</div>
+                </div>
+            `;
+            }
+        }
+
+        // 4. Dựng cấu trúc HTML hoàn chỉnh
+        messageDiv.innerHTML = `
+        ${data.is_ai || !isMe ? `<div class="flex-shrink-0 me-2">${avatarHTML}</div>` : ''}
+
+        <div class="message-bubble-wrapper position-relative" style="max-width: 70%;">
+
+            <!-- Thanh công cụ nổi thông minh (Hover Action Menu kiểu Zalo) -->
+            <div class="message-hover-toolbar position-absolute shadow bg-white border rounded-pill px-3 py-1 d-flex gap-2 align-items-center ${toolbarPosition}"
+                style="top: -22px; display: none; z-index: 10; font-size: 0.85rem;">
+
+                <span class="cursor-pointer text-secondary hover-scale"
+                    onclick="prepareReplyMessage('${data.message_id}', '${data.is_ai ? 'AI Assistant' : data.sender_name}')"
+                    title="Trả lời tin nhắn này">
+                    <i class="fas fa-reply"></i>
+                </span>
+                <span class="border-start mx-1"></span>
+
+                <span class="cursor-pointer text-primary hover-scale fw-bold d-flex align-items-center gap-1"
+                    onclick="promoteMessageToKnowledge('${data.message_id}')" title="Đưa tin nhắn này vào kho tri thức nhóm">
+                    <i class="fas fa-graduation-cap"></i> Học 🧠
+                </span>
+
+                <span class="border-start mx-1"></span>
+                <span class="cursor-pointer text-success hover-scale" onclick="handleFeedback('${data.message_id}', 'like')" title="Thích">
+                    <i class="far fa-thumbs-up"></i>
+                </span>
+                <span class="cursor-pointer text-danger hover-scale" onclick="handleFeedback('${data.message_id}', 'heart')" title="Thả tim">
+                    <i class="far fa-heart"></i>
+                </span>
+                <span class="cursor-pointer text-muted hover-scale" onclick="handleFeedback('${data.message_id}', 'dislike')" title="Không thích">
+                    <i class="far fa-thumbs-down"></i>
+                </span>
+            </div>
+
+            <!-- Khung Card chính -->
+            <div class="card shadow-sm position-relative ${cardClass}">
+                <div class="card-header py-1 px-3 small d-flex justify-content-between align-items-center ${headerBoxClass}">
+                    <span class="me-3">
+                        <strong>${data.is_ai ? '🤖 AI Assistant' : data.sender_name}</strong>
+                    </span>
+                    <span class="text-secondary opacity-75" style="font-size: 0.75rem;">
+                        ${timeString}
+                    </span>
+                </div>
+                <div class="card-body py-2 px-3">
+                    <p class="mb-0 text-break">${data.content}</p>
+                </div>
+            </div>
+        </div>
+
+        ${!data.is_ai && isMe ? myAvatarHTML : ''}
+    `;
+
+        chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
@@ -172,19 +258,13 @@ function promoteMessageToKnowledge(messageId) {
         .catch(err => console.error('Promote Knowledge Error:', err));
 }
 /**
- * Hàm: handleFeedback
- * Mục đích: Gửi phản hồi cảm xúc (Like/Dislike/Heart) của thành viên cho tin nhắn AI qua AJAX (Feedback Loop).
- * @param {number|string} messageId - ID của tin nhắn cần tương tác.
- * @param {string} feedbackType - Loại cảm xúc tương ứng ('like', 'dislike', 'heart').
+ * Xử lý thả cảm xúc và cập nhật giao diện tức thời
+ * @param {string} messageId - ID của tin nhắn
+ * @param {string} feedbackType - Loại cảm xúc (like, heart, dislike)
  */
 function handleFeedback(messageId, feedbackType) {
     const chatContainer = document.getElementById('chat-messages');
     const csrfToken = chatContainer?.dataset.csrfToken || document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
-    if (!csrfToken) {
-        console.error("❌ Lỗi: Không tìm thấy CSRF Token!");
-        return;
-    }
 
     fetch(`/groups/message/${messageId}/feedback/`, {
         method: 'POST',
@@ -197,28 +277,89 @@ function handleFeedback(messageId, feedbackType) {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                console.log("✅ Cập nhật cảm xúc thành công:", data);
-
-                // Tìm khung chứa tin nhắn tương ứng
+                // Tìm phần tử chứa badge cảm xúc của tin nhắn
                 const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
                 if (messageEl) {
-                    const badgeContainer = messageEl.querySelector('.reactions-badge-container');
+                    let badgeContainer = messageEl.querySelector('.reactions-badge-container');
 
-                    // Nếu server trả về tổng số lượng và danh sách icons mới qua data.counts hoặc data.total_count
-                    // Ta cập nhật lại con số tổng đếm ngay lập tức
+                    // Nếu dữ liệu trả về từ server cung cấp tổng số lượng mới
                     if (data.total_count !== undefined) {
-                        let totalEl = badgeContainer ? badgeContainer.querySelector('.total-reactions-count') : null;
-                        if (totalEl) {
-                            totalEl.textContent = data.total_count;
+                        if (data.total_count > 0) {
+                            // Nếu đã có badge, cập nhật lại số lượng
+                            if (badgeContainer) {
+                                const totalEl = badgeContainer.querySelector('.total-reactions-count');
+                                if (totalEl) totalEl.textContent = data.total_count;
+                            } else {
+                                // Nếu chưa có badge nào trước đó, tải lại nhẹ partial hoặc reload trang để hiển thị khung badge
+                                location.reload();
+                            }
+                        } else if (badgeContainer) {
+                            // Nếu tổng số lượng = 0 thì ẩn badge đi
+                            badgeContainer.remove();
                         }
-                    } else {
-                        // Fallback: Tải lại nhẹ hoặc cập nhật DOM trực tiếp nếu dữ liệu trả về đủ
-                        location.reload(); // Hoặc cập nhật linh hoạt bằng cách reload partial nếu cần thiết cho mượt
                     }
                 }
             } else {
-                alert("⚠️ " + (data.message || 'Không thể thả cảm xúc'));
+                console.warn("⚠️ Phản hồi từ server:", data.message);
             }
         })
         .catch(error => console.error('❌ Lỗi kết nối:', error));
+}
+
+/**
+ * [KNOWLEDGE & FEEDBACK LIFECYCLE]: Mở popup chi tiết danh sách người đã thả cảm xúc cho tin nhắn
+ * Mục đích: 
+ *   - Hiển thị danh sách chi tiết các thành viên trong nhóm đã tương tác (Like, Heart, Dislike) với một tin nhắn cụ thể.
+ *   - Đồng bộ hóa dữ liệu từ API endpoint `/groups/message/<message_id>/reactions-detail/` theo định danh `group_id`.
+ * Module liên kết: 
+ *   - group_chat.models.MessageFeedback
+ *   - group_chat.views (API xử lý trả về danh sách cảm xúc)
+ * 
+ * @param {string|number} messageId - ID định danh duy nhất của tin nhắn cần xem chi tiết cảm xúc.
+ */
+function openReactionsModal(messageId) {
+    const modalBody = document.getElementById('reactionsModalBody');
+    modalBody.innerHTML = '<p class="text-muted text-center small mb-0">Đang tải danh sách...</p>';
+
+    // Khởi tạo và kích hoạt Bootstrap Modal để hiển thị giao diện tương tác
+    const modal = new bootstrap.Modal(document.getElementById('reactionsDetailModal'));
+    modal.show();
+
+    // Gọi API bất đồng bộ lấy chi tiết danh sách người thả cảm xúc theo messageId
+    fetch(`/groups/message/${messageId}/reactions-detail/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // [TENANT & DATA VALIDATION]: Kiểm tra trạng thái trả về và sử dụng 'data.feedbacks' khớp với Backend
+            if (data.status === 'success' && data.feedbacks && data.feedbacks.length > 0) {
+                let html = '<div class="d-flex flex-column gap-2">';
+                data.feedbacks.forEach(item => {
+                    // Sử dụng trực tiếp trường 'icon' đã được chuẩn hóa từ backend hoặc fallback theo loại phản hồi
+                    let icon = item.icon || (item.type === 'like' ? '👍' : (item.type === 'heart' ? '❤️' : '👎'));
+                    html += `
+                    <div class="d-flex align-items-center justify-content-between reaction-detail-item">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                ${item.username.charAt(0).toUpperCase()}
+                            </div>
+                            <span class="fw-semibold text-dark small">${item.username}</span>
+                        </div>
+                        <span style="font-size: 1.1rem;">${icon}</span>
+                    </div>
+                    `;
+                });
+                html += '</div>';
+                modalBody.innerHTML = html;
+            } else {
+                modalBody.innerHTML = '<p class="text-muted text-center small mb-0">Chưa có lượt tương tác nào.</p>';
+            }
+        })
+        .catch(err => {
+            console.error("Lỗi khi tải chi tiết biểu cảm:", err);
+            modalBody.innerHTML = '<p class="text-danger text-center small mb-0">Không thể tải dữ liệu chi tiết.</p>';
+        });
 }
