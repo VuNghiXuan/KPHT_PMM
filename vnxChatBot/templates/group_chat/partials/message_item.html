@@ -5,21 +5,18 @@ Mục đích:
 - Hiển thị linh hoạt từng tin nhắn trong phòng chat nhóm theo ngữ cảnh người gửi (User hiện tại, Thành viên khác, hoặc
 AI Assistant).
 - Tích hợp toàn diện Feedback Loop (Like, Heart, Dislike) và Hover Action Menu kiểu Zalo.
-- Hỗ trợ cơ chế trích xuất và đưa tin nhắn trực tiếp vào Kho tri thức nhóm (Knowledge Base) thông qua nút 'Học 🧠'.
+- Hỗ trợ hiển thị trích dẫn tin nhắn (Reply Quote Box) và nút đưa tin nhắn trực tiếp vào Kho tri thức nhóm (Knowledge
+Base) thông qua nút 'Học 🧠'.
 Module liên kết:
 - group_chat.models.Message
 - group_chat.models.MessageFeedback
 {% endcomment %}
 
-<script>
-    const currentUsername = "{{ request.user.username }}";
-    const currentUserAvatarUrl = "{% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% endif %}";
-</script>
-
 <div class="d-flex {% if message.sender.is_ai or message.sender.user != request.user %}justify-content-start{% else %}justify-content-end{% endif %} mb-3 message-item position-relative"
-    data-message-id="{{ message.id }}">
+    data-message-id="{{ message.id }}"
+    data-sender-name="{% if message.sender.is_ai %}AI Assistant{% else %}{{ message.sender.user.username }}{% endif %}">
 
-    {# [TENTANT/SENDER ISOLATION]: Nếu là tin nhắn của người khác hoặc AI: Hiển thị Avatar ở bên TRÁI #}
+    {# [TENANT/SENDER ISOLATION]: Nếu là tin nhắn của người khác hoặc AI: Hiển thị Avatar ở bên TRÁI #}
     {% if message.sender.is_ai or message.sender.user != request.user %}
     <div class="flex-shrink-0 me-2">
         {% if message.sender.is_ai %}
@@ -43,11 +40,11 @@ Module liên kết:
     <div class="message-bubble-wrapper position-relative" style="max-width: 70%;">
 
         <!-- Thanh công cụ nổi thông minh (Hover Action Menu kiểu Zalo) -->
-        <div class="message-hover-toolbar position-absolute shadow bg-white border rounded-pill px-3 py-1 d-flex gap-2 align-items-center {% if message.sender.user == request.user %}toolbar-left{% else %}toolbar-right{% endif %}"
-            style="top: -22px; display: none; z-index: 10; font-size: 0.85rem;">
+        <div class="message-hover-toolbar position-absolute shadow bg-white border rounded-pill px-3 py-1 d-flex gap-2 align-items-center 
+             {% if message.sender.user == request.user %}end-0{% else %}start-0{% endif %}"
+            style="top: -32px; display: none; z-index: 100; font-size: 0.85rem; white-space: nowrap;">
 
-            <span class="cursor-pointer text-secondary hover-scale"
-                onclick="prepareReplyMessage('{{ message.id }}', '{% if message.sender.is_ai %}AI Assistant{% else %}{{ message.sender.user.username }}{% endif %}')"
+            <span class="cursor-pointer text-secondary hover-scale" onclick="prepareReplyMessage('{{ message.id }}')"
                 title="Trả lời tin nhắn này">
                 <i class="fas fa-reply"></i>
             </span>
@@ -76,11 +73,11 @@ Module liên kết:
 
         </div>
 
-        <!-- Khung Card chính: Sử dụng class phân định rõ ràng theo cấu hình giao diện vnxChatBot -->
+        <!-- Khung Card chính -->
         <div
             class="card shadow-sm position-relative {% if message.sender.is_ai %}vnx-ai-message-card{% elif message.sender.user == request.user %}vnx-user-message-card{% else %}vnx-other-message-card{% endif %}">
 
-            <!-- Header: Tên định danh & Thời gian tạo tin nhắn (Đồng bộ tuyệt đối cho mọi người gửi) -->
+            <!-- Header: Tên định danh & Thời gian tạo tin nhắn -->
             <div
                 class="card-header py-1 px-3 small d-flex justify-content-between align-items-center {% if message.sender.user == request.user %}vnx-user-header-box{% elif message.sender.is_ai %}vnx-ai-header-box{% else %}vnx-other-header-box{% endif %}">
                 <span class="me-3">
@@ -95,9 +92,23 @@ Module liên kết:
                 </span>
             </div>
 
-            <!-- Nội dung tin nhắn chính có cơ chế ngắt dòng tự động -->
+            <!-- Nội dung tin nhắn chính -->
             <div class="card-body py-2 px-3">
-                <p class="mb-0 text-break">{{ message.content|linebreaksbr }}</p>
+
+                {# 📥 [ZALO-STYLE REPLY QUOTE]: Hiển thị thông tin tin nhắn gốc nếu đây là tin trả lời #}
+                {% if message.reply_to %}
+                <div
+                    class="reply-quote-box bg-light border-start border-primary border-3 p-2 mb-2 rounded small text-muted">
+                    <span class="fw-bold text-dark">
+                        <!-- 🛡️ Sử dụng thuộc tính an toàn reply_sender_name để phân biệt chuẩn xác User và AI Assistant -->
+                        {{ message.reply_sender_name }}:
+                    </span>
+                    <p class="mb-0 text-truncate message-content-text">{{ message.reply_to.content|truncatechars:80 }}
+                    </p>
+                </div>
+                {% endif %}
+
+                <p class="mb-0 text-break message-content-text">{{ message.content|linebreaksbr }}</p>
             </div>
 
             <!-- [FEEDBACK BADGE]: Khu vực hiển thị tổng hợp số lượng cảm xúc tương tác kiểu Zalo -->
@@ -127,7 +138,7 @@ Module liên kết:
         </div>
     </div>
 
-    {# [TENTANT/SENDER ISOLATION]: Nếu là tin nhắn của CHÍNH USER đang đăng nhập: Hiển thị Avatar ở bên PHẢI #}
+    {# [TENANT/SENDER ISOLATION]: Nếu là tin nhắn của CHÍNH USER đang đăng nhập: Hiển thị Avatar ở bên PHẢI #}
     {% if not message.sender.is_ai and message.sender.user == request.user %}
     <div class="flex-shrink-0 ms-2">
         {% if request.user.profile.avatar %}

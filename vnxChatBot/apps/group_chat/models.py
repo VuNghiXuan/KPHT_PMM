@@ -122,11 +122,38 @@ class Message(models.Model):
     group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE, related_name="messages", verbose_name="Nhóm")
     sender = models.ForeignKey(Membership, on_delete=models.CASCADE, verbose_name="Người gửi")
     content = models.TextField(verbose_name="Nội dung")
+    # Bổ sung trường liên kết tin nhắn trả lời (Reply-to)
+    reply_to = models.ForeignKey(
+        'self', 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL, 
+        related_name='replies',
+        verbose_name="Trả lời cho tin nhắn",
+        help_text="Liên kết đến tin nhắn gốc nếu đây là tin nhắn reply"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian tạo")
 
     class Meta:
         verbose_name = "Tin nhắn"
         verbose_name_plural = "Tin nhắn"
+
+    @property
+    def reply_sender_name(self):
+        """
+        [Architecture Thinking] Trả về tên người gửi của tin nhắn gốc một cách an toàn.
+        Giải quyết triệt để vấn đề phân biệt User thường và AI Assistant (is_ai=True).
+        """
+        if not self.reply_to or not self.reply_to.sender:
+            return "Thành viên"
+        
+        sender_membership = self.reply_to.sender
+        if getattr(sender_membership, 'is_ai', False):
+            return "AI Assistant"
+        elif sender_membership.user and hasattr(sender_membership.user, 'username'):
+            return sender_membership.user.username
+        return "Thành viên nhóm"
+    
 
 class MessageFeedback(models.Model):
     """

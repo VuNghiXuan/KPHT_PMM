@@ -1,8 +1,12 @@
-<!-- 
-  File: templates/group_chat/partials/_chat_input.html
-  Mục đích: Khung nhập liệu tin nhắn kết hợp upload tài liệu vào RAG Pipeline.
--->
-<div class="p-3 border-top bg-white">
+<!-- apps/group_chat/templates/group_chat/partials/_chat_input.html -->
+<div class="p-3 border-top bg-white position-relative">
+
+    <!-- 🔽 Menu Popup Gợi ý Thành viên (@mention) -->
+    <div id="mention-dropdown" class="dropdown-menu shadow rounded-4 p-2"
+        style="display: none; position: absolute; bottom: 100%; left: 1rem; max-height: 200px; overflow-y: auto; z-index: 1050; min-width: 220px;">
+        <!-- Danh sách thành viên sẽ được render động bằng JavaScript -->
+    </div>
+
     <div class="d-flex align-items-center gap-2 mb-2 text-muted">
         <button type="button" class="btn btn-sm btn-light text-secondary border-0"
             onclick="document.getElementById('file-upload').click()" title="Tải lên tài liệu nạp vào Kho Tri thức RAG">
@@ -11,10 +15,27 @@
         <span class="text-muted small">| Chat chung với mọi người hoặc gõ <b>@ai</b> để hỏi trợ lý thông minh 🧠</span>
     </div>
 
+    <!-- Khung hiển thị trích dẫn trước khi gửi tin nhắn Reply -->
+    <div id="reply-preview-bar"
+        class="bg-light border-start border-primary border-4 p-2 mb-2 rounded-end d-none justify-content-between align-items-center">
+        <div>
+            <small class="text-primary fw-bold">Đang trả lời <span id="reply-to-username"></span>:</small>
+            <p class="mb-0 text-muted text-truncate small" id="reply-to-content" style="max-width: 500px;"></p>
+        </div>
+        <button type="button" class="btn-close btn-sm" onclick="cancelReply()"></button>
+    </div>
+
+    <!-- Input gửi tin nhắn -->
+    <div class="input-group">
+        <input type="text" id="chat-message-input" class="form-control" placeholder="Nhập tin nhắn...">
+        <button class="btn btn-primary" id="chat-message-submit" type="button"><i class="fas fa-paper-plane"></i>
+            Gửi</button>
+    </div>
+
     <form id="chat-form" class="input-group">
         <input type="file" id="file-upload" hidden>
         <input type="text" id="chat-input" class="form-control rounded-start-3"
-            placeholder="Nhập tin nhắn trao đổi chung hoặc gọi @ai...">
+            placeholder="Nhập tin nhắn trao đổi chung hoặc gõ @ để nhắc đến thành viên...">
         <button type="submit" class="btn btn-primary px-4 rounded-end-3">
             <i class="fas fa-paper-plane"></i>
         </button>

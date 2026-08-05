@@ -1,4 +1,4 @@
-{% extends "group_chat/chat_base.html" %}
+{% extends "group_chat/group_detail.html" %}
 {% load static %}
 
 {% block title %}Quản lý Kho Tri thức | {{ group.name }}{% endblock %}
@@ -8,37 +8,45 @@
     <!-- Tiêu đề trang quản lý tri thức -->
     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
         <div>
-            <h4 class="fw-bold text-primary mb-1"><i class="fas fa-brain me-2"></i> Kho Tri thức Nhóm: {{ group.name }}
-                🧠</h4>
-            <p class="text-muted small mb-0">Quản lý vòng đời tri thức (Knowledge Lifecycle), duyệt tài liệu RAG và đồng
-                bộ Vector Store theo định danh Tenant.</p>
+            <h4 class="fw-bold text-primary mb-1">
+                <i class="fas fa-brain me-2"></i> Kho Tri thức Nhóm: {{ group.name }} 🧠
+            </h4>
+            <p class="text-muted small mb-0">
+                Quản lý vòng đời tri thức (Knowledge Lifecycle), duyệt tài liệu RAG và đồng bộ Vector Store theo định
+                danh Tenant (Nhóm).
+            </p>
         </div>
         <div>
-            <a href="{% url 'group_chat:chat_detail' group.id %}" class="btn btn-outline-secondary btn-sm">
+            <!-- Nút quay lại phòng chat của nhóm dựa theo group_id -->
+            <a href="{% url 'group_chat:group_detail' group.id %}" class="btn btn-outline-secondary btn-sm shadow-sm">
                 <i class="fas fa-arrow-left me-1"></i> Quay lại phòng Chat
             </a>
         </div>
     </div>
 
     <div class="row g-4">
-        <!-- Cột 1: Danh sách Tài liệu đã tải lên -->
+        <!-- Cột 1: Danh sách Tài liệu gốc đã tải lên -->
         <div class="col-lg-5">
             <div class="card shadow-sm border-0 rounded-4 h-100">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="fw-bold fs-6 mb-0 text-dark"><i class="fas fa-file-alt text-secondary me-2"></i> Tài liệu
-                        gốc đã tải lên</h5>
+                    <h5 class="fw-bold fs-6 mb-0 text-dark">
+                        <i class="fas fa-file-alt text-secondary me-2"></i> Tài liệu gốc đã tải lên
+                    </h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
                         {% for doc in documents %}
                         <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="fw-bold text-dark small text-truncate" style="max-width: 220px;">
+                                <div class="fw-bold text-dark small text-truncate" style="max-width: 220px;"
+                                    title="{{ doc.file.name }}">
                                     <i class="fas fa-file-pdf text-danger me-1"></i> {{ doc.file.name }}
                                 </div>
-                                <small class="text-muted" style="font-size: 0.75rem;">Tải lên lúc: {{
-                                    doc.uploaded_at|date:"d/m/Y H:i" }}</small>
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    Tải lên lúc: {{ doc.uploaded_at|date:"d/m/Y H:i" }}
+                                </small>
                             </div>
+                            <!-- Hành động xóa tài liệu và thu hồi tri thức -->
                             <a href="{% url 'group_chat:delete_document' doc.id %}"
                                 class="btn btn-outline-danger btn-sm py-1 px-2"
                                 title="Xóa tài liệu và thu hồi tri thức">
@@ -46,7 +54,8 @@
                             </a>
                         </div>
                         {% empty %}
-                        <div class="p-4 text-center text-muted small">Chưa có tài liệu nào được tải lên trong nhóm này.
+                        <div class="p-4 text-center text-muted small">
+                            Chưa có tài liệu nào được tải lên trong nhóm này.
                         </div>
                         {% endfor %}
                     </div>
@@ -58,8 +67,9 @@
         <div class="col-lg-7">
             <div class="card shadow-sm border-0 rounded-4 h-100">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="fw-bold fs-6 mb-0 text-dark"><i class="fas fa-project-diagram text-success me-2"></i> Đơn
-                        vị Tri thức RAG (Knowledge Units)</h5>
+                    <h5 class="fw-bold fs-6 mb-0 text-dark">
+                        <i class="fas fa-project-diagram text-success me-2"></i> Đơn vị Tri thức RAG (Knowledge Units)
+                    </h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
@@ -80,30 +90,38 @@
                                     <td>
                                         {% if ku.status == 'approved' %}
                                         <span
-                                            class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1">Approved
-                                            🌟</span>
+                                            class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1">
+                                            Approved 🌟
+                                        </span>
                                         {% else %}
                                         <span
-                                            class="badge bg-warning bg-opacity-10 text-warning border border-warning px-2 py-1">Pending
-                                            ⏳</span>
+                                            class="badge bg-warning bg-opacity-10 text-warning border border-warning px-2 py-1">
+                                            Pending ⏳
+                                        </span>
                                         {% endif %}
                                     </td>
                                     <td class="text-end pe-3">
-                                        <!-- Các hành động phê duyệt hoặc rollback tri thức -->
+                                        <!-- Các hành động phê duyệt hoặc thay đổi vòng đời tri thức -->
                                         {% if ku.status == 'pending' %}
-                                        <a href="#" class="btn btn-success btn-sm py-0 px-2"
-                                            style="font-size: 0.75rem;"><i class="fas fa-check"></i> Duyệt</a>
+                                        <a href="{% url 'group_chat:knowledge_action' ku.id 'approve' %}"
+                                            class="btn btn-success btn-sm py-0 px-2 me-1" style="font-size: 0.75rem;"
+                                            title="Phê duyệt đưa vào Vector DB">
+                                            <i class="fas fa-check"></i> Duyệt
+                                        </a>
                                         {% endif %}
-                                        <a href="{% url 'group_chat:delete_document' ku.document.id %}"
+
+                                        <a href="{% url 'group_chat:knowledge_action' ku.id 'rollback' %}"
                                             class="btn btn-outline-secondary btn-sm py-0 px-2"
-                                            style="font-size: 0.75rem;" title="Rollback tri thức"><i
-                                                class="fas fa-undo"></i> Rollback</a>
+                                            style="font-size: 0.75rem;" title="Rollback tri thức">
+                                            <i class="fas fa-undo"></i> Rollback
+                                        </a>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted p-4">Chưa có đơn vị tri thức nào được
-                                        trích xuất từ tài liệu.</td>
+                                    <td colspan="3" class="text-center text-muted p-4">
+                                        Chưa có đơn vị tri thức nào được trích xuất từ tài liệu.
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
