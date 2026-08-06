@@ -1,4 +1,8 @@
-<!-- apps/group_chat/templates/group_chat/partials/_chat_input.html -->
+<!-- 
+File: apps/group_chat/templates/group_chat/partials/_chat_input.html
+Mục đích: Thanh công cụ nhập liệu và tương tác nhóm (Gửi tin nhắn, Mention @, Đính kèm file/folder RAG).
+Tác giả: Kỹ sư hệ thống vnxChatBot
+-->
 <div class="p-3 border-top bg-white position-relative">
 
     <!-- 🔽 Menu Popup Gợi ý Thành viên (@mention) -->
@@ -7,23 +11,7 @@
         <!-- Danh sách thành viên sẽ được render động bằng JavaScript -->
     </div>
 
-    <!-- Hướng dẫn nhanh & Nút thao tác nhanh -->
-    <div class="d-flex align-items-center justify-content-between mb-2 text-muted">
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light text-secondary border-0"
-                onclick="document.getElementById('file-upload').click()"
-                title="Tải lên tài liệu hoặc thư mục nạp vào Kho Tri thức RAG">
-                <i class="fas fa-paperclip"></i> Đính kèm tài liệu/Folder 📁
-            </button>
-            <span class="text-muted small">| Chat chung hoặc gõ <b class="text-primary">@</b> để nhắc đến thành viên/AI
-                🧠</span>
-        </div>
-        <!-- Khu vực hiển thị tên file đang chọn chuẩn bị upload -->
-        <div id="selected-files-preview" class="small text-primary fw-bold text-truncate" style="max-width: 300px;">
-        </div>
-    </div>
-
-    <!-- 🔽 Khung hiển thị trích dẫn trước khi gửi tin nhắn Reply -->
+    <!-- 🔽 Khung hiển thị trích dẫn trước khi gửi tin nhắn Reply (Zalo-style) -->
     <div id="reply-preview-bar"
         class="bg-light border-start border-primary border-4 p-2 mb-2 rounded-end d-none justify-content-between align-items-center">
         <div>
@@ -33,19 +21,51 @@
         <button type="button" class="btn-close btn-sm shadow-none" onclick="cancelReply()" title="Hủy trả lời"></button>
     </div>
 
-    <!-- 🔽 Khung nhập liệu và gửi tin nhắn -->
-    <form id="chat-form" class="input-group" onsubmit="return false;">
+    <!-- 🔽 Khung hiển thị danh sách file đã chọn đính kèm (Được tối ưu trực quan ngay phía trên ô chat) -->
+    <div id="selected-files-container"
+        class="d-none flex-wrap gap-2 mb-2 p-2 bg-light rounded border border-dashed align-items-center">
+        <div class="small text-muted fw-bold d-flex align-items-center gap-1">
+            <i class="fas fa-paperclip text-primary"></i> Tài liệu đính kèm chuẩn bị nạp RAG:
+        </div>
+        <div id="selected-files-list" class="d-flex flex-wrap gap-1">
+            <!-- Render danh sách file động bằng JS hoặc hiển thị tên file -->
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1 ms-auto" onclick="clearSelectedFiles()"
+            title="Hủy tất cả file">
+            <i class="fas fa-times"></i> Xóa tất cả
+        </button>
+    </div>
+
+    <!-- 🔽 Hướng dẫn nhanh & Thao tác đính kèm -->
+    <div class="d-flex align-items-center justify-content-between mb-2 text-muted">
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-light text-secondary border-0 fw-semibold"
+                onclick="document.getElementById('file-upload').click()"
+                title="Tải lên tài liệu hoặc thư mục nạp vào Kho Tri thức RAG">
+                <i class="fas fa-folder-open text-warning me-1"></i> Đính kèm tài liệu 📁
+            </button>
+            <span class="text-muted small">| Chat chung hoặc gõ <b class="text-primary">@</b> nhắc tên thành viên/AI
+                🧠</span>
+        </div>
+        <div class="small text-secondary fst-italic">
+            Hỗ trợ PDF, Word, TXT, Code...
+        </div>
+    </div>
+
+    <!-- 🔽 Khung nhập liệu và gửi tin nhắn chính -->
+    <form id="chat-form" class="input-group shadow-sm rounded-3 overflow-hidden border" onsubmit="return false;">
         <!-- Input ẩn phục vụ upload file/folder ngầm (hỗ trợ chọn nhiều file qua thuộc tính multiple) -->
         <input type="file" id="file-upload" class="d-none" multiple
             data-upload-url="{% url 'group_chat:upload_document' group.id %}">
 
         <!-- Ô nhập nội dung chat chính - Gắn sự kiện lắng nghe ký tự @ -->
-        <input type="text" id="chat-message-input" class="form-control rounded-start-3"
-            placeholder="Nhập tin nhắn trao đổi chung hoặc gõ @ để nhắc đến thành viên...">
+        <input type="text" id="chat-message-input" class="form-control border-0 py-2 px-3 shadow-none"
+            placeholder="Nhập nội dung trao đổi hoặc lệnh cho AI...">
 
         <!-- Nút bấm gửi tin nhắn -->
-        <button class="btn btn-primary px-4 rounded-end-3" id="chat-message-submit" type="button">
-            <i class="fas fa-paper-plane"></i> Gửi
+        <button class="btn btn-primary px-4 fw-semibold d-flex align-items-center gap-1" id="chat-message-submit"
+            type="button">
+            <span>Gửi</span> <i class="fas fa-paper-plane"></i>
         </button>
     </form>
 </div>

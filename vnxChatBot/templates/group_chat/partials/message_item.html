@@ -1,4 +1,5 @@
 {% load static %}
+{% load chat_filters %}
 {% comment %}
 File: apps/group_chat/templates/group_chat/partials/message_item.html
 Mục đích:
@@ -95,20 +96,60 @@ Module liên kết:
             <!-- Nội dung tin nhắn chính -->
             <div class="card-body py-2 px-3">
 
-                {# 📥 [ZALO-STYLE REPLY QUOTE]: Hiển thị thông tin tin nhắn gốc nếu đây là tin trả lời #}
+                {# 📥 [ZALO-STYLE REPLY QUOTE]: Hiển thị thông tin tin nhắn gốc nếu có #}
                 {% if message.reply_to %}
                 <div
                     class="reply-quote-box bg-light border-start border-primary border-3 p-2 mb-2 rounded small text-muted">
-                    <span class="fw-bold text-dark">
-                        <!-- 🛡️ Sử dụng thuộc tính an toàn reply_sender_name để phân biệt chuẩn xác User và AI Assistant -->
-                        {{ message.reply_sender_name }}:
-                    </span>
-                    <p class="mb-0 text-truncate message-content-text">{{ message.reply_to.content|truncatechars:80 }}
-                    </p>
+                    <span class="fw-bold text-primary">{{ message.reply_sender_name }}:</span>
+                    <p class="mb-0 message-content-text">{{ message.reply_to.short_formatted_content }}</p>
                 </div>
                 {% endif %}
 
-                <p class="mb-0 text-break message-content-text">{{ message.content|linebreaksbr }}</p>
+                <!-- Văn bản nội dung tin nhắn -->
+                <p class="mb-2 text-break message-content-text">{{ message.content|format_mentions|linebreaksbr }}</p>
+
+                {# 📁 [DOCUMENT ATTACHMENT WIDGET]: Giao diện tương tác file đính kèm phong cách Zalo/Slack #}
+                {% if message.document %}
+                <div
+                    class="document-attachment-card bg-light border rounded-3 p-2 d-flex align-items-center justify-content-between gap-3 mt-2 shadow-sm">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <div class="bg-primary text-white rounded p-2 d-flex align-items-center justify-content-center"
+                            style="width: 38px; height: 38px;">
+                            <i class="fas fa-file-alt fa-lg"></i>
+                        </div>
+                        <div class="text-truncate">
+                            <h6 class="mb-0 text-dark small fw-bold text-truncate"
+                                title="{{ message.document.file.name }}">
+                                {{ message.document.file.name|cut:"media/groups/" }}
+                            </h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                Loại: {{ message.document.get_upload_type_display }} | Tải lên bởi:
+                                {% if message.document.uploaded_by %}
+                                {{ message.document.uploaded_by.username }}
+                                {% elif message.sender and message.sender.user %}
+                                {{ message.sender.user.username }}
+                                {% else %}
+                                Thành viên
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Nhóm nút thao tác: Tải về & Yêu cầu AI Phân tích/Học -->
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <a href="{{ message.document.file.url }}" download
+                            class="btn btn-sm btn-outline-primary py-1 px-2" title="Tải xuống máy">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <button type="button"
+                            class="btn btn-sm btn-success py-1 px-2 fw-bold d-flex align-items-center gap-1"
+                            onclick="triggerAILearnDocument('{{ message.document.id }}')"
+                            title="Yêu cầu AI phân tích và nạp vào Tri thức RAG">
+                            <i class="fas fa-graduation-cap"></i> Học 🧠
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- [FEEDBACK BADGE]: Khu vực hiển thị tổng hợp số lượng cảm xúc tương tác kiểu Zalo -->

@@ -92,6 +92,13 @@ html {
     border-top: 1px solid #e2e8f0;
 }
 
+/* 🛠️ Khắc phục triệt để: Buộc tên thành viên trong khung trích dẫn reply hiển thị màu xanh, bỏ qua ràng buộc màu đen của card cha */
+.message-bubble-wrapper .reply-quote-box span.fw-bold,
+.message-bubble-wrapper .reply-quote-box .fw-bold.text-primary,
+div.reply-quote-box span.fw-bold {
+    color: #0d6efd !important;
+}
+
 /* ==========================================================================
    🎨 TIỆN ÍCH CHUNG & SCROLLBAR HIỆN ĐẠI
    ========================================================================== */

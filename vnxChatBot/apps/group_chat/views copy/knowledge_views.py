@@ -227,7 +227,6 @@ from django.http import JsonResponse
 from django.db import transaction  # Đảm bảo tính toàn vẹn dữ liệu
 from apps.group_chat.models import ChatGroup, Membership, Document, KnowledgeUnit, Message
 from django.contrib.auth import get_user_model
-from django.template.loader import render_to_string
 
 User = get_user_model()
 
@@ -243,15 +242,16 @@ def upload_document(request, group_id):
     Description: 
         Nhận file tải lên từ giao diện chat, lưu trữ vào thư mục riêng của ChatGroup Tenant, 
         tạo bản ghi Document và tự động sinh một bản ghi Message đại diện trong phòng chat.
-        Trả về JSON chứa đoạn HTML render sẵn từ partial message_item.html để client append trực tiếp.
+        Signal post_save sẽ tự động kích hoạt tiến trình trích xuất RAG ngầm.
 
     Module liên kết: 
         - apps.group_chat.models (ChatGroup, Document, Message, Membership)
-        - apps.group_chat.templates.group_chat.partials.message_item.html
 
-    Logic giải thích (Why):
-        - Việc trả về `rendered_html` giúp đồng bộ giao diện tuyệt đối giữa việc nhắn tin văn bản thông thường 
-          và nhắn tin đính kèm file, kích hoạt ngay lập tức các nút tương tác (Tải xuống, Học 🧠, Feedback).
+    Giải thích logic (Why):
+        - Đảm bảo tính Group-Centric (tenant-based isolation): Mọi file và tin nhắn phát sinh 
+          đều phải ràng buộc chính xác với group_id.
+        - Tự động tạo Message đi kèm giúp người dùng thấy ngay file xuất hiện trên dòng thời gian chat, 
+          hỗ trợ tương tác tải về local hoặc gọi AI phân tích/học trực tiếp.
     """
     group = get_object_or_404(ChatGroup, id=group_id)
     
@@ -282,24 +282,16 @@ def upload_document(request, group_id):
                 group=group,
                 sender=membership,
                 content=f"📁 Đã đính kèm tài liệu mới: {file_name}",
-                document=document  # Liên kết trực tiếp tin nhắn với Document
+                document=document  # Liên kết trực tiếp tin nhắn với Document để hiển thị card UI trên giao diện
             )
-
-        # 4. Render trực tiếp message_item.html thành chuỗi HTML để trả về cho Client append vào DOM
-        html_content = render_to_string(
-            'group_chat/partials/message_item.html',
-            {
-                'message': message_obj,
-                'request': request
-            }
-        )
 
         return JsonResponse({
             'status': 'success', 
             'message': 'Upload file thành công và đã đồng bộ lên dòng chat!',
             'document_id': document.id,
             'message_id': message_obj.id,
-            'html': html_content  # 🚀 Gửi kèm HTML fragment xuống client
+            'file_name': file_name,
+            'file_url': document.file.url if document.file else ''
         })
         
     except Exception as e:

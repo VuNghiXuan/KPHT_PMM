@@ -65,25 +65,35 @@ def remove_document_from_vector(sender, instance, **kwargs):
         print(f"❌ Lỗi xóa vector cho file {instance.file.name}: {str(e)}")
 
 
-@receiver(post_save, sender=KnowledgeUnit)
-def handle_knowledge_unit_lifecycle(sender, instance, **kwargs):
+@receiver(post_save, sender=Document)
+def process_document_to_vector(sender, instance, created, **kwargs):
     """
-    Lắng nghe thay đổi trạng thái của KnowledgeUnit (Knowledge Lifecycle).
+    Lắng nghe sự kiện khi một Document mới được tải lên nhóm.
     
     Logic:
-        - 'approved': Phê duyệt tri thức, thêm vào RAG Engine / Vector DB[cite: 1].
-        - 'rolled_back' hoặc 'rollback': Thu hồi, xóa embedding tương ứng[cite: 1].
+        Chặn đệ quy cứng, tự động trích xuất văn bản từ file, đẩy vào VectorDB 
+        theo phạm vi group_id (Group-Centric) và cập nhật mốc thời gian xử lý.
     """
-    engine = RAGEngine()
-    try:
-        if instance.status == 'approved':
-            engine.add_knowledge(instance)
-            print(f"✅ KnowledgeUnit #{instance.id} đã được phê duyệt và đồng bộ vào Vector DB[cite: 1].")
-        elif instance.status in ['rolled_back', 'rollback']:
-            engine.remove_knowledge(instance.id)
-            print(f"🔄 KnowledgeUnit #{instance.id} đã bị thu hồi (Rolled Back)[cite: 1].")
-    except Exception as e:
-        print(f"❌ Lỗi RAG Engine khi xử lý KnowledgeUnit #{instance.id}: {str(e)}")
+    if not created:
+        return
+
+    if instance.file:
+        try:
+            text_content = extract_text_from_file(instance.file.path)
+            if text_content:
+                # 1. Gọi qua instance VectorDBManager -> Không bao giờ bị lỗi thiếu 'self' nữa
+                vector_service.insert(
+                    group_id=instance.group.id,
+                    text=text_content,
+                    doc_id=instance.id
+                )
+                
+                # 2. Cập nhật metadata mà KHÔNG kích hoạt lại vòng lặp save() hay signal
+                Document.objects.filter(pk=instance.pk).update(processed_at=timezone.now())
+                
+                print(f"✅ Đã nạp tri thức vào VectorDB từ file: {instance.file.name}")
+        except Exception as e:
+            print(f"❌ Lỗi xử lý Vector cho file {instance.file.name}: {str(e)}")
 
 
 @receiver(pre_delete, sender=KnowledgeUnit)

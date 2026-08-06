@@ -1,0 +1,73 @@
+1. Tóm tắt yêu cầu nghiệp vụ & Luồng liên kết (Mapping Flow)
+Quy trình tổng thể giao thợ tân trang:
+
+Lập Phiếu giao thợ tân trang (PGTT): Nhân viên chọn hàng từ kho, hệ thống cho phép phân loại và gom nhóm trọng lượng theo từng loại vàng (không phụ thuộc quầy hàng ban đầu), đồng thời đính kèm phần định mức và đề xuất vật tư.
+
+Luồng liên kết và quan hệ chứng từ (Data Lineage):
+
+Phiếu giao thợ tân trang → Phiếu đề xuất vật tư (DXVT): (1:N) (Một phiếu giao có thể kèm theo nhiều phiếu đề xuất vật tư).
+
+Phiếu đề xuất vật tư → Phiếu nhập kho / Tồn kho: (1:1) (Tham chiếu trực tiếp từ cột số lô/series).
+
+Phiếu giao thợ tân trang → Phiếu nhận sau tân trang (PNTT): (1:1) (Mỗi phiếu giao tương ứng với một phiếu nhận thợ về kho).
+
+Phiếu nhận sau tân trang → Lô hàng tân trang (Repair Lots): (1:N) (Một phiếu nhận chứa nhiều dòng serial chi tiết, cho phép phân tách hoặc gom nhóm thành nhiều lô hàng khác nhau).
+
+Lô hàng tân trang → Phiếu nhập hàng (Inventory Receipts): (1:1) (Mỗi lô hàng tân trang sau khi hoàn tất sẽ liên kết trực tiếp với đúng 1 phiếu nhập kho chính thức để tăng tồn kho vật lý và in tem).
+
+2. Đặc tả giao diện cần bổ sung (UI/UX Specs)
+Màn hình Lập/Sửa Phiếu giao thợ tân trang (PGTT):
+
+Block Thông tin chung: Mã phiếu, ngày chứng từ, chi nhánh, kho, người giao, người nhận, số lô tổng.
+
+Bảng Tổng hợp giao + Đề xuất: Gom nhóm theo loại vàng (tổng trọng lượng giao, tổng TL hột, tổng TL vàng, tổng TL vàng đề xuất).
+
+Bảng Chi tiết giao vàng & Popup Thêm chi tiết giao vàng: Bộ lọc kho, loại vàng, quầy hàng, thời gian và tích chọn các dòng serial tồn kho chi tiết (PNKCN...).
+
+Section Sai số phân loại & Bảng Chi tiết phân loại: Đối soát chênh lệch giữa số lượng/trọng lượng giao và phân loại thực tế theo từng quầy hàng.
+
+Màn hình Phiếu nhận sau tân trang (PNTT):
+
+Thông tin chung & liên kết hyperlink trỏ ngược về Phiếu giao thợ gốc.
+
+Block chỉ số tổng hợp tài chính và trọng lượng: Chi phí tiền công, hao hụt gia công, phân bổ công vốn, tổng TLV giao/sau tân trang/dư hư/hao hụt.
+
+Các tab/grid thành phần: Tổng hợp giao & nhận, Chi tiết phiếu nhận (có checkbox chọn serial), DS Lô hàng, và Hàng hư & Vàng dư.
+
+Màn hình Chi tiết Lô hàng tân trang (Repair Lot Detail):
+
+Liên kết ngược về Phiếu nhận tân trang.
+
+Card thống kê đối soát 2 tầng: Lô hàng và Đã nhập (Số lượng, Tổng TL, TL hột, TL Vàng).
+
+Bảng Chi tiết lô hàng theo loại vàng (đơn giá, thành tiền) và Sub-grid Phiếu nhập hàng hiển thị chứng từ nhập kho chính thức tương ứng.
+
+Hệ thống nút trạng thái: Hủy, Trình duyệt, Duyệt, Không duyệt, Lưu, Nhập hàng.
+
+3. Gợi ý thiết kế dữ liệu cho Dev (Backend/DB Notes)
+Bảng Phiếu giao thợ (repair_delivery_tickets): Master table lưu thông tin chung, liên kết 1-N với bảng chi tiết giao (repair_delivery_details) và bảng đề xuất vật tư (material_proposals).
+
+Bảng Đề xuất vật tư (material_proposals): Có khóa ngoại hoặc trường tham chiếu 1-1 tới số lô/serial (lot_series_number) của bảng nhập kho.
+
+Bảng Phiếu nhận thợ (repair_receive_tickets): Thiết lập khóa ngoại repair_delivery_ticket_id trỏ về Phiếu giao thợ theo quan hệ 1:1.
+
+Bảng Lô hàng tân trang (repair_lots): Nhận khóa ngoại repair_receive_ticket_id từ Phiếu nhận thợ theo quan hệ 1:N (một phiếu nhận có thể tạo ra nhiều lô hàng).
+
+Bảng Phiếu nhập kho (inventory_receipts): Thiết lập quan hệ khóa ngoại 1-1 với bảng repair_lots qua trường repair_lot_id / lot_number để ghi nhận tăng tồn kho và in tem.
+
+4. Mẫu tin nhắn tóm tắt ngắn gọn để gửi team dev
+[TECH-SPEC] Hoàn thiện toàn bộ luồng nghiệp vụ Giao thợ tân trang & Nhập kho
+
+Luồng quan hệ chứng từ:
+
+Phiếu giao thợ → Phiếu đề xuất vật tư: (1:N)
+
+Phiếu giao thợ → Phiếu nhận sau tân trang: (1:1)
+
+Phiếu nhận sau tân trang → Lô hàng tân trang: (1:N)
+
+Lô hàng tân trang → Phiếu nhập hàng: (1:1)
+
+Backend & DB: Xây dựng hệ thống bảng master-detail liên thông từ Phiếu giao → Đề xuất vật tư → Phiếu nhận → Lô hàng → Phiếu nhập kho. Xử lý logic tính toán tự động chi phí tiền công, hao hụt gia công, phân bổ công vốn và bảng đối soát sai số phân loại.
+
+UI/UX: Phát triển đầy đủ các màn hình: Lập phiếu giao (có popup chọn serial và bảng tổng hợp theo loại vàng), Quản lý phiếu nhận (chia tab chi tiết, hàng hư/vàng dư, DS lô hàng), và Chi tiết lô hàng (card đối soát số lượng/trọng lượng, bảng chi tiết theo loại vàng và sub-grid phiếu nhập hàng).

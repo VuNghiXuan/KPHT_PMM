@@ -66,7 +66,7 @@ class AIProcessorService:
     @staticmethod
     def remove_unit_from_vector(knowledge_unit_id):
         """Xóa dữ liệu khỏi Vector DB khi Unit bị hủy/rollback."""
-        VectorDBManager.delete_document(doc_id=knowledge_unit_id)
+        VectorDBManager.remove_embedding(unit_id=knowledge_unit_id)
 
     @staticmethod
     def handle_manual_approval(unit_id):

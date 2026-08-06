@@ -22,4 +22,5 @@ if __name__ == '__main__':
     main()
 # uvicorn config.asgi:application --reload --host 127.0.0.1 --port 8000
 # uvicorn config.asgi:application --reload --host 127.0.0.1 --port 8000
+# uvicorn config.asgi:application --reload --reload-dir apps --reload-dir config --host 127.0.0.1 --port 8000
 # Get-Content -Path .\debug_vnx.log -Tail 20 -Wait

@@ -334,18 +334,25 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'debug_vnx.log'),
             'formatter': 'verbose',
+            'encoding': 'utf-8', # 🛠️ Đảm bảo hỗ trợ tiếng Việt không bị lỗi font
         },
+        # Giữ lại console handler nhưng cấu hình level cao hơn (ví dụ: WARNING hoặc chỉ dùng cho trường hợp ngoại lệ)
         'console': {
-            'level': 'DEBUG',
+            'level': 'WARNING', 
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
     },
     'loggers': {
         'apps': {
-            'handlers': ['file', 'console'],
+            'handlers': ['file'],  # 🛠️ Chỉ giữ lại 'file', loại bỏ 'console' để dọn sạch terminal
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }

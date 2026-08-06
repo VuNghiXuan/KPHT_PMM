@@ -2,14 +2,14 @@
  * File: static/group_chat/js/documents/uploader.js
  * Mục đích: Quản lý tính năng upload tài liệu vào nhóm chat qua cả hai hình thức: 
  *           Kéo thả (DropZone) và Chọn file truyền thống qua Input File, 
- *           đồng thời kích hoạt pipeline xử lý (FileProcessor -> VectorStore) theo Group-Centric.
- * Tác giả: Kỹ sư hệ thống vnxChatBot
+ *           đồng thời kích hoạt pipeline xử lý và tự động render tin nhắn file lên giao diện chat trực tiếp.
+ * Tác giả: Kỹ sư phần mềm cao cấp vnxChatBot
  */
 
 class DocumentUploader {
     /**
      * Khởi tạo Uploader cho một nhóm cụ thể.
-     * @param {string|number} groupId - ID định danh của nhóm.
+     * @param {string|number} groupId - ID định danh của nhóm (Group-Centric).
      * @param {string} dropZoneId - ID của HTML element dùng làm vùng kéo thả file.
      */
     constructor(groupId, dropZoneId) {
@@ -17,19 +17,18 @@ class DocumentUploader {
         this.dropZoneId = dropZoneId;
         this.dropZone = document.getElementById(dropZoneId);
         this.initEvents();
-        this.initFileInputEvent(); // Bổ sung lắng nghe sự kiện chọn file qua thẻ input
+        this.initFileInputEvent();
     }
 
     /**
-     * Gắn các sự kiện kéo thả file vào vùng dropZone.
+     * Gắn các sự kiện kéo thả file vào vùng dropZone, ngăn chặn hành vi mặc định của trình duyệt.
      */
     initEvents() {
         if (!this.dropZone) {
-            console.warn(`[Uploader] ⚠️ Không tìm thấy phần tử dropZone với ID: ${this.dropZoneId}. Uploader sẽ chuyển sang chế độ chờ.`);
+            console.warn(`[Uploader] ⚠️ Không tìm thấy phần tử dropZone với ID: ${this.dropZoneId}.`);
             return;
         }
 
-        // Ngăn chặn hành vi mặc định của trình duyệt khi kéo file
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             this.dropZone.addEventListener(eventName, (e) => {
                 e.preventDefault();
@@ -37,7 +36,6 @@ class DocumentUploader {
             }, false);
         });
 
-        // Xử lý sự kiện thả file vào vùng chỉ định
         this.dropZone.addEventListener('drop', (e) => {
             const dt = e.dataTransfer;
             const files = dt.files;
@@ -48,12 +46,12 @@ class DocumentUploader {
     }
 
     /**
-     * Đăng ký sự kiện lắng nghe từ thẻ input chọn file thông thường (nếu có trên giao diện).
+     * Đăng ký sự kiện lắng nghe từ thẻ input chọn file thông thường.
      */
     initFileInputEvent() {
         const fileInput = document.getElementById('document-file-input') || document.querySelector('input[type="file"]');
         if (!fileInput) {
-            console.info("[Uploader] ℹ️ Không tìm thấy input[type='file'] trên giao diện. Chỉ sử dụng chế độ kéo thả.");
+            console.info("[Uploader] ℹ️ Không tìm thấy input[type='file'] trên giao diện.");
             return;
         }
 
@@ -61,22 +59,19 @@ class DocumentUploader {
             const files = e.target.files;
             if (files.length > 0) {
                 this.handleFiles(files);
-                // Reset lại input để có thể chọn lại chính file đó lần sau nếu cần
-                e.target.value = '';
+                e.target.value = ''; // Reset input để cho phép chọn lại cùng một file nếu cần
             }
         });
     }
 
     /**
      * Xử lý danh sách file được chọn và gửi lên server theo định hướng Group-Centric.
-     * @fn Pipeline: FileProcessor -> VectorStore tự động kích hoạt ở Backend.
      * @param {FileList} files - Danh sách các file người dùng cung cấp.
      */
     async handleFiles(files) {
         if (files.length === 0) return;
 
         const formData = new FormData();
-        // Phải dùng key là 'file' để khớp với request.FILES.get('file') ở Django view
         for (let i = 0; i < files.length; i++) {
             formData.append('file', files[i]);
         }
@@ -85,7 +80,6 @@ class DocumentUploader {
         try {
             console.log(`📤 [Uploader] Đang tải lên ${files.length} file vào nhóm ID: ${this.groupId}`);
 
-            // Khớp chính xác với đường dẫn URL: /groups/<group_id>/documents/upload/
             const response = await fetch(`/groups/${this.groupId}/upload/`, {
                 method: 'POST',
                 headers: {
@@ -97,20 +91,72 @@ class DocumentUploader {
             const result = await response.json();
             if (response.ok && result.status === 'success') {
                 console.log("[Uploader] ✅ Tải lên file thành công:", result);
-                alert("🎉 " + result.message);
+
+                // 🔄 [UI Update]: Cập nhật giao diện chat trực tiếp thông qua WebSocket client hoặc DOM injection
+                this.refreshChatInterface(result);
+
             } else {
                 console.error("[Uploader] ❌ Lỗi từ server:", result);
                 alert("❌ Tải lên thất bại: " + (result.message || result.error || 'Lỗi không xác định'));
             }
         } catch (error) {
-            console.error("[Uploader Error] ❌ Lỗi mạng khi upload file:", error);
+            console.error("[Uploader Error] ❌ Lỗi kết nối mạng khi upload file:", error);
             alert("❌ Đã xảy ra lỗi kết nối mạng trong quá trình tải tài liệu.");
         }
     }
 
     /**
-     * Lấy mã CSRF Token từ cookie của Django.
-     * @returns {string|null}
+     * Cập nhật giao diện chat sau khi upload thành công mà không cần tải lại trang (F5).
+     * @param {Object} result - Dữ liệu JSON trả về từ server chứa thông tin file và HTML fragment.
+     */
+    refreshChatInterface(result) {
+        // 🎯 Ưu tiên 1: Chèn trực tiếp đoạn HTML fragment chuẩn được render từ server (chứa đầy đủ nút Tải xuống, Học 🧠, v.v.)
+        const chatMessages = document.getElementById('chat-messages') || document.getElementById('chat-messages-container');
+
+        if (result.html && chatMessages) {
+            chatMessages.insertAdjacentHTML('beforeend', result.html);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            console.log("[Uploader] ✅ Đã render thành công message item HTML từ server.");
+            return;
+        }
+
+        // Ưu tiên 2: Sử dụng WebSocket nếu có hỗ trợ đẩy HTML trực tiếp
+        if (window.chatWs && typeof window.chatWs.appendMessage === 'function') {
+            const messageData = {
+                sender_name: window.currentUsername || 'Bạn',
+                is_ai: false,
+                content: `📁 Đã tải lên tài liệu: **${result.file_name || 'Tài liệu mới'}**`,
+                created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                message_id: result.message_id || Date.now()
+            };
+            window.chatWs.appendMessage(messageData);
+            return;
+        }
+
+        // Fallback cuối cùng nếu không tìm thấy khung chứa
+        if (chatMessages) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'd-flex justify-content-end mb-3 message-item';
+            messageDiv.innerHTML = `
+                <div class="card shadow-sm vnx-user-message-card" style="max-width: 70%;">
+                    <div class="card-body py-2 px-3">
+                        <p class="mb-2 text-break">📁 Đã tải lên tài liệu thành công: <strong>${result.file_name || 'Tài liệu mới'}</strong></p>
+                        <a href="${result.file_url || '#'}" download class="btn btn-sm btn-outline-primary py-1 px-2">
+                            <i class="fas fa-download"></i> Tải xuống
+                        </a>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else {
+            console.warn("[Uploader] ⚠️ Không tìm thấy khung chứa tin nhắn #chat-messages để render trực tiếp.");
+        }
+    }
+
+    /**
+     * Lấy mã CSRF Token từ cookie của Django để bảo mật request POST.
+     * @returns {string|null} - Giá trị CSRF token hoặc null nếu không tìm thấy.
      */
     getCsrfToken() {
         let cookieValue = null;

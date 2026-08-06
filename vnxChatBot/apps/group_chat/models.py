@@ -6,6 +6,9 @@ Module liên kết: apps.core.models (User)
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
+import re
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
 User = get_user_model()
 
@@ -115,14 +118,31 @@ class KnowledgeUnit(models.Model):
         verbose_name = "Đơn vị kiến thức"
         verbose_name_plural = "Đơn vị kiến thức"
 
+import re
+from django.db import models
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
+
 class Message(models.Model):
     """
-    Tin nhắn trong nhóm.
+    [Class-level Docstring]: Quản lý toàn bộ thông tin tin nhắn trao đổi trong nhóm chat.
+    Hỗ trợ tích hợp tin nhắn văn bản, trích dẫn, và đính kèm tài liệu (Document Attachment).
     """
-    group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE, related_name="messages", verbose_name="Nhóm")
-    sender = models.ForeignKey(Membership, on_delete=models.CASCADE, verbose_name="Người gửi")
+    group = models.ForeignKey('ChatGroup', on_delete=models.CASCADE, related_name="messages", verbose_name="Nhóm")
+    sender = models.ForeignKey('Membership', on_delete=models.CASCADE, verbose_name="Người gửi")
     content = models.TextField(verbose_name="Nội dung")
-    # Bổ sung trường liên kết tin nhắn trả lời (Reply-to)
+    
+    # 📁 [DOCUMENT ATTACHMENT]: Liên kết trực tiếp tin nhắn với tài liệu tải lên (nếu có)
+    document = models.ForeignKey(
+        'Document', 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL, 
+        related_name='chat_messages',
+        verbose_name="Tài liệu đính kèm",
+        help_text="Liên kết đến tệp tài liệu nếu tin nhắn này là file upload"
+    )
+    
     reply_to = models.ForeignKey(
         'self', 
         null=True, 
@@ -139,6 +159,21 @@ class Message(models.Model):
         verbose_name_plural = "Tin nhắn"
 
     @property
+    def sender_username(self):
+        """
+        [Architecture Thinking] Trả về tên người gửi một cách an toàn thông qua quan hệ Membership.
+        Hỗ trợ phân biệt chính xác User thường và AI Assistant (is_ai=True).
+        """
+        if not self.sender:
+            return "Thành viên ẩn danh"
+        
+        if getattr(self.sender, 'is_ai', False):
+            return "AI Assistant"
+        elif self.sender.user and hasattr(self.sender.user, 'username'):
+            return self.sender.user.username
+        return "Thành viên nhóm"
+
+    @property
     def reply_sender_name(self):
         """
         [Architecture Thinking] Trả về tên người gửi của tin nhắn gốc một cách an toàn.
@@ -153,6 +188,34 @@ class Message(models.Model):
         elif sender_membership.user and hasattr(sender_membership.user, 'username'):
             return sender_membership.user.username
         return "Thành viên nhóm"
+
+    @property
+    def short_formatted_content(self):
+        """
+        Trả về nội dung tin nhắn đã được format mention và cắt ngắn tối đa 80 ký tự 
+        đảm bảo an toàn tuyệt đối cho khung trích dẫn (reply-quote-box).
+        """
+        if not self.content:
+            return "[Nội dung trống]"
+        
+        # 1. Xử lý cắt ngắn chuỗi thô dưới 80 ký tự trước để tối ưu hiệu năng
+        raw_text = str(self.content)
+        if len(raw_text) > 80:
+            raw_text = raw_text[:80] + "..."
+            
+        # 2. Escape chống XSS bảo mật tuyệt đối
+        safe_truncated = escape(raw_text)
+        
+        # 3. Thay thế mention thành HTML badge chuẩn Bootstrap
+        mention_regex = r'@([a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]+)'
+        final_html = re.sub(
+            mention_regex,
+            r'<span class="badge bg-primary-subtle text-primary fw-bold px-1 rounded">@\1</span>',
+            safe_truncated
+        )
+        
+        # 4. Trả về định dạng Safe HTML (ĐÃ SỬA: Loại bỏ dấu phẩy thừa ở cuối lệnh return)
+        return mark_safe(final_html)
     
 
 class MessageFeedback(models.Model):

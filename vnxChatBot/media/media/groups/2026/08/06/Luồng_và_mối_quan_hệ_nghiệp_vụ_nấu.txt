@@ -1,0 +1,34 @@
+Tổng quan phân hệ: Quy trình Giao thợ nấu & Nhận vàng sau nấu
+Phân hệ quản lý toàn bộ vòng đời khép kín từ lúc xuất giao vàng nguyên liệu cho nhân viên mang đi nấu gia công, cho đến khi tiếp nhận lại thành phẩm, kiểm tra tuổi vàng (HLV), tính toán hao hụt và thực hiện nhập kho.
+
+1. Quy trình 1: Phiếu Giao Thợ Nấu
+Mục đích nghiệp vụ: Quản lý việc xuất giao tổng trọng lượng vàng nguyên liệu từ kho quản lý cho nhân viên mang đi gia công nấu lại.
+
+Luồng dữ liệu & Thao tác chính:
+
+Người dùng chọn kho, chi nhánh và bấm nút Thêm để mở Popup Thêm Chi Tiết Giao Vàng.
+
+Popup hỗ trợ bộ lọc tồn kho chi tiết theo: Chi nhánh, Từ kho, Loại vàng, Phân loại hàng, Quầy hàng, Khoảng thời gian, Số lô/Serial.
+
+Nhân viên tích chọn các dòng serial cần giao để nạp dữ liệu vào bảng Chi tiết giao vàng của phiếu.
+
+Cơ chế tự động hóa: Hệ thống tự động tổng hợp dữ liệu từ bảng chi tiết để đẩy lên bảng Thông tin gom nhóm, phân rã theo từng Loại vàng (Tổng TL, TL hột, TL vàng, Tỷ giá trung bình, Thành tiền, TLV quy 10 ước lượng).
+
+Trạng thái & Thao tác: Hỗ trợ quy trình duyệt chứng từ (Trình duyệt, Duyệt, Không duyệt, Hoàn tất, Hủy) và các nút chức năng (Tạo phiếu nhận, Lưu, Lưu và đóng, In phiếu).
+
+2. Quy trình 2: Phiếu Nhận Vàng Sau Nấu
+Mục đích nghiệp vụ: Tiếp nhận lại tài sản sau khi thợ hoàn thành việc nấu vàng, thực hiện đo đủ tuổi thực tế (HLV), đối soát hao hụt và nhập kho nguyên liệu/thành phẩm.
+
+Luồng dữ liệu liên kết:
+
+Chứng từ nhận bắt buộc liên kết ngược về Phiếu giao thợ nấu gốc thông qua mã tham chiếu để kế thừa dữ liệu.
+
+Bảng Thông tin giao nấu hiển thị danh sách các loại vàng đã giao, đi kèm cột Đã nhận (có checkbox tích chọn xác nhận các nhóm loại vàng đã được nghiệm thu).
+
+Cơ chế chi tiết & Đối soát hao hụt:
+
+Người dùng thao tác tại popup chi tiết để nhập danh sách thành phẩm thu về (tuổi vàng thực tế HLV, số lượng, trọng lượng, phát sinh serial mới).
+
+Hệ thống tự động tính toán tại bảng Thống kê hao hụt sau nấu: Đối soát trọng lượng vàng trước và sau nấu theo từng loại nguyên liệu (TL Vàng (sau) - TL Vàng (trước)), từ đó xác định trọng lượng hao hụt và thành tiền hao hụt thực tế.
+
+Trạng thái & Thao tác: Hỗ trợ nút Nhập kho NL, quy trình duyệt chứng từ, hủy phiếu, lưu, in phiếu và đóng giao diện.
