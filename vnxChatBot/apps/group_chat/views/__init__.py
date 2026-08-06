@@ -11,6 +11,7 @@ from .knowledge_views import (
     upload_document,
     knowledge_management,
     knowledge_action_view,
+    trigger_ai_learn_document_view,
     promote_knowledge_view,
     rollback_knowledge,
 )

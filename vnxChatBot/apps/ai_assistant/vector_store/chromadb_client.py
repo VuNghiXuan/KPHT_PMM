@@ -52,7 +52,8 @@ class ChromaDBClient:
                 raise e
         return self._collection
 
-    def insert(self, group_id, text, doc_id):
+    @staticmethod
+    def insert(group_id, text, doc_id):
         """
         Thêm hoặc cập nhật tri thức từ tài liệu vào VectorDB.
         
@@ -66,7 +67,11 @@ class ChromaDBClient:
                 logger.warning(f"⚠️ [ChromaDB] Văn bản trống đối với Document ID: {doc_id}, bỏ qua insert vector.")
                 return
 
-            self.collection.upsert(
+            # Khởi tạo client bên trong phương thức hoặc gọi trực tiếp instance quản lý collection
+            # (Đảm bảo biến self.collection được thay bằng cách gọi client/collection thực tế của bạn)
+            client = ChromaDBClient() # Hoặc lấy collection trực tiếp từ instance hiện hành
+            
+            client.collection.upsert(
                 documents=[text],
                 metadatas=[{"group_id": str(group_id), "doc_id": str(doc_id)}],
                 ids=[f"doc_{doc_id}"]
@@ -84,23 +89,36 @@ class ChromaDBClient:
         except Exception as e:
             logger.error(f"❌ [ChromaDB] Lỗi khi xóa vector Document ID {doc_id}: {str(e)}", exc_info=True)
 
-    def upsert_embedding(self, group_id, text, unit_id):
+    @staticmethod
+    def upsert_embedding(group_id, text, doc_id=None, unit_id=None):
         """
-        Ghi đè hoặc thêm mới tri thức KnowledgeUnit vào VectorDB (Phục vụ Knowledge Lifecycle).
+        Thêm hoặc cập nhật tri thức từ tài liệu hoặc KnowledgeUnit vào VectorDB (ChromaDB).
+        Hỗ trợ nhận linh hoạt cả doc_id hoặc unit_id để tránh lỗi unexpected keyword argument.
         """
         try:
             if not text or not text.strip():
-                logger.warning(f"⚠️ [ChromaDB] Nội dung KnowledgeUnit ID {unit_id} trống, bỏ qua upsert.")
                 return
 
-            self.collection.upsert(
+            # Ưu tiên sử dụng unit_id làm định danh vector nếu có, ngược lại dùng doc_id
+            identifier = unit_id if unit_id is not None else doc_id
+            if identifier is None:
+                logger.warning("⚠️ [ChromaDB] Không tìm thấy identifier (doc_id hoặc unit_id) để insert vector.")
+                return
+
+            client = ChromaDBClient()
+            
+            client.collection.upsert(
                 documents=[text],
-                metadatas=[{"group_id": str(group_id), "type": "knowledge_unit"}],
-                ids=[str(unit_id)]
+                metadatas=[{
+                    "group_id": str(group_id), 
+                    "doc_id": str(doc_id) if doc_id else "",
+                    "unit_id": str(unit_id) if unit_id else ""
+                }],
+                ids=[f"unit_{identifier}" if unit_id else f"doc_{identifier}"]
             )
-            logger.info(f"✅ [ChromaDB] Đã upsert thành công KnowledgeUnit ID: {unit_id} vào nhóm {group_id}")
+            logger.info(f"✅ [ChromaDB] Đã upsert embedding thành công cho identifier: {identifier} thuộc nhóm {group_id}")
         except Exception as e:
-            logger.error(f"❌ [ChromaDB] Lỗi chi tiết khi upsert KnowledgeUnit ID {unit_id}: {str(e)}", exc_info=True)
+            logger.error(f"❌ [ChromaDB] Lỗi khi upsert embedding: {str(e)}", exc_info=True)
             raise e
             
     def remove_embedding(self, unit_id):

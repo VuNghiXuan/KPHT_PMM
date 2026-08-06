@@ -1,17 +1,10 @@
+<!-- File: apps/group_chat/templates/group_chat/partials/members_tab.html -->
 {% load static %}
 <div class="p-3">
-    <!-- Tiêu đề kèm bộ đếm tổng số thành viên thực tế -->
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h6 class="fw-bold mb-0">
-            <i class="fas fa-users text-primary"></i> Thành viên trong nhóm
-        </h6>
-        <span class="badge bg-primary rounded-pill" style="font-size: 0.75rem;" id="total-members-badge">
-            {{ group.memberships.count }} thành viên
-        </span>
-    </div>
+    <h6 class="fw-bold mb-3"><i class="fas fa-users text-primary"></i> Thành viên trong nhóm</h6>
 
     <!-- Form Thêm thành viên -->
-    <form id="add-member-form" class="mb-3 p-2 bg-light rounded border" data-group-id="{{ group.id }}">
+    <form id="add-member-form" class="mb-3 p-2 bg-light rounded border">
         <div class="mb-2">
             <input type="text" id="new-member-username" class="form-control form-control-sm"
                 placeholder="Nhập username hoặc email..." required>
@@ -47,7 +40,7 @@
                         <span class="visually-hidden">Online</span>
                     </span>
                     {% elif membership.user %}
-                    <!-- Avatar User -->
+                    <!-- Avatar User (Lấy từ Profile hoặc hiển thị chữ cái đầu nếu chưa có ảnh) -->
                     {% if membership.user.profile and membership.user.profile.avatar %}
                     <img src="{{ membership.user.profile.avatar.url }}" class="rounded-circle shadow-sm"
                         style="width: 36px; height: 36px; object-fit: cover;" alt="Avatar">
@@ -58,7 +51,7 @@
                     </div>
                     {% endif %}
 
-                    <!-- Chấm trạng thái Online/Offline -->
+                    <!-- Chấm trạng thái Online/Offline (Ví dụ check dựa vào last_login hoặc logic active) -->
                     {% if membership.user.is_active %}
                     <span
                         class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"
@@ -115,7 +108,68 @@
         </div>
         {% endfor %}
     </div>
-</div>
 
-<!-- Nạp tệp JavaScript riêng biệt theo đúng chuẩn Modular -->
-<script src="{% static 'group_chat/js/tab/members_tab.js' %}"></script>
+    <!-- Đoạn mã xử lý sự kiện JavaScript giữ nguyên như cũ -->
+    <script>
+        document.getElementById('add-member-form').onsubmit = function (e) {
+            e.preventDefault();
+            const identifier = document.getElementById('new-member-username').value.trim();
+            const role = document.getElementById('new-member-role').value;
+
+            if (!identifier) {
+                alert('⚠️ Vui lòng nhập thông tin username hoặc email!');
+                return;
+            }
+
+            addMemberToGroup("{{ group.id }}", identifier, role);
+        };
+
+        function addMemberToGroup(groupId, identifier, role = 'member') {
+            const url = `/groups/${groupId}/add-member/`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ username: identifier, role: role })
+            })
+                .then(async response => {
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        const text = await response.text();
+                        throw new Error(`Server trả về mã lỗi HTTP ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || 'Lỗi hệ thống.');
+                    return data;
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert("✅ " + data.message);
+                        location.reload();
+                    } else {
+                        alert("⚠️ " + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('❌ Thêm thành viên thất bại: ' + error.message);
+                });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</div>

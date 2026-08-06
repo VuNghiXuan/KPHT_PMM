@@ -54,9 +54,19 @@ urlpatterns = [
     # 📁 Quản lý tài liệu và vòng đời tri thức (knowledge_views.py)
     path('<int:group_id>/upload/', views.upload_document, name='upload_document'),
     path('<int:group_id>/knowledge/', views.knowledge_management, name='knowledge_management'),
-    path('knowledge/<int:knowledge_id>/<str:action>/', views.knowledge_action_view, name='knowledge_action'),
-    path('document/<int:doc_id>/delete/', views.rollback_knowledge, name='delete_document'),
+    # path('knowledge/<int:knowledge_id>/<str:action>/', views.knowledge_action_view, name='knowledge_action'),
+    path('documents/<int:document_id>/learn/', views.trigger_ai_learn_document_view, name='trigger_ai_learn_document'),
+    # path('document/<int:doc_id>/delete/', views.rollback_knowledge, name='delete_document'),
+    path('groups/<int:group_id>/knowledge/<int:pk>/rollback/', views.rollback_knowledge, name='knowledge_rollback'),
+
+    
+    path('<int:group_id>/knowledge/<int:knowledge_id>/<str:action>/', views.knowledge_action_view, name='knowledge_action'),
+    path('groups/<int:group_id>/knowledge/<int:pk>/rollback/', views.rollback_knowledge, name='knowledge_rollback'),
+
     path('message/<int:message_id>/promote-knowledge/', views.promote_knowledge_view, name='promote_knowledge'),
+
+
+    
 
     # ❤️ Quản lý tương tác cảm xúc và Feedback Loop (feedback_views.py)
     path('message/<int:message_id>/feedback/', views.knowledge_feedback_view, name='knowledge_feedback'),

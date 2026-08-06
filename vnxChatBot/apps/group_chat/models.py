@@ -52,6 +52,16 @@ class ChatGroup(models.Model):
     @property
     def is_ollama(self):
         return self.ai_provider == 'ollama'
+    
+    @property
+    def pending_knowledge_count(self):
+        """Trả về số lượng đơn vị tri thức đang chờ duyệt."""
+        return self.knowledge_units.filter(status='pending').count()
+
+    @property
+    def approved_knowledge_count(self):
+        """Trả về số lượng đơn vị tri thức đã được duyệt vào RAG."""
+        return self.knowledge_units.filter(status='approved').count()
 
 class Membership(models.Model):
     """
@@ -118,10 +128,7 @@ class KnowledgeUnit(models.Model):
         verbose_name = "Đơn vị kiến thức"
         verbose_name_plural = "Đơn vị kiến thức"
 
-import re
-from django.db import models
-from django.utils.html import escape
-from django.utils.safestring import mark_safe
+
 
 class Message(models.Model):
     """

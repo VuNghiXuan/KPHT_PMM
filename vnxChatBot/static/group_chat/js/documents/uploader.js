@@ -189,3 +189,41 @@ function initDocumentUploader() {
         console.warn("[Uploader] ⚠️ Không tìm thấy Group ID hợp lệ để khởi tạo DocumentUploader.");
     }
 }
+
+/**
+ * Kích hoạt AI học tài liệu thủ công từ giao diện chat.
+ * @param {number|string} documentId - ID của Document cần đưa vào tiến trình học RAG.
+ */
+window.triggerAILearnDocument = async function (documentId) {
+    if (!documentId) {
+        console.warn("[AILearn] ⚠️ Không tìm thấy ID tài liệu hợp lệ.");
+        return;
+    }
+
+    try {
+        console.log(`🧠 [AILearn] Đang gửi yêu cầu cho AI học tài liệu ID: ${documentId}`);
+
+        // Lấy CSRF token thông qua hàm có sẵn của uploader hoặc helper chung
+        const csrfToken = window.documentUploader ? window.documentUploader.getCsrfToken() : document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+        const response = await fetch(`/groups/documents/${documentId}/learn/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        });
+
+        const result = await response.json();
+        if (response.ok && result.status === 'success') {
+            console.log("[AILearn] ✅ AI đã tiếp thu tài liệu thành công:", result);
+            alert("✅ Tài liệu đã được AI tiếp thu và đưa vào kho tri thức thành công!");
+        } else {
+            console.error("[AILearn] ❌ Lỗi từ server:", result);
+            alert("❌ Không thể kích hoạt AI học: " + (result.message || 'Lỗi không xác định'));
+        }
+    } catch (error) {
+        console.error("[AILearn Error] ❌ Lỗi kết nối mạng khi gọi API học tài liệu:", error);
+        alert("❌ Đã xảy ra lỗi kết nối mạng.");
+    }
+};

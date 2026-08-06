@@ -12,3 +12,75 @@ Cải tiến logic should_trigger_ai trong consumers.py: Tối ưu hóa điều 
 
 
 Tao mô tả lại nhé: Hiện tại ở màn hành chat người đang đăng nhập khi vừa mới gởi tin nhắn xong thì nó là nền xanh cho đến khi nhấn f5 thì tin nhắn đó mới hiện đúng fỏm và mẫu tao cần màu vàng (khung này hiện nay thiếu tên hoặc bị mờ người đăng nhập). Tao muốn đồng bộ tin trước khi nhắn và đang nhắn đều có màu vàng form chữ rõ nét và đồng bộ. Mày mô tả lại xem hiểu ý chưa
+
+
+Mai bắt giải thích chỗ này:
+Phân tích nguyên nhân lỗi HTTP 500 (Internal Server Error)
+Nhìn vào đoạn mã nguồn hiện tại của hàm knowledge_action_view:
+
+Python
+@login_required
+@require_POST
+def knowledge_action_view(request, knowledge_id, action):
+    ku = get_object_or_404(KnowledgeUnit, id=knowledge_id)
+    
+    # Kiểm tra quyền bảo mật tenant qua nhóm chứa document của KnowledgeUnit
+    group = ku.document.group if ku.document else getattr(ku, 'group', None)
+    if group:
+        membership = Membership.objects.filter(group=group, user=request.user).first()
+        ...
+Và so sánh với URL mà Javascript vừa gọi thực tế:
+POST [http://127.0.0.1:8000/groups/15/knowledge/34/action/](http://127.0.0.1:8000/groups/15/knowledge/34/action/)
+
+Nguyên nhân gây ra lỗi 500:
+
+Trong định nghĩa urls.py hiện tại của bạn:
+
+Python
+path('<int:group_id>/knowledge/<int:knowledge_id>/<str:action>/', views.knowledge_action_view, name='knowledge_action'),
+Đường dẫn này yêu cầu truyền tham số group_id vào hàm view. Tuy nhiên, chữ ký (signature) hiện tại của hàm knowledge_action_view(request, knowledge_id, action) lại thiếu tham số group_id.
+
+Khi Django cố gắng phân giải URL có chứa group_id=15, hàm view không nhận được tham số này dẫn đến ngoại lệ TypeError (Internal Server Error 500).
+
+Giải pháp khắc phục triệt để
+Cập nhật lại chữ ký và logic kiểm tra bên trong knowledge_action_view tại tệp chứa view (thường nằm trong apps/group_chat/views/knowledge_views.py hoặc apps/group_chat/views.py) để tiếp nhận group_id và xác thực bảo mật tenant chính xác theo chuẩn Group-Centric:
+
+Python
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+import logging
+
+logger = logging.getLogger(__name__)
+
+@login_required
+@require_POST
+def knowledge_action_view(request, group_id, knowledge_id, action):
+    """
+    Function: knowledge_action_view
+    Description:
+        Thực hiện hành động trong Vòng đời tri thức (Knowledge Lifecycle): 
+        Phê duyệt (approve) hoặc rollback (thu hồi) đối với KnowledgeUnit theo group_id.
+    """
+    # 1. Lấy KnowledgeUnit và đảm bảo thuộc đúng group_id (Tenant Isolation)
+    ku = get_object_or_404(KnowledgeUnit, id=knowledge_id, document__group_id=group_id)
+    
+    # 2. Kiểm tra quyền thành viên trong nhóm
+    membership = Membership.objects.filter(group_id=group_id, user=request.user).first()
+    if not membership:
+        return JsonResponse({'status': 'error', 'message': 'Bạn không có quyền thực hiện tác vụ này trong nhóm!'}, status=403)
+
+    if action == 'approve':
+        ku.status = 'approved'
+        ku.save()  # Signal sẽ tự động đồng bộ vào Vector DB
+        logger.info(f"✅ KnowledgeUnit ID {knowledge_id} trong nhóm {group_id} đã được duyệt (approved).")
+        return JsonResponse({'status': 'success', 'message': 'Đã duyệt tri thức và đồng bộ vào Vector DB!'})
+        
+    elif action == 'rollback':
+        ku.status = 'rollback'
+        ku.save()  # Signal sẽ tự động dọn dẹp Vector Store
+        logger.info(f"🔄 KnowledgeUnit ID {knowledge_id} trong nhóm {group_id} đã bị thu hồi (rollback).")
+        return JsonResponse({'status': 'success', 'message': 'Đã rollback tri thức và xóa khỏi Vector DB!'})
+        
+    return JsonResponse({'status': 'error', 'message': 'Hành động không hợp lệ!'}, status=400)

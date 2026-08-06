@@ -1,0 +1,57 @@
+1. Tóm tắt yêu cầu nghiệp vụ & Luồng liên kết (Mapping Flow)
+Quy trình tổng thể vòng đời khép kín "Giao thợ tạo nhẫn trơn / Sản phẩm mới & Nhận hàng":
+
+Chủ cửa hàng/chi nhánh lập phiếu giao vàng thỏi cho nhân viên, sau đó nhân viên đem đi gia công chế tác thành Nhẫn trơn theo các định mức quầy hàng. Quá trình nhận hàng từ thợ có thể thực hiện nhiều lần (1:N), theo dõi chi tiết trọng lượng vàng nhận, vàng dư, hao hụt, chi phí gia công và tự động sinh phiếu nhập kho quản lý thành phẩm.
+
+Luồng liên kết dữ liệu chứng từ toàn diện (Data Lineage):
+
+Phiếu giao thợ tạo nhẫn trơn (PGT) → Chi tiết giao vàng (1:N): Chọn lọc từ tồn kho chi tiết (vàng thỏi nguyên liệu) thông qua Popup tra cứu theo số lô/Serial.
+
+Phiếu giao thợ (PGT) → Chi tiết quầy hàng gia công (1:N): Quản lý định mức phân bổ lượng vàng theo quy cách quầy (Nhẫn trơn 1C, 5C, 1L, 5P...).
+
+Phiếu giao thợ (PGT) → Đề xuất vật tư (1:N): Quản lý vật tư bổ sung đính kèm phiếu giao.
+
+Phiếu giao thợ (PGT) → Phiếu nhận từ thợ tạo nhẫn trơn (1:N): Một phiếu giao thợ có thể được nhận lại qua nhiều đợt phiếu nhận khác nhau (Lần nhận cuối checkbox phân biệt đợt cuối cùng).
+
+Phiếu nhận → Chi tiết nhận hàng (1:N): Chi tiết hóa theo quầy hàng, số lượng món, tổng trọng lượng, TL vàng, tỷ giá vốn và thành tiền.
+
+Phiếu nhận → Phiếu nhập kho (1:N): Chuyển đổi thành phẩm sau gia công vào kho quản lý chính thức.
+
+2. Đặc tả giao diện cần bổ sung (UI/UX Specs)
+Màn hình Form Phiếu giao thợ tạo nhẫn trơn:
+
+Block Thông tin chung: Mã số phiếu, ngày chứng từ, người giao, người nhận, chi nhánh, khu vực, kho xuất, số lô (Lot), người tạo, hệ thống nút trạng thái/quy trình duyệt (TRÌNH DUYỆT, DUYỆT).
+
+Block Quy đổi & Định mức: Loại vàng nhận, HLV thực tế, TL vàng giao sau quy đổi, thành tiền, tỷ giá trung bình, TL hao cho phép, tổng TL nhận và tổng TL còn lại.
+
+Grid Chi tiết giao vàng & Popup chọn: Danh sách serial vàng thỏi nguồn, kèm Popup tra cứu tồn kho chi tiết (hỗ trợ lọc kho, loại vàng, phân loại hàng, khoảng thời gian).
+
+Grid Chi tiết quầy hàng định mức & Đề xuất vật tư: Quản lý quy cách quầy gia công (Sửa/Xóa/Thêm) và danh sách đề xuất vật tư phụ trợ.
+
+Màn hình Form Phiếu nhận từ thợ tạo nhẫn trơn:
+
+Block Thông tin chung & Trạng thái: Số phiếu nhận, ngày chứng từ, liên kết phiếu giao, loại gia công, người giao, người nhận, chi nhánh, kho nhận, số lô (Lot), cùng các nút duyệt (TRÌNH DUYỆT, DUYỆT, KHÔNG DUYỆT).
+
+Block Thông tin giao (Kế thừa từ Phiếu giao thợ): Số phiếu giao, loại vàng nhận, HLV thực tế, TL vàng giao sau quy đổi, thành tiền, tỷ giá trung bình, TL hao cho phép, tổng TL đã nhận, tổng TL còn lại.
+
+Block Thông tin nhận & Tài chính: Checkbox Lần nhận cuối, TL vàng nhận, TL vàng dư, Tổng TL nhận + dư, TL hao hụt, Thành tiền hao hụt, Chi phí, Tổng chi phí.
+
+Grid Chi tiết nhận hàng: Bảng liệt kê quầy hàng, số lượng món, tổng TL, TL hột, TL vàng, tỷ giá vốn, thành tiền tương ứng theo từng đợt nhận.
+
+3. Gợi ý thiết kế dữ liệu cho Dev (Backend/DB Notes)
+Bảng Master smooth_ring_delivery_tickets (Phiếu giao thợ nhẫn trơn): Lưu thông tin chung, mã lô (lot_number), kho xuất, trạng thái chứng từ và các chỉ số tổng hợp quy đổi.
+
+Bảng Detail smooth_ring_delivery_details (Chi tiết giao vàng): Quan hệ 1:N với master giao, lưu danh sách serial vàng thỏi nguồn.
+
+Bảng liên kết ring_counter_allocations & smooth_ring_material_proposals: Lưu phân bổ định mức quầy và đề xuất vật tư (quan hệ 1:N với phiếu giao).
+
+Bảng Master smooth_ring_receive_tickets (Phiếu nhận từ thợ tạo nhẫn trơn): Thiết lập khóa ngoại liên kết smooth_ring_delivery_ticket_id (quan hệ 1:N cho phép nhận nhiều lần). Lưu các thông tin cờ is_final_delivery (Lần nhận cuối), các chỉ số trọng lượng vàng nhận, vàng dư, hao hụt và chi phí gia công.
+
+Bảng Detail smooth_ring_receive_details (Chi tiết nhận hàng): Quan hệ 1:N với phiếu nhận, lưu trữ chi tiết sản phẩm hoàn thành theo quầy hàng, số lượng và giá trị vốn.
+
+4. Mẫu tin nhắn tóm tắt ngắn gọn để gửi team dev
+[TECH-SPEC] Hoàn thiện toàn bộ quy trình Giao thợ tạo nhẫn trơn & Nhận hàng nhiều đợt
+
+Backend & DB: Xây dựng mô hình liên thông từ Phiếu giao thợ tạo nhẫn trơn (smooth_ring_delivery_tickets), Chi tiết giao, Định mức quầy, Đề xuất vật tư cho đến Phiếu nhận từ thợ (smooth_ring_receive_tickets hỗ trợ quan hệ 1:N với phiếu giao để nhận nhiều lần), Chi tiết nhận hàng và tích hợp sinh Phiếu nhập kho thành phẩm. Bổ sung logic tính toán tự động trọng lượng dư, hao hụt và chi phí gia công.
+
+UI/UX: Phát triển đồng bộ 2 màn hình Form: Form Giao thợ tạo nhẫn trơn (thông tin chung, block quy đổi, grid chi tiết kèm popup, grid quầy hàng) và Form Nhận hàng từ thợ (thông tin giao kế thừa, block thông tin nhận & checkbox lần nhận cuối, grid chi tiết nhận theo quầy).
