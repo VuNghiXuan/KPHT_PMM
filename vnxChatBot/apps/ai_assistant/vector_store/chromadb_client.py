@@ -67,9 +67,7 @@ class ChromaDBClient:
                 logger.warning(f"⚠️ [ChromaDB] Văn bản trống đối với Document ID: {doc_id}, bỏ qua insert vector.")
                 return
 
-            # Khởi tạo client bên trong phương thức hoặc gọi trực tiếp instance quản lý collection
-            # (Đảm bảo biến self.collection được thay bằng cách gọi client/collection thực tế của bạn)
-            client = ChromaDBClient() # Hoặc lấy collection trực tiếp từ instance hiện hành
+            client = ChromaDBClient()
             
             client.collection.upsert(
                 documents=[text],
@@ -99,7 +97,6 @@ class ChromaDBClient:
             if not text or not text.strip():
                 return
 
-            # Ưu tiên sử dụng unit_id làm định danh vector nếu có, ngược lại dùng doc_id
             identifier = unit_id if unit_id is not None else doc_id
             if identifier is None:
                 logger.warning("⚠️ [ChromaDB] Không tìm thấy identifier (doc_id hoặc unit_id) để insert vector.")
@@ -129,6 +126,28 @@ class ChromaDBClient:
         except Exception as e:
             logger.error(f"❌ [ChromaDB] Lỗi khi xóa embedding KnowledgeUnit {unit_id}: {str(e)}", exc_info=True)
 
+    def delete_unit_embeddings(self, unit_id, group_id=None):
+        """
+        Xóa các vector embedding liên quan đến một KnowledgeUnit cụ thể trong ChromaDB,
+        sử dụng toán tử $and chuẩn để tránh lỗi cú pháp bộ lọc điều kiện kết hợp.
+        """
+        try:
+            if group_id is not None:
+                where_filter = {
+                    "$and": [
+                        {"unit_id": int(unit_id)},
+                        {"group_id": int(group_id)}
+                    ]
+                }
+            else:
+                where_filter = {"unit_id": int(unit_id)}
 
-# KHỞI TẠO INSTANCE TOÀN CỤC CHUẨN XÁC (Tránh lỗi gọi nhầm Class)
+            self.collection.delete(where=where_filter)
+            print(f"🗑️ [ChromaDB] Đã xóa embeddings cho Unit ID: {unit_id} (Group ID: {group_id})")
+            return True
+        except Exception as e:
+            print(f"⚠️ [ChromaDB Warning] Không thể xóa embeddings cho Unit ID {unit_id}: {str(e)}")
+            return False
+        
+# KHỞI TẠO INSTANCE TOÀN CỤC CHUẨN XÁC
 VectorDBManager = ChromaDBClient()

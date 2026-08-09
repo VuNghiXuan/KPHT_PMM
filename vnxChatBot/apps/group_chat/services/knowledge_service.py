@@ -7,10 +7,14 @@ Module liên kết: apps.group_chat.models, apps.ai_assistant.rag_engine
 """
 
 from django.shortcuts import get_object_or_404
-from apps.group_chat.models import Message, KnowledgeUnit, ChatGroup
+from apps.group_chat.models import Message, KnowledgeUnit, ChatGroup, Document
+from django.utils import timezone
+
+    
 
 class KnowledgeService:
     """
+    Mô tả: Cung cấp các phương thức tự động hóa quy trình trích xuất và tổng hợp tri thức từ nhóm chat.
     Lớp dịch vụ chịu trách nhiệm xử lý các thao tác liên quan đến Kho tri thức nhóm (Knowledge Base).
     Tuân thủ tuyệt đối nguyên tắc Group-Centric (phân lập dữ liệu theo group_id).
     """
@@ -83,3 +87,47 @@ class KnowledgeService:
             "status": "success",
             "message": f"Đã cập nhật trạng thái tri thức thành '{new_status}' thành công."
         }
+
+    @staticmethod
+    def synthesize_from_chat_group(chat_group, batch_size=20):
+        """
+        Phương thức: synthesize_from_chat_group
+        Mô tả: Lấy các tin nhắn chưa học (is_learned=False), tổng hợp và tạo KnowledgeUnit ở trạng thái pending.
+        """
+        # 1. Lọc các tin nhắn chưa học trong nhóm chat
+        unlearned_messages = Message.objects.filter(
+            group=chat_group, 
+            is_learned=False
+        ).order_by('created_at')[:batch_size]
+
+        if not unlearned_messages.exists():
+            return None
+
+        # Tổng hợp nội dung hội thoại
+        conversation_text = "\n".join([
+            f"- {msg.sender_username}: {msg.content}" for msg in unlearned_messages
+        ])
+
+        # 2. Khởi tạo Document nguồn tự động
+        doc = Document.objects.create(
+            group=chat_group,
+            file=f"documents/group_learning_{timezone.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            upload_type='auto'
+        )
+
+        # 3. Tạo KnowledgeUnit ở trạng thái 'pending' (Đảm bảo tuân thủ Quy tắc Vàng)[cite: 1]
+        knowledge_unit = KnowledgeUnit.objects.create(
+            document=doc,
+            group=chat_group,
+            entity_name=f"Tổng hợp hội thoại nhóm {chat_group.name}",
+            context_tag="Group Learning Loop",
+            source_reference=f"ChatGroup ID: {chat_group.id}",
+            content=f"Đúc kết từ hội thoại nhóm:\n{conversation_text}",
+            status='pending'
+        )
+
+        # 4. Đánh dấu tin nhắn đã học để tránh lặp
+        message_ids = [msg.id for msg in unlearned_messages]
+        Message.objects.filter(id__in=message_ids).update(is_learned=True)
+
+        return knowledge_unit

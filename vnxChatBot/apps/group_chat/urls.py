@@ -57,11 +57,11 @@ urlpatterns = [
     # path('knowledge/<int:knowledge_id>/<str:action>/', views.knowledge_action_view, name='knowledge_action'),
     path('documents/<int:document_id>/learn/', views.trigger_ai_learn_document_view, name='trigger_ai_learn_document'),
     # path('document/<int:doc_id>/delete/', views.rollback_knowledge, name='delete_document'),
+    path('<int:group_id>/knowledge/<int:knowledge_id>/<str:action>/', views.knowledge_action_view, name='knowledge_action'),
     path('groups/<int:group_id>/knowledge/<int:pk>/rollback/', views.rollback_knowledge, name='knowledge_rollback'),
 
     
-    path('<int:group_id>/knowledge/<int:knowledge_id>/<str:action>/', views.knowledge_action_view, name='knowledge_action'),
-    path('groups/<int:group_id>/knowledge/<int:pk>/rollback/', views.rollback_knowledge, name='knowledge_rollback'),
+    
 
     path('message/<int:message_id>/promote-knowledge/', views.promote_knowledge_view, name='promote_knowledge'),
 
@@ -76,6 +76,7 @@ urlpatterns = [
     path('<int:group_id>/add-member/', views.add_member_to_group, name='add_member_to_group'),
     path('<int:group_id>/ai-config/', views.update_ai_config_view, name='update_ai_config'),
     path('<uuid:group_id>/members-api/', views.get_group_members_api, name='get_group_members_api'),
+    path('<int:group_id>/ai-config/validate/', views.validate_and_test_ai_model, name='validate_ai_config'),
 
     
 ]

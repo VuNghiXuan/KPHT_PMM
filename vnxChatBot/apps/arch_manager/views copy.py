@@ -12,6 +12,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .utils import ArchitectureIntrospectionEngine
 from .models import SystemBlueprint
 import datetime
+from django.http import HttpResponse
+from .utils_manifest import get_vnx_manifest # Hoặc hàm gom manifest của bạn
+import os
 
 
 class SystemBlueprintView(View):
@@ -20,39 +23,47 @@ class SystemBlueprintView(View):
     Inherits: django.views.View
     Description: 
         View quản lý Living Documentation, thực hiện nội soi mã nguồn qua 
-        ArchitectureIntrospectionEngine và in debug chuỗi sơ đồ ra Terminal để rà soát.
+        ArchitectureIntrospectionEngine và Project Manifest để dựng giao diện trực quan.
     """
     
     def get(self, request, *args, **kwargs):
-        """
-        Xử lý phương thức GET, gọi engine sinh sơ đồ và in log debug chi tiết 
-        giúp kỹ sư phát hiện nhanh nguyên nhân lỗi cú pháp Mermaid hoặc dữ liệu trống.
-        """
-        code_flow = ArchitectureIntrospectionEngine.generate_code_flow()
-        dynamic_erd = ArchitectureIntrospectionEngine.generate_erd()
-        state_machine = ArchitectureIntrospectionEngine.generate_state_machine()
-        component_diagram = ArchitectureIntrospectionEngine.generate_component_diagram()
-
-        # --- DEBUG PRINTS CHO KỸ SƯ ---
-        # print("\n" + "="*60)
-        # print(" [DEBUG ARCHITECTURE ENGINE INTROSPECTION RUNNING] ")
-        # print("="*60)
-        # print(f"-> Code Flow Length: {len(code_flow)} chars")
-        # print(f"-> Dynamic ERD Length: {len(dynamic_erd)} chars")
-        # print("--- [DYNAMIC ERD CONTENT PREVIEW] ---")
-        # print(dynamic_erd[:400] if dynamic_erd else "⚠️ ERD is Empty!")
-        # print("---------------------------------------")
-        # print(f"-> State Machine Length: {len(state_machine)} chars")
-        # print(f"-> Component Diagram Length: {len(component_diagram)} chars")
-        # print("="*60 + "\n")
+        # Khởi tạo engine nội soi kiến trúc hệ thống
+        engine = ArchitectureIntrospectionEngine()
+        
+        code_flow = engine.generate_code_flow()
+        dynamic_erd = engine.generate_erd()
+        state_machine = engine.generate_state_machine()
+        component_diagram = engine.generate_component_diagram()
+        knowledge_pipeline_flow = engine.generate_knowledge_pipeline_flow()
+        
+        # Gọi hàm lấy nội dung manifest toàn bộ dự án
+        project_manifest = get_vnx_manifest(os.getcwd())
 
         context = {
             'code_flow': code_flow,
             'dynamic_erd': dynamic_erd,
             'state_machine': state_machine,
             'component_diagram': component_diagram,
+            'project_manifest': project_manifest,
+            'knowledge_pipeline_flow': knowledge_pipeline_flow,
         }
+        
         return render(request, 'arch_manager/sys_blue_print.html', context)
+
+
+@staff_member_required
+def download_project_manifest(request):
+    """
+    Function: download_project_manifest
+    Description: Tự động nội soi cấu trúc dự án và trả về tệp VNX_PROJECT_MANIFEST.md 
+                 để kỹ sư hoặc AI tải về làm tài liệu ngữ cảnh học tập.
+    """
+    root_dir = os.getcwd()
+    manifest_content = get_vnx_manifest(root_dir)
+    
+    response = HttpResponse(manifest_content, content_type='text/markdown; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="VNX_PROJECT_MANIFEST.md"'
+    return response
 
 
 @staff_member_required

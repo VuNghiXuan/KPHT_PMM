@@ -62,7 +62,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+
     # Thư viện app cài thêm
+    'rest_framework',
     'widget_tweaks', #pip install django-widget-tweaks khắc phục lỗi {{ field|add_class:"form-control" }} khi cấu hình giao diện kế thừa django admin
     'django.contrib.humanize', # Chuẩn hoá tiếng việt trên giao diện và template HTML, filter |intcomma (chưa thực hiện)
     

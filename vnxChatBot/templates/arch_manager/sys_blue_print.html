@@ -7,7 +7,6 @@
     <!-- Thư viện Mermaid.js phiên bản ổn định -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>
-        // Cấu hình khởi tạo ban đầu cho Mermaid
         mermaid.initialize({
             startOnLoad: true,
             theme: 'default',
@@ -15,11 +14,141 @@
         });
     </script>
     <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 60px;
+            --primary-color: #28a745;
+            --bg-color: #f8f9fa;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f8f9fa;
+            margin: 0;
+            display: flex;
+            background-color: var(--bg-color);
             color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #ffffff;
+            border-right: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .sidebar.collapsed .sidebar-header h3,
+        .sidebar.collapsed .listbox-label,
+        .sidebar.collapsed .version-badge {
+            display: none;
+        }
+
+        .toggle-sidebar-btn {
+            background: #e9ecef;
+            border: none;
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .toggle-sidebar-btn:hover {
+            background: #ced4da;
+        }
+
+        /* Listbox / Tabs Navigation trong Sidebar */
+        .sidebar-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .listbox-group {
+            margin-bottom: 10px;
+        }
+
+        .listbox-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: #495057;
+            transition: 0.2s;
+        }
+
+        .listbox-toggle:hover {
+            background: #ced4da;
+        }
+
+        .listbox-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-left: 10px;
+            margin-top: 5px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .tab {
+            padding: 10px 12px;
+            background: transparent;
+            border-radius: 5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+            border: none;
+            font-size: 13px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab:hover {
+            background: #f1f3f5;
+            color: var(--primary-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Main Content Area */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .header-bar {
@@ -28,23 +157,21 @@
             align-items: center;
             background: #fff;
             padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            margin-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
         }
 
         h1 {
             color: #2c3e50;
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
         }
 
         .version-badge {
             background: #007bff;
             color: white;
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 12px;
             margin-left: 10px;
         }
 
@@ -54,13 +181,13 @@
         }
 
         .btn {
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 5px;
             font-weight: bold;
             text-decoration: none;
             cursor: pointer;
             border: none;
-            font-size: 14px;
+            font-size: 13px;
             transition: 0.3s;
         }
 
@@ -82,37 +209,19 @@
             background: #5a6268;
         }
 
-        .tabs {
-            display: flex;
-            cursor: pointer;
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 8px 8px 0 0;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            background: #ced4da;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .tab.active {
-            background: #28a745;
-            color: white;
+        .content-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fff;
+            margin: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         }
 
         .tab-content {
             display: none;
-            background: white;
-            padding: 20px;
-            border: 1px solid #dee2e6;
-            border-radius: 0 0 8px 8px;
-            min-height: 450px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .tab-content.active {
@@ -123,140 +232,174 @@
             text-align: center;
             margin-top: 20px;
         }
-
-        .meta-box {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #28a745;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
     </style>
 </head>
 
 <body>
 
-    <div class="header-bar">
-        <div>
-            <h1>VnxChatBot Architecture Engine <span class="version-badge">Auto-Introspection v1.0</span></h1>
+    <!-- SIDEBAR CONTAINER -->
+    <div class="sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <h3>⚙️ VnxChatBot</h3>
+            <button class="toggle-sidebar-btn" onclick="toggleSidebar()"> ◀ </button>
         </div>
-        <div class="admin-actions">
-            <!-- Nút tải file Project Manifest cho AI học -->
-            <a href="{% url 'arch_manager:download_manifest' %}" class="btn btn-secondary"
-                style="background: #17a2b8; color: white;">📥 Tải Manifest (.md)</a>
 
-            <form method="POST" action="{% url 'arch_manager:systemblueprint_approve' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary">🚀 Duyệt Cập Nhật Phiên Bản Mới</button>
-            </form>
-            <a href="{% url 'admin:index' %}" class="btn btn-secondary">⬅ Quay về Django Admin</a>
+        <div class="sidebar-menu">
+            <!-- Listbox 1: Kiến trúc & Sơ đồ -->
+            <div class="listbox-group">
+                <button class="listbox-toggle" onclick="toggleListbox(this)">
+                    <span class="listbox-label">📊 Sơ đồ Kiến trúc</span> ▾
+                </button>
+                <div class="listbox-content">
+                    <button class="tab active" onclick="switchTab(event, 'tab-flow')">📥 Luồng Code Flow</button>
+                    <button class="tab" onclick="switchTab(event, 'tab-erd')">🗄️ Sơ đồ ERD Models</button>
+                    <button class="tab" onclick="switchTab(event, 'tab-state')">🔄 Vòng đời Trạng thái</button>
+                    <button class="tab" onclick="switchTab(event, 'tab-component')">🧱 Sơ đồ Phân hệ</button>
+                </div>
+            </div>
+
+            <!-- Listbox 2: Quản trị Tri thức & Manifest -->
+            <div class="listbox-group">
+                <button class="listbox-toggle" onclick="toggleListbox(this)">
+                    <span class="listbox-label">🧠 Tri thức & Hệ thống</span> ▾
+                </button>
+                <div class="listbox-content">
+                    <button class="tab" onclick="switchTab(event, 'tab-manifest')">📜 Cấu trúc Mã nguồn</button>
+                    <button class="tab" onclick="switchTab(event, 'tab-knowledge-pipeline')">🚀 Luồng Phê duyệt</button>
+                    <button class="tab" onclick="switchTab(event, 'tab-ai-pipeline')">🤖 AI Extraction Pipeline</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="meta-box">
-        <h3>Hệ thống tự động nội soi mã nguồn (Living Documentation)</h3>
-        <p>Các sơ đồ bên dưới được phân tích trực tiếp từ các app, models và luồng logic của hệ thống mà không cần nhập
-            liệu thủ công.</p>
-    </div>
+    <!-- MAIN CONTAINER -->
+    <div class="main-container">
+        <div class="header-bar">
+            <div>
+                <h1>Architecture Engine <span class="version-badge">v2.0</span></h1>
+            </div>
+            <div class="admin-actions">
+                <a href="{% url 'arch_manager:download_manifest' %}" class="btn btn-secondary"
+                    style="background: #17a2b8; color: white;">📥 Tải Manifest</a>
+                <form method="POST" action="{% url 'arch_manager:systemblueprint_approve' %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">🚀 Duyệt Cập Nhật</button>
+                </form>
+                <a href="{% url 'admin:index' %}" class="btn btn-secondary">⬅ Admin</a>
+            </div>
+        </div>
 
-    <!-- Thanh Tabs chuyển đổi sơ đồ -->
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab(event, 'tab-flow')">1. Sơ đồ Luồng (Code Flow)</div>
-        <div class="tab" onclick="switchTab(event, 'tab-erd')">2. Sơ đồ ERD (Tự động quét Models)</div>
-        <div class="tab" onclick="switchTab(event, 'tab-state')">3. Sơ đồ Trạng thái (Knowledge State)</div>
-        <div class="tab" onclick="switchTab(event, 'tab-component')">4. Sơ đồ Phân hệ (Components)</div>
-        <div class="tab" onclick="switchTab(event, 'tab-manifest')">5. Cấu trúc Mã nguồn (Manifest)</div>
-    </div>
+        <div class="content-body">
+            <!-- Nội dung Tab 1: Code Flow -->
+            <div id="tab-flow" class="tab-content active">
+                <h3>Luồng dữ liệu: Upload File -> FileProcessor -> VectorStore -> LLM</h3>
+                <div class="mermaid">{{ code_flow|safe }}</div>
+            </div>
 
-    <!-- Nội dung Tab 1: Code Flow -->
-    <div id="tab-flow" class="tab-content active">
-        <h3>Luồng dữ liệu: Upload File -> FileProcessor -> VectorStore -> LLM</h3>
-        <div class="mermaid">{{ code_flow|safe }}</div>
-    </div>
+            <!-- Nội dung Tab 2: ERD -->
+            <div id="tab-erd" class="tab-content">
+                <h3>Mô hình thực thể mối quan hệ (Group-Centric ERD)</h3>
+                <div class="mermaid">{{ dynamic_erd|safe }}</div>
+            </div>
 
-    <!-- Nội dung Tab 2: ERD (Dynamic Introspection) -->
-    <div id="tab-erd" class="tab-content">
-        <h3>Mô hình thực thể mối quan hệ (Group-Centric ERD - Tự động quét từ Models)</h3>
-        <div class="mermaid">{{ dynamic_erd|safe }}</div>
-    </div>
+            <!-- Nội dung Tab 3: State Machine -->
+            <div id="tab-state" class="tab-content">
+                <h3>Vòng đời Tri thức (Knowledge Lifecycle State Machine)</h3>
+                <div class="mermaid">{{ state_machine|safe }}</div>
+            </div>
 
-    <!-- Nội dung Tab 3: State Machine -->
-    <div id="tab-state" class="tab-content">
-        <h3>Vòng đời Tri thức (Knowledge Lifecycle State Machine)</h3>
-        <div class="mermaid">{{ state_machine|safe }}</div>
-    </div>
+            <!-- Nội dung Tab 4: Component Diagram -->
+            <div id="tab-component" class="tab-content">
+                <h3>Sơ đồ Kiến trúc Phân hệ (Modular Monolith)</h3>
+                <div class="mermaid">{{ component_diagram|safe }}</div>
+            </div>
 
-    <!-- Nội dung Tab 4: Component Diagram -->
-    <div id="tab-component" class="tab-content">
-        <h3>Sơ đồ Kiến trúc Phân hệ (Modular Monolith)</h3>
-        <div class="mermaid">{{ component_diagram|safe }}</div>
-    </div>
+            <!-- Nội dung Tab 5: Manifest -->
+            <div id="tab-manifest" class="tab-content">
+                <h3>Bản đồ Cấu trúc Thư mục, Class & Hàm Thực tế</h3>
+                <div
+                    style="background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; font-family: monospace; max-height: 500px; overflow-y: auto; white-space: pre-wrap;">
+                    {{ project_manifest|safe }}</div>
+            </div>
 
-    <!-- Nội dung Tab 5: Cấu trúc Thư mục & Mã nguồn (Living Manifest) -->
-    <div id="tab-manifest" class="tab-content">
-        <h3>Bản đồ Cấu trúc Thư mục, Class & Hàm Thực tế (Living Architecture)</h3>
-        <p>Được nội soi tự động qua AST Parser từ mã nguồn thực tế của hệ thống.</p>
-        <div
-            style="background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; font-family: monospace; max-height: 600px; overflow-y: auto; white-space: pre-wrap;">
-            {{ project_manifest|safe }}</div>
+            <!-- Nội dung Tab 6: Knowledge Pipeline -->
+            <div id="tab-knowledge-pipeline" class="tab-content">
+                <h3>Luồng Xử lý Tài liệu & Phê duyệt Tri thức</h3>
+                <div class="mermaid">{{ knowledge_pipeline_flow|safe }}</div>
+            </div>
+
+            <!-- Nội dung Tab 7: AI Pipeline -->
+            <div id="tab-ai-pipeline" class="tab-content">
+                <h3>AI Extraction Pipeline</h3>
+                <div class="mermaid">{{ ai_extraction_pipeline|safe }}</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Lưu trữ nội dung văn bản gốc của các sơ đồ ngay khi DOM sẵn sàng
+        // Lưu trữ nội dung gốc để tránh mất dữ liệu sau khi render
         const originalDiagrams = {};
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Lưu trữ text content ban đầu của từng sơ đồ để tái sử dụng
-            document.querySelectorAll('.tab-content').forEach(tabContent => {
-                const container = tabContent.querySelector('.mermaid');
-                if (container) {
-                    originalDiagrams[tabContent.id] = container.textContent.trim();
-                }
+            // Lưu nội dung gốc
+            document.querySelectorAll('.mermaid').forEach(el => {
+                const tabId = el.closest('.tab-content').id;
+                originalDiagrams[tabId] = el.textContent.trim();
             });
 
-            // Render tab đầu tiên mặc định
+            // Chỉ render tab đầu tiên (đang active)
             renderMermaidSafely('tab-flow');
         });
 
         async function renderMermaidSafely(tabId) {
-            try {
-                const container = document.querySelector(`#${tabId} .mermaid`);
-                if (container && originalDiagrams[tabId]) {
-                    // Đặt lại nội dung văn bản gốc trước khi gọi Mermaid render
-                    container.textContent = originalDiagrams[tabId];
-
-                    // Xóa cờ đã xử lý của Mermaid nếu có
-                    container.removeAttribute('data-processed');
-
-                    // Chạy render lại sơ đồ
-                    await mermaid.run({
-                        nodes: [container]
-                    });
+            const container = document.querySelector(`#${tabId} .mermaid`);
+            if (container && originalDiagrams[tabId]) {
+                // Kiểm tra kích thước trước khi render
+                if (container.offsetWidth > 0 || container.offsetHeight > 0) {
+                    try {
+                        container.textContent = originalDiagrams[tabId];
+                        container.removeAttribute('data-processed');
+                        await mermaid.run({ nodes: [container] });
+                    } catch (err) {
+                        console.error("Lỗi render Mermaid:", err);
+                    }
                 }
-            } catch (err) {
-                console.error("Lỗi render Mermaid tại tab " + tabId + ":", err);
             }
         }
 
+        // Cập nhật hàm switchTab để render đúng thời điểm
         async function switchTab(evt, tabId) {
-            // Ẩn tất cả các tab content
-            let contents = document.getElementsByClassName("tab-content");
-            for (let c of contents) { c.classList.remove("active"); }
+            document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
 
-            // Bỏ active trên các nút tab
-            let tabs = document.getElementsByClassName("tab");
-            for (let t of tabs) { t.classList.remove("active"); }
-
-            // Kích hoạt tab được chọn
-            document.getElementById(tabId).classList.add("active");
+            const targetTab = document.getElementById(tabId);
+            targetTab.classList.add("active");
             evt.currentTarget.classList.add("active");
 
-            // Đợi bố cục layout hiển thị ổn định rồi gọi hàm vẽ biểu đồ
-            setTimeout(() => {
+            // Sử dụng requestAnimationFrame để đảm bảo DOM đã sẵn sàng hiển thị (display: block)
+            requestAnimationFrame(() => {
                 renderMermaidSafely(tabId);
-            }, 100);
+            });
         }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('appSidebar');
+            sidebar.classList.toggle('collapsed');
+            const btn = sidebar.querySelector('.toggle-sidebar-btn');
+            btn.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+        }
+
+        function toggleListbox(button) {
+            const content = button.nextElementSibling;
+            if (content.style.display === "none") {
+                content.style.display = "flex";
+                button.querySelector("span:last-child, span").textContent = button.textContent.replace("▶", "▾");
+            } else {
+                content.style.display = "none";
+            }
+        }
+
+
     </script>
 </body>
 

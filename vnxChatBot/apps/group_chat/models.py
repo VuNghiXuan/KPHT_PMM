@@ -20,12 +20,6 @@ class ChatGroup(models.Model):
     description = models.TextField(null=True, blank=True, verbose_name="Mô tả nhóm")
     
     # ➕ Các trường phục vụ cấu hình AI riêng cho nhóm
-    # ai_provider = models.CharField(max_length=50, default="gemini", verbose_name="Provider AI", choices=[('gemini', 'Gemini'), ('groq', 'Groq'), ('ollama', 'Ollama')])
-    # ai_model = models.CharField(max_length=100, blank=True, null=True, verbose_name="Model AI đang dùng")
-    # custom_api_key = models.CharField(max_length=255, blank=True, null=True, verbose_name="API Key riêng của nhóm")
-    # is_admin_group = models.BooleanField(default=False, verbose_name="Là nhóm Admin hệ thống?", help_text="Nhóm này sẽ dùng chung cấu hình gốc từ LLMService")
-
-
     ai_provider = models.CharField(max_length=50, default="gemini", verbose_name="Provider AI", choices=[('gemini', 'Gemini'), ('groq', 'Groq'), ('ollama', 'Ollama')])
     ai_model = models.CharField(max_length=100, blank=True, null=True, verbose_name="Model AI đang dùng")
     custom_api_key = models.CharField(max_length=255, blank=True, null=True, verbose_name="API Key riêng của nhóm")
@@ -41,6 +35,22 @@ class ChatGroup(models.Model):
     
 
     # ➕ THÊM CÁC THUỘC TÍNH NÀY ĐỂ DÙNG TRONG TEMPLATE TUYỆT ĐỐI AN TOÀN
+    # 🔗 Ủy quyền dữ liệu thông qua quan hệ OneToOneField 'ai_config'
+    @property
+    def ai_provider(self):
+        config = getattr(self, 'ai_config', None)
+        return config.provider if config else 'gemini'
+
+    @property
+    def ai_model(self):
+        config = getattr(self, 'ai_config', None)
+        return config.model_name if config else 'gemini-2.0-flash'
+
+    @property
+    def custom_api_key(self):
+        config = getattr(self, 'ai_config', None)
+        return config.api_key if config else ''
+
     @property
     def is_gemini(self):
         return self.ai_provider == 'gemini'
@@ -55,12 +65,10 @@ class ChatGroup(models.Model):
     
     @property
     def pending_knowledge_count(self):
-        """Trả về số lượng đơn vị tri thức đang chờ duyệt."""
         return self.knowledge_units.filter(status='pending').count()
 
     @property
     def approved_knowledge_count(self):
-        """Trả về số lượng đơn vị tri thức đã được duyệt vào RAG."""
         return self.knowledge_units.filter(status='approved').count()
 
 class Membership(models.Model):
@@ -92,7 +100,7 @@ class Document(models.Model):
     
     group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE, related_name="documents", verbose_name="Nhóm chat")
     file = models.FileField(upload_to='media/groups/%Y/%m/%d/', verbose_name="Tệp tài liệu")
-    # THÊM FIELD NÀY VÀO MODEL
+    original_filename = models.CharField(max_length=255, blank=True, null=True, verbose_name="Tên tệp gốc")
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
@@ -107,6 +115,11 @@ class Document(models.Model):
     class Meta:
         verbose_name = "Tài liệu"
         verbose_name_plural = "Tài liệu"
+
+    def get_file_name(self):
+        """Helper để lấy tên hiển thị trên UI"""
+        return self.original_filename or self.file.name.split('/')[-1]
+    
 
 class KnowledgeUnit(models.Model):
     """
@@ -138,6 +151,8 @@ class Message(models.Model):
     group = models.ForeignKey('ChatGroup', on_delete=models.CASCADE, related_name="messages", verbose_name="Nhóm")
     sender = models.ForeignKey('Membership', on_delete=models.CASCADE, verbose_name="Người gửi")
     content = models.TextField(verbose_name="Nội dung")
+    # ➕ Bổ sung cờ đánh dấu phục vụ Group Learning Loop
+    is_learned = models.BooleanField(default=False, verbose_name="Đã học tổng hợp tri thức", help_text="Đánh dấu tin nhắn đã được AI quét và đưa vào luồng học tập")
     
     # 📁 [DOCUMENT ATTACHMENT]: Liên kết trực tiếp tin nhắn với tài liệu tải lên (nếu có)
     document = models.ForeignKey(
@@ -159,8 +174,8 @@ class Message(models.Model):
         verbose_name="Trả lời cho tin nhắn",
         help_text="Liên kết đến tin nhắn gốc nếu đây là tin nhắn reply"
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian tạo")
-
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian gửi")
+    
     class Meta:
         verbose_name = "Tin nhắn"
         verbose_name_plural = "Tin nhắn"

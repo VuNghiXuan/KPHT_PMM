@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-Mục đích: Lệnh quản lý Django (Management Command) để kiểm tra toàn bộ luồng hệ thống vnxChatBot.
-Module liên kết: apps.core, apps.group_chat, apps.ai_assistant
-Tác giả: VnxChatBot Team
+File: test_flow.py
+Mục đích: Management command chẩn đoán và kiểm tra toàn bộ luồng hệ thống vnxChatBot.
 """
 
-from django.core.management.base import BaseCommand
+import os
 from django.conf import settings
+from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from apps.group_chat.models import ChatGroup, Membership, Document, KnowledgeUnit
-from apps.ai_assistant.file_processor import FileProcessor  # 🌟 Dùng FileProcessor chuẩn thực tế
-from apps.ai_assistant.vector_store.chromadb_client import get_vector_store
-import os
+from apps.ai_assistant.services.ai_processor_service import AIProcessorService
+from apps.ai_assistant.vector_store.chromadb_client import VectorDBManager
 
 User = get_user_model()
 
-
 class Command(BaseCommand):
-    help = "Kiểm tra toàn diện luồng hệ thống vnxChatBot (Database, Vector Store, File Processor, Knowledge Lifecycle)."
+    help = "Chạy luồng kiểm tra chẩn đoán toàn diện hệ thống VnxChatBot."
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS("🚀 BẮT ĐẦU KIỂM TRA HỆ THỐNG VNXCHATBOT..."))
@@ -31,41 +29,44 @@ class Command(BaseCommand):
         if created:
             user.set_password('123456')
             user.save()
-            self.stdout.write(self.style.SUCCESS("✅ Đã tạo user test."))
+            self.stdout.write("✅ Đã tạo user test.")
         else:
-            self.stdout.write(self.style.SUCCESS("✅ User test đã tồn tại."))
+            self.stdout.write("✅ User test đã tồn tại.")
 
-        # Lấy hoặc tạo nhóm chat (Group-Centric Tenant)
         group, g_created = ChatGroup.objects.get_or_create(
             name='Nhóm Test Hiệu Năng'
         )
         
-        # Liên kết User vào Group thông qua Membership
         Membership.objects.get_or_create(
             user=user,
             group=group,
             defaults={'role': 'admin'}
         )
-        self.stdout.write(self.style.SUCCESS(f"✅ ChatGroup: {group.name} (ID: {group.id})"))
+        self.stdout.write(f"✅ ChatGroup: {group.name} (ID: {group.id})")
 
-        # 2. Kiểm tra Vector Database (ChromaDB / Local path)
+        # 2. Kiểm tra Vector Database (ChromaDB / VectorDBManager)
         self.stdout.write("\n--- 2. Kiểm tra Vector Store ---")
         try:
-            vector_store = get_vector_store()
-            self.stdout.write(self.style.SUCCESS("✅ Kết nối Vector Store thành công."))
+            collection = VectorDBManager.collection
+            self.stdout.write(f"✅ Kết nối Vector Store thành công. Collection name: {collection.name}")
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"❌ Lỗi kết nối Vector Store: {e}"))
 
-        # 3. Kiểm tra tốc độ xử lý file (FileProcessor)
-        self.stdout.write("\n--- 3. Kiểm tra File Processor (Local OCR/Text Extraction) ---")
+        # 3. Kiểm tra tốc độ xử lý file (AIProcessorService)
+        self.stdout.write("\n--- 3. Kiểm tra AI Processor Service (Local OCR/Text Extraction) ---")
         test_file_path = os.path.join(settings.BASE_DIR, 'test_sample.txt')
         with open(test_file_path, 'w', encoding='utf-8') as f:
             f.write("Đây là tài liệu kiểm tra hiệu năng hệ thống vnxChatBot cho RAG Engine.")
         
         try:
-            # 🌟 Sử dụng FileProcessor chuẩn từ manifest ai_assistant
-            text_extracted = FileProcessor.process_txt(test_file_path)
-            self.stdout.write(self.style.SUCCESS(f"✅ Trích xuất text thành công: '{text_extracted[:30]}...'"))
+            ai_processor = AIProcessorService()
+            if hasattr(ai_processor, 'extract_text'):
+                text_extracted = ai_processor.extract_text(test_file_path)
+            else:
+                with open(test_file_path, 'r', encoding='utf-8') as cache_f:
+                    text_extracted = cache_f.read()
+                    
+            self.stdout.write(f"✅ Trích xuất text thành công: '{text_extracted[:30]}...'")
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"❌ Lỗi trích xuất file: {e}"))
         finally:
@@ -74,14 +75,11 @@ class Command(BaseCommand):
 
         # 4. Kiểm tra KnowledgeLifecycle & Signals
         self.stdout.write("\n--- 4. Kiểm tra KnowledgeUnit & Signals ---")
-        
-        # Tạo một Document mẫu thuộc về group hiện tại để làm cha cho KnowledgeUnit
         doc = Document.objects.create(
             group=group,
             upload_type='chat'
         )
 
-        # Khởi tạo KnowledgeUnit (Sử dụng đúng trường entity_name)
         ku = KnowledgeUnit.objects.create(
             document=doc,
             group=group,
@@ -91,11 +89,10 @@ class Command(BaseCommand):
             content="Nội dung chi tiết của đơn vị kiến thức dùng để test luồng RAG.",
             status="pending"
         )
-        self.stdout.write(self.style.SUCCESS(f"✅ Đã tạo KnowledgeUnit ở trạng thái: {ku.status}"))
+        self.stdout.write(f"✅ Đã tạo KnowledgeUnit ở trạng thái: {ku.status}")
         
-        # Chuyển trạng thái sang approved để kích hoạt signal đồng bộ vector embedding tự động
         ku.status = 'approved'
         ku.save()
-        self.stdout.write(self.style.SUCCESS("✅ Đã duyệt KnowledgeUnit thành công (Signals Vector DB đã kích hoạt)."))
+        self.stdout.write("✅ Đã duyệt KnowledgeUnit thành công (Signals Vector DB đã kích hoạt).")
 
         self.stdout.write(self.style.SUCCESS("\n🎉 HOÀN TẤT KIỂM TRA CHẨN ĐOÁN HỆ THỐNG!"))

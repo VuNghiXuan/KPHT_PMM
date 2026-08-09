@@ -24,4 +24,5 @@ from .member_ai_views import (
     add_member_to_group,
     get_group_members_api,
     update_ai_config_view,
+    validate_and_test_ai_model,
 )

@@ -1,30 +1,65 @@
-<!-- 
-  File: templates/group_chat/partials/_sidebar_groups.html
-  Mục đích: Cột 2 - Quản lý danh sách nhóm (Tenant-based isolation).
--->
 <div class="d-flex flex-column border-end bg-light" style="width: 300px; min-width: 300px;">
+    <!-- Khu vực đầu: Header & Các hành động chính -->
     <div class="p-3 border-bottom bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fw-bold text-dark">NHÓM LÀM VIỆC</span>
+            <div>
+                <!-- Nút thêm nhóm -->
+                <button class="btn btn-sm btn-outline-primary me-1" title="Tạo nhóm mới" data-bs-toggle="modal"
+                    data-bs-target="#createGroupModal">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <!-- Nút bánh răng cấu hình chung -->
+                <button class="btn btn-sm btn-outline-secondary" title="Cấu hình hệ thống" data-bs-toggle="modal"
+                    data-bs-target="#systemSettingsModal">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
         <div class="input-group input-group-sm">
-            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
-            <input type="text" class="form-control border-start-0 ps-0" placeholder="Tìm kiếm nhóm, tin nhắn...">
+            <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control border-0 bg-light" placeholder="Tìm kiếm nhóm...">
         </div>
     </div>
 
+    <!-- Danh sách nhóm -->
     <div class="flex-grow-1 overflow-auto p-2">
-        <div class="small fw-bold text-muted px-2 mb-2">NHÓM LÀM VIỆC (TENANT)</div>
-
         {% for grp in user_groups %}
-        <a href="{% url 'group_chat:group_detail' grp.id %}"
-            class="d-flex align-items-center gap-3 p-2 rounded text-decoration-none mb-1 {% if grp.id == group.id %}bg-primary bg-opacity-10 border border-primary border-opacity-25{% else %}hover-bg-light{% endif %}">
-            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
-                style="width: 40px; height: 40px; min-width: 40px;">
-                {{ grp.name|slice:":2"|upper }}
+        <div
+            class="d-flex align-items-center gap-3 p-2 rounded mb-1 position-relative {% if grp.id == group.id %}bg-primary bg-opacity-10 border border-primary border-opacity-25{% else %}hover-bg-light{% endif %}">
+            <!-- Avatar nhóm -->
+            <a href="{% url 'group_chat:group_detail' grp.id %}"
+                class="flex-grow-1 d-flex align-items-center gap-3 text-decoration-none">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                    style="width: 40px; height: 40px;">
+                    {{ grp.name|slice:":2"|upper }}
+                </div>
+                <div class="overflow-hidden text-dark">
+                    <div class="fw-bold text-truncate">{{ grp.name }}</div>
+                    <small class="text-muted d-block">
+                        <i class="fas fa-robot text-success" style="font-size: 0.7rem;"></i> AI Active
+                    </small>
+                </div>
+            </a>
+
+            <!-- Nút tùy chọn nhanh cho từng nhóm (Bánh răng nhỏ) -->
+            <div class="dropdown">
+                <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li><a class="dropdown-item small" href="#"><i class="fas fa-user-plus me-2"></i>Thêm thành viên</a>
+                    </li>
+                    <li><a class="dropdown-item small" href="#"><i class="fas fa-brain me-2"></i>Cấu hình AI nhóm</a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item small text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Rời
+                            nhóm</a></li>
+                </ul>
             </div>
-            <div class="flex-grow-1 overflow-hidden">
-                <div class="fw-bold text-dark text-truncate">{{ grp.name }}</div>
-                <small class="text-muted text-truncate d-block">Thảo luận nhóm & AI 🤖</small>
-            </div>
-        </a>
+        </div>
         {% endfor %}
     </div>
 </div>

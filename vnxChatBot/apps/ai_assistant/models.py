@@ -4,8 +4,7 @@ from apps.group_chat.models import ChatGroup
 class GroupAIProvider(models.Model):
     """
     Mục đích: Quản lý cấu hình AI riêng biệt cho từng nhóm làm việc (Group-Centric).
-    Tại sao: Cho phép mỗi nhóm linh hoạt lựa chọn nhà cung cấp LLM và cấu hình API Key riêng 
-    mà không ảnh hưởng đến các nhóm khác trong hệ thống Modular Monolith.
+    Tại sao: Cho phép mỗi nhóm linh hoạt lựa chọn nhà cung cấp LLM và cấu hình API Key riêng.
     Tác giả: Kiến trúc sư VnxChatBot
     """
     
@@ -35,13 +34,13 @@ class GroupAIProvider(models.Model):
         null=True, 
         blank=True, 
         verbose_name="API Key", 
-        help_text="Khóa bí mật do người dùng cung cấp riêng cho nhóm (bỏ trống nếu dùng chung hệ thống)."
+        help_text="Khóa bí mật do người dùng cung cấp riêng cho nhóm."
     )
     model_name = models.CharField(
         max_length=100, 
-        default="gemini-1.5-pro", 
+        default="gemini-2.0-flash", 
         verbose_name="Tên Model",
-        help_text="Tên phiên bản model cụ thể (mặc định cho Gemini)."
+        help_text="Tên phiên bản model cụ thể (VD: qwen2.5:7b cho Ollama)."
     )
 
     class Meta:
@@ -50,23 +49,24 @@ class GroupAIProvider(models.Model):
 
     @property
     def is_gemini(self) -> bool:
-        """Kiểm tra nhanh xem provider hiện tại có phải là Gemini không (giúp tránh so sánh chuỗi thô trong Template)."""
         return self.provider.lower() == 'gemini'
 
     @property
-    def is_openai(self) -> bool:
-        """Kiểm tra nhanh xem provider hiện tại có phải là OpenAI không."""
-        return self.provider.lower() == 'openai'
-
-    @property
     def is_groq(self) -> bool:
-        """Kiểm tra nhanh xem provider hiện tại có phải là Groq không."""
         return self.provider.lower() == 'groq'
 
     @property
     def is_ollama(self) -> bool:
-        """Kiểm tra nhanh xem provider hiện tại có phải là Ollama không."""
         return self.provider.lower() == 'ollama'
 
+    # 💡 Tạo Alias property để tương thích ngược nếu code cũ gọi ai_model
+    @property
+    def ai_model(self) -> str:
+        return self.model_name
+
+    @ai_model.setter
+    def ai_model(self, value: str):
+        self.model_name = value
+
     def __str__(self):
-        return f"AI Config cho nhóm {self.group.name} [{self.provider}]"
+        return f"AI Config cho nhóm {self.group.name} [{self.provider} - {self.model_name}]"

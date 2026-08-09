@@ -1,4 +1,3 @@
-
 """
 File: apps/group_chat/views/knowledge_views.py
 Mục đích: Quản lý vòng đời tri thức (Knowledge Lifecycle), upload tài liệu và phê duyệt RAG 
@@ -17,7 +16,7 @@ from apps.group_chat.models import ChatGroup, Membership, Document, KnowledgeUni
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from apps.ai_assistant.vector_store import VectorDBManager as vector_service
-from apps.ai_assistant.file_processor import FileProcessor
+from apps.ai_assistant.services.document_processor import DocumentProcessorService as FileProcessor
 
 User = get_user_model()
 
@@ -130,9 +129,9 @@ def knowledge_action_view(request, group_id, knowledge_id, action):
     Function: knowledge_action_view
     Description:
         Thực hiện hành động trong Vòng đời tri thức (Knowledge Lifecycle): 
-        Phê duyệt (approve) hoặc rollback (thu hồi) đối với KnowledgeUnit theo group_id.
+        Phê duyệt (approve), từ chối (reject) hoặc thu hồi (rollback) đối với KnowledgeUnit theo group_id.
     """
-    # 1. Lấy KnowledgeUnit và đảm bảo thuộc đúng group_id (Tenant Isolation)
+    # 1. Lấy KnowledgeUnit và đảm bảo thuộc đúng group_id (Group Isolation)
     ku = get_object_or_404(KnowledgeUnit, id=knowledge_id, document__group_id=group_id)
     
     # 2. Kiểm tra quyền thành viên trong nhóm
@@ -146,13 +145,13 @@ def knowledge_action_view(request, group_id, knowledge_id, action):
         logger.info(f"✅ KnowledgeUnit ID {knowledge_id} trong nhóm {group_id} đã được duyệt (approved).")
         return JsonResponse({'status': 'success', 'message': 'Đã duyệt tri thức và đồng bộ vào Vector DB!'})
         
-    elif action == 'rollback':
-        ku.status = 'rollback'
-        ku.save()  # Signal sẽ tự động dọn dẹp Vector Store
-        logger.info(f"🔄 KnowledgeUnit ID {knowledge_id} trong nhóm {group_id} đã bị thu hồi (rollback).")
-        return JsonResponse({'status': 'success', 'message': 'Đã rollback tri thức và xóa khỏi Vector DB!'})
+    elif action in ['rollback', 'reject']:
+        ku.delete()  
+        logger.info(f"🔄 KnowledgeUnit ID {knowledge_id} trong nhóm {group_id} đã bị hủy/thu hồi ({action}).")
+        return JsonResponse({'status': 'success', 'message': 'Đã hủy tài liệu thành công!'})
         
     return JsonResponse({'status': 'error', 'message': 'Hành động không hợp lệ!'}, status=400)
+
 
 @login_required
 @require_POST
@@ -162,10 +161,6 @@ def promote_knowledge_view(request, message_id):
     Description: 
         Chuyển đổi một tin nhắn hội thoại thành đơn vị tri thức (KnowledgeUnit) 
         hoặc đẩy trạng thái tri thức vào chu trình chờ duyệt (Knowledge Lifecycle).
-    
-    Giải thích logic (Why):
-    - Đảm bảo gán đầy đủ trường group và document cho KnowledgeUnit, tuân thủ tuyệt đối
-      ràng buộc Group-Centric (tenant-based isolation) để tránh lỗi NOT NULL constraint.
     """
     try:
         message = get_object_or_404(Message, id=message_id)
@@ -180,7 +175,7 @@ def promote_knowledge_view(request, message_id):
         if message.sender and hasattr(message.sender, 'user'):
             uploader_user = message.sender.user
 
-        # 3. Lấy hoặc tạo Document đại diện cho nhóm (nếu message có đính kèm document thì ưu tiên dùng luôn)
+        # 3. Lấy hoặc tạo Document đại diện cho nhóm
         document = message.document
         if not document:
             document, _ = Document.objects.get_or_create(
@@ -194,8 +189,8 @@ def promote_knowledge_view(request, message_id):
                 document=document,
                 content=message.content,
                 defaults={
-                    'group': message.group,  # 👈 Bổ sung trực tiếp group để thỏa mãn ràng buộc dữ liệu
-                    'status': 'pending'      # Trạng thái chờ duyệt theo chuẩn Knowledge Lifecycle
+                    'group': message.group,  
+                    'status': 'pending'      
                 }
             )
             
@@ -223,16 +218,13 @@ def rollback_knowledge(request, unit_id):
     Function: rollback_knowledge
     Description:
         Hành động Rollback: Chuyển trạng thái KnowledgeUnit -> Rollback và xóa sạch vector khỏi VectorDB.
-        Mục đích: Duy trì sự sạch sẽ của Vector Database theo chuẩn Knowledge Lifecycle.
     """
     unit = get_object_or_404(KnowledgeUnit, id=unit_id)
     
-    # Xác định nhóm chat liên kết an toàn
     group = unit.document.group if unit.document else getattr(unit, 'group', None)
     if not group:
         return JsonResponse({"error": "Không tìm thấy thông tin nhóm liên kết của tri thức này."}, status=400)
 
-    # Kiểm tra quyền Admin nhóm
     membership = Membership.objects.filter(group=group, user=request.user).first()
     if not membership or getattr(membership, 'role', 'member') != 'admin':
         return JsonResponse({"error": "Bạn không có quyền quản trị để thực hiện tác vụ này!"}, status=403)
@@ -249,23 +241,16 @@ def rollback_knowledge(request, unit_id):
         logger.error(f"❌ Lỗi hệ thống khi rollback knowledge unit {unit_id}: {str(e)}")
         return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
 
-    
 
 @login_required
 @require_POST
 def trigger_ai_learn_document_view(request, document_id):
     """
-    Kích hoạt tiến trình đưa tài liệu vào kho tri thức RAG của nhóm.
-    - Bước 1: Kiểm tra quyền hạn thành viên trong nhóm chứa tài liệu[cite: 1].
-    - Bước 2: Cập nhật trạng thái KnowledgeUnit hoặc tạo mới nếu chưa có[cite: 1].
-    - Bước 3: Đưa nội dung vào VectorDB thông qua VectorDBManager[cite: 1].
-    - Bước 4: Kích hoạt tiến trình đưa tài liệu vào kho tri thức RAG của nhóm.
+    Kích hoạt tiến trình đưa tài liệu vào kho tri thức RAG của nhóm (Đồng bộ an toàn).
     """
-    
     document = get_object_or_404(Document, id=document_id)
     group = document.group
 
-    # Kiểm tra xem user hiện tại có thuộc nhóm này hay không (Tenant Isolation)[cite: 1]
     if not group.memberships.filter(user=request.user).exists():
         return JsonResponse({
             'status': 'error',
@@ -275,7 +260,6 @@ def trigger_ai_learn_document_view(request, document_id):
     try:
         logger.info(f"🧠 [AILearn] Đang xử lý học tài liệu ID: {document.id} cho Group ID: {group.id}")
 
-        # Trích xuất nội dung văn bản từ tệp vật lý của Document bằng FileProcessor
         extracted_content = ""
         if document.file:
             try:
@@ -284,7 +268,6 @@ def trigger_ai_learn_document_view(request, document_id):
                 logger.warning(f"⚠️ Không thể parse file trực tiếp, dùng tên file: {parse_err}")
                 extracted_content = f"Tài liệu: {document.file.name}"
 
-        # Lấy hoặc tạo KnowledgeUnit tương ứng với Document[cite: 1]
         knowledge_unit, created = KnowledgeUnit.objects.get_or_create(
             document=document,
             defaults={
@@ -294,19 +277,17 @@ def trigger_ai_learn_document_view(request, document_id):
             }
         )
         
-        # Nếu KnowledgeUnit đã tồn tại nhưng chưa có nội dung, cập nhật lại
         if not created and not knowledge_unit.content:
             knowledge_unit.content = extracted_content
             knowledge_unit.save()
 
-        # Tiến hành nạp vào Vector Store (ChromaDB)[cite: 1]
+        # Tiến hành nạp vào Vector Store (ChromaDB) an toàn trong môi trường đồng bộ
         vector_service.insert(
             group_id=group.id,
             text=knowledge_unit.content,
             doc_id=knowledge_unit.id
         )
 
-        # Cập nhật trạng thái tri thức thành đã duyệt/đang hoạt động[cite: 1]
         knowledge_unit.status = 'approved'
         knowledge_unit.save()
 

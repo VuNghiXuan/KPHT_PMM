@@ -1,0 +1,123 @@
+<!-- 
+  File: templates/group_chat/partials/tabs/_knowledge_tab.html
+  Mục đích: Quản lý vòng đời tri thức (Knowledge Lifecycle), hiển thị tên file bằng get_file_name() và làm sạch entity_name nếu bị dính đường dẫn.
+-->
+{% load static %}
+<div class="p-1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted small fw-bold">
+            <i class="fas fa-brain text-primary me-1"></i> KHO TRI THỨC NHÓM
+        </span>
+        <span class="badge bg-secondary" style="font-size: 0.75rem;">{{ group.knowledge_units.count|default:0 }} tài
+            liệu</span>
+    </div>
+
+    <!-- Accordion phân tách Đã duyệt / Chưa duyệt -->
+    <div class="accordion accordion-flush shadow-sm rounded-3 overflow-hidden" id="knowledgeAccordion">
+
+        <!-- Phần Chưa duyệt (Pending) -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingUnapproved">
+                <button
+                    class="accordion-button collapsed bg-warning-subtle text-warning-emphasis fw-semibold small py-2 px-3"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnapproved" aria-expanded="false"
+                    aria-controls="collapseUnapproved">
+                    <i class="fas fa-clock me-2"></i> Chờ duyệt
+                    (<span id="unapproved-count">{{ group.pending_knowledge_count|default:0 }}</span>)
+                </button>
+            </h2>
+            <div id="collapseUnapproved" class="accordion-collapse collapse" data-bs-parent="#knowledgeAccordion"
+                aria-labelledby="headingUnapproved">
+                <div class="accordion-body bg-white p-2" style="max-height: 250px; overflow-y: auto;">
+                    {% for ku in group.knowledge_units.all %}
+                    {% if ku.status == 'pending' %}
+                    <div class="p-2 border-bottom small d-flex align-items-center justify-content-between gap-2">
+                        <!-- Cột thông tin file -->
+                        <div class="flex-grow-1 overflow-hidden">
+                            <p class="mb-1 fw-semibold text-truncate text-dark" title="{{ ku.document.get_file_name }}">
+                                <i class="fas fa-file-alt text-muted me-1"></i>
+                                {{ ku.document.get_file_name }}
+                            </p>
+                            <span class="text-muted d-block text-truncate" style="font-size: 0.7rem;">
+                                Thực thể:
+                                <strong class="text-primary">
+                                    {% if "media/" in ku.entity_name %}
+                                    {{ ku.document.get_file_name }}
+                                    {% else %}
+                                    {{ ku.entity_name|default:"Chưa xác định" }}
+                                    {% endif %}
+                                </strong> | Đề xuất:
+                                {% if ku.document.uploaded_by %}{{ ku.document.uploaded_by.username }}{% else %}Hệ
+                                thống{% endif %}
+                            </span>
+                        </div>
+
+                        <!-- Cột nút hành động (Duyệt / Hủy) -->
+                        <div class="btn-group btn-group-sm flex-shrink-0 shadow-sm">
+                            <button class="btn btn-outline-success py-1 px-2 btn-approve-knowledge"
+                                data-id="{{ ku.id }}" title="Duyệt đưa vào Vector DB">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-outline-danger py-1 px-2 btn-reject-knowledge" data-id="{{ ku.id }}"
+                                title="Từ chối tài liệu">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% empty %}
+                    <div class="text-center text-muted py-2 small">Không có tài liệu nào đang chờ duyệt.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần Đã duyệt (Approved) -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingApproved">
+                <button class="accordion-button bg-success-subtle text-success-emphasis fw-semibold small py-2 px-3"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseApproved" aria-expanded="true"
+                    aria-controls="collapseApproved">
+                    <i class="fas fa-check-circle me-2"></i> Đã duyệt vào RAG
+                    (<span id="approved-count">{{ group.approved_knowledge_count|default:0 }}</span>)
+                </button>
+            </h2>
+            <div id="collapseApproved" class="accordion-collapse collapse show" data-bs-parent="#knowledgeAccordion"
+                aria-labelledby="headingApproved">
+                <div class="accordion-body bg-white p-2" style="max-height: 250px; overflow-y: auto;">
+                    {% for ku in group.knowledge_units.all %}
+                    {% if ku.status == 'approved' %}
+                    <div class="p-2 border-bottom small d-flex align-items-center justify-content-between gap-2">
+                        <div class="flex-grow-1 overflow-hidden">
+                            <p class="mb-1 fw-semibold text-truncate text-dark" title="{{ ku.document.get_file_name }}">
+                                <i class="fas fa-file-check text-success me-1"></i>
+                                {{ ku.document.get_file_name }}
+                            </p>
+                            <span class="text-success d-block text-truncate" style="font-size: 0.7rem;">
+                                <i class="fas fa-shield-alt"></i> Sẵn sàng cho RAG
+                                (<span>
+                                    {% if "media/" in ku.entity_name %}
+                                    {{ ku.document.get_file_name }}
+                                    {% else %}
+                                    {{ ku.entity_name|default:"Chung" }}
+                                    {% endif %}
+                                </span>)
+                            </span>
+                        </div>
+                        <button
+                            class="btn btn-sm btn-outline-danger py-1 px-2 flex-shrink-0 btn-rollback-knowledge shadow-sm"
+                            data-id="{{ ku.id }}" title="Gỡ khỏi tri thức (Rollback embedding)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% empty %}
+                    <div class="text-center text-muted py-2 small">Chưa có tài liệu nào được đưa vào Vector DB.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'group_chat/js/tab/knowledge_tab.js' %}"></script>

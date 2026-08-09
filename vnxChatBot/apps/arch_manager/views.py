@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from .utils_manifest import get_vnx_manifest # Hoặc hàm gom manifest của bạn
 import os
 
+
 class SystemBlueprintView(View):
     """
     Class: SystemBlueprintView
@@ -26,14 +27,17 @@ class SystemBlueprintView(View):
     """
     
     def get(self, request, *args, **kwargs):
-        code_flow = ArchitectureIntrospectionEngine.generate_code_flow()
-        dynamic_erd = ArchitectureIntrospectionEngine.generate_erd()
-        state_machine = ArchitectureIntrospectionEngine.generate_state_machine()
-        component_diagram = ArchitectureIntrospectionEngine.generate_component_diagram()
+        # Khởi tạo engine nội soi kiến trúc hệ thống
+        engine = ArchitectureIntrospectionEngine()
         
-        # Gọi hàm lấy nội dung manifest toàn bộ dự án (đã chuyển markdown sang html an toàn hoặc hiển thị text dạng pre)
-        # from .utils_manifest import get_vnx_manifest # Hoặc hàm gom manifest của bạn
-        # import os
+        code_flow = engine.generate_code_flow()
+        dynamic_erd = engine.generate_erd()
+        state_machine = engine.generate_state_machine()
+        component_diagram = engine.generate_component_diagram()
+        knowledge_pipeline_flow = engine.generate_knowledge_pipeline_flow()
+        ai_extraction_pipeline = engine.generate_ai_extraction_pipeline()  # 👈 Thêm mới sơ đồ AI Extraction Pipeline
+        
+        # Gọi hàm lấy nội dung manifest toàn bộ dự án
         project_manifest = get_vnx_manifest(os.getcwd())
 
         context = {
@@ -42,8 +46,10 @@ class SystemBlueprintView(View):
             'state_machine': state_machine,
             'component_diagram': component_diagram,
             'project_manifest': project_manifest,
+            'knowledge_pipeline_flow': knowledge_pipeline_flow,
+            'ai_extraction_pipeline': ai_extraction_pipeline,  # 👈 Đưa vào context template
         }
-        # print('================project_manifest', project_manifest)
+        
         return render(request, 'arch_manager/sys_blue_print.html', context)
 
 

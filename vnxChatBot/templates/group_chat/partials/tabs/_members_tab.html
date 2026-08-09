@@ -1,17 +1,18 @@
+<!-- File: templates/group_chat/partials/tabs/_members_tab.html -->
 {% load static %}
-<div class="p-3">
+<div class="p-1">
     <!-- Tiêu đề kèm bộ đếm tổng số thành viên thực tế -->
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h6 class="fw-bold mb-0">
             <i class="fas fa-users text-primary"></i> Thành viên trong nhóm
         </h6>
         <span class="badge bg-primary rounded-pill" style="font-size: 0.75rem;" id="total-members-badge">
-            {{ group.memberships.count }} thành viên
+            {{group.memberships.count }} thành viên
         </span>
     </div>
 
     <!-- Form Thêm thành viên -->
-    <form id="add-member-form" class="mb-3 p-2 bg-light rounded border" data-group-id="{{ group.id }}">
+    <form id="add-member-form" class="mb-3 p-2 bg-white rounded border" data-group-id="{{ group.id }}">
         <div class="mb-2">
             <input type="text" id="new-member-username" class="form-control form-control-sm"
                 placeholder="Nhập username hoặc email..." required>
@@ -28,26 +29,23 @@
     </form>
 
     <!-- Danh sách thành viên hiện tại -->
-    <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+    <div class="list-group list-group-flush bg-white rounded border" style="max-height: 250px; overflow-y: auto;">
         {% for membership in group.memberships.all %}
-        <div class="list-group-item d-flex align-items-center justify-content-between py-2 px-1 border-0 border-bottom">
+        <div class="list-group-item d-flex align-items-center justify-content-between py-2 px-2 border-0 border-bottom">
             <div class="d-flex align-items-center gap-2">
                 <!-- Avatar & Trạng thái Online/Offline -->
                 <div class="position-relative">
                     {% if membership.is_ai %}
-                    <!-- Avatar AI -->
                     <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm"
                         style="width: 36px; height: 36px; font-size: 1rem;">
                         🤖
                     </div>
-                    <!-- AI luôn online -->
                     <span
                         class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"
                         title="AI luôn sẵn sàng">
                         <span class="visually-hidden">Online</span>
                     </span>
                     {% elif membership.user %}
-                    <!-- Avatar User -->
                     {% if membership.user.profile and membership.user.profile.avatar %}
                     <img src="{{ membership.user.profile.avatar.url }}" class="rounded-circle shadow-sm"
                         style="width: 36px; height: 36px; object-fit: cover;" alt="Avatar">
@@ -58,7 +56,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- Chấm trạng thái Online/Offline -->
                     {% if membership.user.is_active %}
                     <span
                         class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"

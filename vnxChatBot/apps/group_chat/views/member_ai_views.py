@@ -7,6 +7,7 @@ và cấu hình AI riêng biệt cho từng nhóm (Group-Centric AI Configuratio
 
 import json
 import logging
+import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -149,27 +150,128 @@ def get_group_members_api(request, group_id):
 
 
 
+
+
 @login_required
+@require_POST
 def update_ai_config_view(request, group_id):
     """
-    Cập nhật cấu hình AI riêng cho nhóm (Group-Centric AI Configuration).
+    Mục đích: Cập nhật cấu hình AI riêng biệt cho từng nhóm làm việc.
+    Flow: 
+        1. Kiểm tra quyền quản trị (Owner/Admin) trong phạm vi group_id (Group-Centric).
+        2. Validate dữ liệu đầu vào (Provider và Model Name).
+        3. Lưu trữ an toàn vào database thông qua model GroupAIProvider (sử dụng model_name).
     """
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=400)
-        
+    # 1. Isolation: Cô lập tuyệt đối theo group_id và kiểm tra quyền hạn
     group = get_object_or_404(ChatGroup, id=group_id)
+    if not Membership.objects.filter(group=group, user=request.user, role__in=['owner', 'admin']).exists():
+        return JsonResponse({
+            'status': 'error', 
+            'message': 'Bạn không có quyền thay đổi cấu hình AI của nhóm này!'
+        }, status=403)
+
     try:
         data = json.loads(request.body)
-        ai_config, created = GroupAIProvider.objects.get_or_create(group=group)
-        ai_config.provider = data.get('provider', 'gemini')
-        ai_config.temperature = float(data.get('temperature', 0.7))
-        ai_config.system_prompt = data.get('system_prompt', '')
+        
+        # 2. Extract dữ liệu với giá trị mặc định an toàn
+        provider = data.get('ai_provider', 'gemini').strip().lower()
+        model = data.get('ai_model', '').strip()
+        custom_key = data.get('custom_api_key') # Có thể là string, rỗng hoặc null
+
+        # 3. Validate nhà cung cấp hợp lệ
+        allowed_providers = ['gemini', 'groq', 'ollama', 'openai']
+        if provider not in allowed_providers:
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Nhà cung cấp AI (Provider) không hợp lệ!'
+            }, status=400)
+
+        # 4. Cập nhật hoặc tạo mới cấu hình GroupAIProvider (1:1 với ChatGroup)
+        ai_config, _ = GroupAIProvider.objects.get_or_create(group=group)
+        
+        ai_config.provider = provider
+        
+        # Đồng bộ gán vào trường model_name của Database Model
+        if model:
+            ai_config.model_name = model
+            
+        # 5. Logic xử lý API Key (Security)
+        # Nếu data gửi lên là None hoặc rỗng, xóa key cũ để hệ thống dùng key chung
+        if custom_key is None or custom_key == "":
+            ai_config.api_key = None 
+        else:
+            ai_config.api_key = custom_key.strip()
+            
         ai_config.save()
         
-        return JsonResponse({'status': 'success', 'message': 'Cập nhật cấu hình AI thành công!'})
+        logger.info(f"Group {group_id} đã cập nhật cấu hình AI thành công: Provider={provider}, Model={ai_config.model_name} bởi user {request.user.id}")
+        
+        return JsonResponse({
+            'status': 'success', 
+            'message': 'Cập nhật cấu hình Trợ lý AI thành công! 🚀'
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error', 
+            'message': 'Dữ liệu JSON không hợp lệ!'
+        }, status=400)
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        logger.error(f"Lỗi hệ thống khi cập nhật AI config cho nhóm {group_id}: {str(e)}")
+        return JsonResponse({
+            'status': 'error', 
+            'message': 'Đã xảy ra lỗi hệ thống nội bộ!'
+        }, status=500)
 
+@login_required
+@require_POST
+def validate_and_test_ai_model(request, group_id):
+    """
+    Mục đích: Kiểm tra tính hợp lệ và khả năng phản hồi của Model/Provider trước khi lưu.
+    Tại sao: Tránh việc lưu các model name ma (không tồn tại) hoặc API Key lỗi.
+    """
+    group = get_object_or_404(ChatGroup, id=group_id)
+    if not Membership.objects.filter(group=group, user=request.user, role__in=['owner', 'admin']).exists():
+        return JsonResponse({'status': 'error', 'message': 'Không có quyền thực thi!'}, status=403)
 
+    try:
+        data = json.loads(request.body)
+        provider = data.get('ai_provider', '').strip().lower()
+        model_name = data.get('ai_model', '').strip()
+        api_key = data.get('custom_api_key', '').strip()
 
+        # Thực hiện ping kiểm tra nhanh tùy thuộc vào Provider
+        if provider == 'ollama':
+            # Kiểm tra Ollama local server (mặc định port 11434)
+            ollama_host = data.get('ollama_host', 'http://localhost:11434')
+            response = requests.get(f"{ollama_host}/api/tags", timeout=5)
+            if response.status_code == 200:
+                models = [m['name'] for m in response.json().get('models', [])]
+                if model_name and model_name not in models:
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': f"Model '{model_name}' không tồn tại trên Ollama server của bạn! Các model khả dụng: {', '.join(models)}"
+                    }, status=400)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Không thể kết nối đến Ollama server!'}, status=400)
 
+        elif provider == 'groq':
+            if not api_key:
+                return JsonResponse({'status': 'error', 'message': 'Cần cung cấp Groq API Key để kiểm tra!'}, status=400)
+            # Test gọi thử API Groq lấy danh sách model hoặc ping nhẹ
+            headers = {"Authorization": f"Bearer {api_key}"}
+            res = requests.get("https://api.groq.com/openai/v1/models", headers=headers, timeout=5)
+            if res.status_code != 200:
+                return JsonResponse({'status': 'error', 'message': 'Groq API Key không hợp lệ hoặc hết hạn!'}, status=400)
+
+        # Trả về tín hiệu thành công để frontend tiến hành save chính thức
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Xác thực thành công model {model_name} cho {provider}! 🚀"
+        })
+
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({'status': 'error', 'message': f"Lỗi kết nối mạng tới Provider: {str(e)}"}, status=400)
+    except Exception as e:
+        logger.error(f"Lỗi validate AI model: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': 'Lỗi hệ thống trong quá trình kiểm tra model!'}, status=500)

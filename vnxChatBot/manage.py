@@ -24,3 +24,8 @@ if __name__ == '__main__':
 # uvicorn config.asgi:application --reload --host 127.0.0.1 --port 8000
 # uvicorn config.asgi:application --reload --reload-dir apps --reload-dir config --host 127.0.0.1 --port 8000
 # Get-Content -Path .\debug_vnx.log -Tail 20 -Wait
+# Xoá taonf bộ cache:for /d /r . %d in (__pycache__) do @if exist "%d" rd /s /q "%d"
+
+"Buộc test cả 2 cách này"
+# python manage.py run_all_tests
+# python manage.py test_flow

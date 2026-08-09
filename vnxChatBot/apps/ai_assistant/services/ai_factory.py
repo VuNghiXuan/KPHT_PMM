@@ -1,8 +1,10 @@
 """
-Mục đích: Cung cấp LLM với cơ chế fallback thông minh (Hierarchical Config) giữa cấu hình riêng của nhóm và cấu hình mặc định từ .env.
-Tác giả: Kiến trúc sư VnxChatBot
-Module liên kết: django.conf, apps.ai_assistant.models, apps.group_chat.models, apps.ai_assistant.services.llm_provider
+Module: ai_assistant.services.ai_factory
+Author: Kiến trúc sư VnxChatBot
+Description: Cung cấp LLM với cơ chế fallback thông minh (Hierarchical Config) 
+             giữa cấu hình riêng của nhóm và cấu hình mặc định từ .env.
 """
+
 import logging
 from django.conf import settings
 from apps.ai_assistant.models import GroupAIProvider
@@ -13,6 +15,7 @@ from .llm_provider import LLMService
 logger = logging.getLogger(__name__)
 
 class AIFactory:
+    
     @staticmethod
     def get_provider(group=None, group_id=None):
         """
@@ -20,8 +23,12 @@ class AIFactory:
         1. Ưu tiên cấu hình riêng của nhóm (GroupAIProvider) nếu nhóm đã thiết lập và có API Key.
         2. Fallback về cấu hình mặc định toàn cục từ tệp .env (thông qua settings).
         
-        Tại sao (Why): Hỗ trợ cả tham số 'group' (object) lẫn 'group_id' (int/str/uuid) 
-        để tránh lỗi TypeError khi gọi nhầm từ khóa từ các service hoặc consumer khác nhau.
+        Args:
+            group (ChatGroup, optional): Instance của nhóm làm việc.
+            group_id (int/str/uuid, optional): Định danh của nhóm làm việc.
+            
+        Returns:
+            GroupAIProvider or DefaultConfig: Đối tượng cấu hình chứa thông tin provider và API key.
         """
         target_group = group
         
@@ -37,10 +44,8 @@ class AIFactory:
                 target_group = None
 
         # 1. Thử lấy cấu hình riêng của nhóm nếu tìm thấy target_group hợp lệ
-        # 1. Thử lấy cấu hình riêng của nhóm nếu tìm thấy target_group hợp lệ
         if target_group:
             try:
-                # Sử dụng getattr hoặc bọc try-except an toàn tuyệt đối
                 group_config = getattr(target_group, 'ai_config', None)
                 if group_config and getattr(group_config, 'api_key', None):
                     logger.info(f"[AIFactory.get_provider]: Sử dụng cấu hình RIÊNG của nhóm {target_group.name} (Provider: {group_config.provider})")
@@ -101,6 +106,14 @@ class AIFactory:
         """
         Thực hiện gọi LLM Service cho nhóm thông qua cấu hình đã được phân giải (Group-level hoặc Global .env).
         Hỗ trợ nhận cả group, group_id hoặc prompt một cách linh hoạt.
+        
+        Args:
+            group (ChatGroup, optional): Instance của nhóm làm việc.
+            prompt (str): Nội dung prompt cần gửi đến LLM.
+            group_id (int/str/uuid, optional): Định danh của nhóm làm việc.
+            
+        Returns:
+            str: Kết quả phản hồi từ mô hình LLM.
         """
         logger.info(f"[AIFactory.get_service_for_group]: Bắt đầu tiến trình gọi LLM service.")
         config = AIFactory.get_provider(group=group, group_id=group_id)

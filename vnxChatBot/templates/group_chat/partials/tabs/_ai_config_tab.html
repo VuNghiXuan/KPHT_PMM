@@ -1,61 +1,141 @@
-<!-- File: templates/group_chat/partials/tabs/_ai_config_tab.html -->
-<div class="tab-pane fade" id="ai-config-pane" role="tabpanel">
-    <div class="card border-0 shadow-sm rounded-3 p-3 mb-3">
-        <h6 class="fw-bold text-dark mb-2">
-            <i class="fas fa-microchip text-primary me-2"></i> Trợ lý AI của nhóm
+{% load static %}
+<div class="p-1">
+    <!-- 🌟 BANNER HIỂN THỊ TRỢ LÝ ĐANG HOẠT ĐỘNG -->
+    <div class="card border-0 shadow-sm rounded-3 p-3 mb-3 bg-light border-start border-4 border-primary">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span class="badge bg-primary mb-1" style="font-size: 0.65rem;">TRỢ LÝ ĐANG HOẠT ĐỘNG 🚀</span>
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-robot text-primary me-1"></i>
+                    {{ group.ai_provider|upper }} :
+                    <span class="text-success">{{ group.ai_model|default:"Chưa thiết lập" }}</span>
+                </h6>
+            </div>
+            <div class="text-end">
+                <span
+                    class="badge bg-{% if group.is_ai_configured %}success{% else %}secondary{% endif %}-subtle text-{% if group.is_ai_configured %}success{% else %}secondary{% endif %} border small">
+                    {% if group.is_ai_configured %}Tùy chỉnh riêng{% else %}Dùng chung hệ thống{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {% if group.is_admin_group %}
+    <div class="alert alert-info small mb-3">
+        <i class="fas fa-shield-alt me-1"></i> Đây là <b>Nhóm Admin hệ thống</b>. Cấu hình AI được quản lý tập trung từ
+        hệ thống gốc.
+    </div>
+    {% else %}
+
+    <!-- 🎛️ KHU VỰC CẤU HÌNH -->
+    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <h6 class="fw-bold text-dark mb-3">
+            <i class="fas fa-sliders-h text-primary me-2"></i> Thiết lập Trợ lý AI
         </h6>
 
-        {% if group.is_admin_group %}
-        <!-- Trường hợp 1: Nhóm Admin dùng cấu hình mặc định từ hệ thống (LLMService) -->
-        <div class="alert alert-info small mb-3">
-            <i class="fas fa-shield-alt me-1"></i> Đây là <b>Nhóm Admin hệ thống</b>. Cấu hình AI được quản lý tập trung
-            từ hệ thống gốc (LLMService).
-        </div>
-        <p class="text-muted small mb-0">Mọi tương tác trong nhóm sẽ tự động áp dụng các model AI chuẩn đã khai báo sẵn
-            trên hệ thống.</p>
-        {% else %}
-        <!-- Trường hợp 2: Nhóm thường, kiểm tra trạng thái cấu hình riêng -->
-        {% if not group.is_ai_configured %}
-        <div class="alert alert-warning small mb-3">
-            <i class="fas fa-exclamation-triangle me-1"></i> <b>Chưa cấu hình AI!</b> Nhóm của bạn cần chọn Provider,
-            Model và nhập API Key riêng để trợ lý hoạt động.
-        </div>
-        {% else %}
-        <div class="alert alert-success small mb-3">
-            <i class="fas fa-check-circle me-1"></i> Nhóm đã thiết lập cấu hình AI riêng thành công.
-        </div>
-        {% endif %}
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-2" id="aiConfigTabs" role="tablist"
+            style="font-size: 0.8rem;">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active py-1 fw-semibold" id="preset-tab" data-bs-toggle="tab"
+                    data-bs-target="#preset-pane" type="button" role="tab">
+                    <i class="fas fa-list-ul me-1"></i> Có sẵn từ hệ thống
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-1 fw-semibold" id="custom-tab" data-bs-toggle="tab"
+                    data-bs-target="#custom-pane" type="button" role="tab">
+                    <i class="fas fa-plus-circle me-1"></i> Tự cấu hình thêm
+                </button>
+            </li>
+        </ul>
 
-        <form id="ai-model-form">
+        <form id="ai-model-form" data-group-id="{{ group.id }}"
+            data-url="{% url 'group_chat:update_ai_config' group.id %}"
+            data-validate-url="{% url 'group_chat:validate_ai_config' group.id %}">
             {% csrf_token %}
-            <div class="mb-3">
-                <label class="form-label small fw-semibold text-secondary">Chọn Provider AI:</label>
-                <select class="form-select form-select-sm mb-2" id="ai-provider" name="ai_provider"
-                    onchange="toggleApiKeyField()">
-                    <option value="gemini" {% if group.is_gemini %}selected{% endif %}>Google Gemini</option>
-                    <option value="groq" {% if group.is_groq %}selected{% endif %}>Groq API</option>
-                    <option value="ollama" {% if group.is_ollama %}selected{% endif %}>Ollama (Local)</option>
-                </select>
+
+            <!-- 📥 Các trường ẩn chứa giá trị thực tế gửi lên Backend -->
+            <input type="hidden" id="ai-provider" name="ai_provider" value="{{ group.ai_provider|default:'gemini' }}">
+            <input type="hidden" id="active-ai-model" name="ai_model" value="{{ group.ai_model|default:'' }}">
+
+            <div class="tab-content" id="aiConfigTabsContent">
+
+                <!-- 📦 PHẦN 1: CHỌN MODEL CÓ SẴN TỪ HỆ THỐNG -->
+                <div class="tab-pane fade show active" id="preset-pane" role="tabpanel">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Chọn nhanh Model chuẩn:</label>
+                        <select class="form-select form-select-sm" id="preset-ai-select">
+                            <option value="">-- Chọn mô hình tối ưu sẵn --</option>
+                            <optgroup label="Google Gemini">
+                                <option value="gemini|gemini-2.0-flash">Gemini 2.0 Flash (Siêu nhanh & Thông minh)
+                                </option>
+                                <option value="gemini|gemini-1.5-pro">Gemini 1.5 Pro (Phân tích tài liệu dài)</option>
+                            </optgroup>
+                            <optgroup label="Groq Cloud">
+                                <option value="groq|llama-3.3-70b-versatile">Llama 3.3 70B (Đỉnh cao mã nguồn & ngôn
+                                    ngữ)</option>
+                                <option value="groq|llama-3.1-8b-instant">Llama 3.1 8B (Tốc độ phản hồi cực tốc)
+                                </option>
+                            </optgroup>
+                            <optgroup label="Ollama (Local)">
+                                <option value="ollama|qwen2.5:7b">Qwen 2.5 7B Local (Bảo mật tuyệt đối nội bộ)</option>
+                            </optgroup>
+                        </select>
+                        <div class="form-text text-muted" style="font-size: 0.7rem;">
+                            * Chọn nhanh các cấu hình tiêu chuẩn đã được hệ thống kiểm duyệt tối ưu.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🛠️ PHẦN 2: TỰ CẤU HÌNH THÊM -->
+                <div class="tab-pane fade" id="custom-pane" role="tabpanel">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Chọn Provider AI:</label>
+                        <select class="form-select form-select-sm mb-2" id="custom-ai-provider-select">
+                            <option value="gemini" {% if group.is_gemini %}selected{% endif %}>Google Gemini (Cloud)
+                            </option>
+                            <option value="groq" {% if group.is_groq %}selected{% endif %}>Groq API (Cloud Fast)
+                            </option>
+                            <option value="ollama" {% if group.is_ollama %}selected{% endif %}>Ollama (Local-First
+                                Privacy)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Tên Model tùy chỉnh:</label>
+                        <input type="text" class="form-control form-control-sm" id="custom-ai-model-input"
+                            value="{{ group.ai_model|default:'' }}" placeholder="VD: qwen2.5:7b hoặc llama-3.3-70b...">
+                        <div class="form-text text-muted" style="font-size: 0.7rem;">
+                            * Nhập đúng tên model thực tế đang có trên hệ thống của bạn.
+                        </div>
+                    </div>
+
+                    <!-- Khung API Key (Ẩn đi nếu là Ollama) -->
+                    <div class="mb-3" id="api-key-container" {% if group.is_ollama %}style="display: none;" {% endif %}>
+                        <label class="form-label small fw-semibold text-secondary">API Key riêng:</label>
+                        <div class="input-group input-group-sm">
+                            <input type="password" class="form-control" id="custom-api-key" name="custom_api_key"
+                                value="{{ group.custom_api_key|default:'' }}"
+                                placeholder="Để trống nếu dùng key hệ thống...">
+                            <button class="btn btn-outline-secondary" type="button" id="toggle-password-btn">
+                                <i class="fas fa-eye" id="toggle-eye-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="mb-3">
-                <label class="form-label small fw-semibold text-secondary">Tên Model:</label>
-                <input type="text" class="form-control form-control-sm" id="active-ai-model" name="ai_model"
-                    value="{{ group.ai_model|default:'' }}" placeholder="VD: gemini-2.0-flash, llama-3.3-70b...">
-            </div>
-
-            <div class="mb-3" id="api-key-container" {% if group.is_ollama %}style="display: none;" {% endif %}>
-                <label class="form-label small fw-semibold text-secondary">API Key riêng:</label>
-                <input type="password" class="form-control form-control-sm" id="custom-api-key" name="custom_api_key"
-                    value="{{ group.custom_api_key|default:'' }}" placeholder="Nhập API Key tương ứng...">
-                <div class="form-text text-muted" style="font-size: 0.7rem;">Khóa API này chỉ dùng riêng cho phạm vi
-                    hoạt động của nhóm.</div>
-            </div>
-
-            <button type="button" onclick="updateGroupAIConfig('{{ group.id }}')" class="btn btn-sm btn-primary w-100">
-                <i class="fas fa-save me-1"></i> Lưu cấu hình AI cho nhóm
+            <!-- Nút hành động tích hợp quy trình Validation trực tiếp -->
+            <button type="button" id="test-validate-ai-btn" class="btn btn-sm btn-primary w-100 py-2 mt-2"
+                style="font-size: 0.8rem;">
+                <i class="fas fa-check-circle me-1"></i> Kiểm tra tính hợp lệ & Lưu 💾
             </button>
         </form>
         {% endif %}
     </div>
 </div>
+
+<!-- Liên kết file xử lý sự kiện Javascript tối ưu theo GitHub Standard -->
+<script src="{% static 'group_chat/js/tab/ai_config_tab.js' %}"></script>

@@ -1,41 +1,53 @@
-<!-- 
-  File: templates/group_chat/partials/_settings_offcanvas.html
-  Mục đích: Chuyển đổi từ Offcanvas drawer sang Panel cố định 4 cột bên phải, giữ nguyên hệ thống Tab con.
--->
+<!-- File: templates/group_chat/partials/_settings_offcanvas.html -->
 <div class="h-100 d-flex flex-column bg-white w-100">
     <!-- Header của Cột Phải -->
     <div class="p-3 bg-light border-bottom">
-        <h6 class="mb-0 fw-bold text-primary">
-            <i class="fas fa-info-circle me-2"></i> Thông tin & Quản trị nhóm
+        <h6 class="mb-0 fw-bold text-dark">
+            <i class="fas fa-info-circle me-2 text-primary"></i> Thông tin & Quản trị nhóm
         </h6>
     </div>
 
-    <!-- Navigation Tabs cho Panel -->
-    <ul class="nav nav-tabs nav-fill bg-white border-bottom flex-shrink-0" id="offcanvasTab" role="tablist">
+    <!-- Navigation Tabs (Sử dụng CSS tùy chỉnh màu đen/xám ở trên) -->
+    <ul class="nav nav-tabs nav-fill flex-shrink-0" id="groupInfoTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active py-2 fw-semibold small px-1" id="members-tab" data-bs-toggle="tab"
-                data-bs-target="#members-pane" type="button" role="tab">
-                <i class="fas fa-users me-1"></i> Thành viên (<span id="member-count">{{ group.members.count }}</span>)
+            <button class="nav-link active py-2 small px-1" id="members-tab" data-bs-toggle="tab"
+                data-bs-target="#members-pane" type="button" role="tab" aria-controls="members-pane"
+                aria-selected="true">
+                <i class="fas fa-users me-1"></i> Thành viên
+                (<span id="member-count">{{group.memberships.count}}</span>)
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link py-2 fw-semibold small px-1" id="ai-config-tab" data-bs-toggle="tab"
-                data-bs-target="#ai-config-pane" type="button" role="tab">
+            <button class="nav-link py-2 small px-1" id="ai-config-tab" data-bs-toggle="tab"
+                data-bs-target="#ai-config-pane" type="button" role="tab" aria-controls="ai-config-pane"
+                aria-selected="false">
                 <i class="fas fa-robot me-1"></i> Model AI
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link py-2 fw-semibold small px-1" id="knowledge-tab" data-bs-toggle="tab"
-                data-bs-target="#knowledge-pane" type="button" role="tab">
+            <button class="nav-link py-2 small px-1" id="knowledge-tab" data-bs-toggle="tab"
+                data-bs-target="#knowledge-pane" type="button" role="tab" aria-controls="knowledge-pane"
+                aria-selected="false">
                 <i class="fas fa-brain me-1"></i> Tri thức
             </button>
         </li>
     </ul>
 
-    <!-- Tab Contents (Giữ nguyên các file include con của bạn) -->
-    <div class="tab-content flex-grow-1 overflow-auto bg-light p-3" id="offcanvasTabContent">
-        {% include "group_chat/partials/tabs/_members_tab.html" %}
-        {% include "group_chat/partials/tabs/_ai_config_tab.html" %}
-        {% include "group_chat/partials/tabs/_knowledge_tab.html" %}
+    <!-- Tab Contents Container -->
+    <div class="tab-content flex-grow-1 overflow-auto bg-light p-3" id="groupInfoTabContent">
+        <!-- Tab 1: Thành viên -->
+        <div class="tab-pane fade show active" id="members-pane" role="tabpanel" aria-labelledby="members-tab">
+            {% include "group_chat/partials/tabs/_members_tab.html" %}
+        </div>
+
+        <!-- Tab 2: Cấu hình AI -->
+        <div class="tab-pane fade" id="ai-config-pane" role="tabpanel" aria-labelledby="ai-config-tab">
+            {% include "group_chat/partials/tabs/_ai_config_tab.html" %}
+        </div>
+
+        <!-- Tab 3: Kho Tri thức -->
+        <div class="tab-pane fade" id="knowledge-pane" role="tabpanel" aria-labelledby="knowledge-tab">
+            {% include "group_chat/partials/tabs/_knowledge_tab.html" %}
+        </div>
     </div>
 </div>

@@ -6,6 +6,11 @@ Description: Engine nội soi mã nguồn (Living Documentation Engine),
              Tích hợp cơ chế Debug Log chi tiết để kiểm soát luồng dữ liệu thời gian thực 
              cùng hệ sinh thái mở (Marker, Docling, LangGraph, LiteLLM, Neo4j, n8n).
 """
+import textwrap
+import logging
+
+# Thiết lập logger cho module arch_manager
+logger = logging.getLogger(__name__)
 
 class ArchitectureIntrospectionEngine:
     """
@@ -16,7 +21,15 @@ class ArchitectureIntrospectionEngine:
     """
 
     @staticmethod
-    def generate_erd():
+    def _clean_mermaid(diagram_str: str) -> str:
+        """Loại bỏ khoảng trắng thừa toàn cục và ký tự ẩn (non-breaking spaces)."""
+        if not isinstance(diagram_str, str):
+            logger.error("Đầu vào không phải là chuỗi.")
+            return ""
+        return textwrap.dedent(diagram_str.replace('\u00a0', ' ')).strip()
+
+    @staticmethod
+    def generate_erd() -> str:
         """
         Sinh sơ đồ ERD (Entity Relationship Diagram) tập trung xoay quanh ChatGroup (Group-Centric).
         Gọi phương thức nội soi động từ SystemBlueprint model đồng thời in log kiểm tra.
@@ -27,96 +40,120 @@ class ArchitectureIntrospectionEngine:
             if erd_content and len(erd_content.strip()) > 15:
                 return erd_content
         except Exception as e:
-            print(f"❌ [DEBUG ERD ERROR]: Không thể quét dynamic ERD từ models: {str(e)}")
+            logger.warning(f"❌ [DEBUG ERD ERROR]: Không thể quét dynamic ERD từ models: {str(e)}")
 
-        fallback_erd = (
-            "erDiagram\n"
-            "    ChatGroup ||--o{ Membership : contains\n"
-            "    ChatGroup ||--o{ Document : stores\n"
-            "    ChatGroup ||--o{ GroupAIProvider : configures\n"
-            "    Document ||--o{ KnowledgeUnit : extracts\n"
-            "    ChatGroup ||--o{ Subscription : has"
-        )
-        return fallback_erd
+        fallback_erd = """
+        erDiagram
+            ChatGroup ||--o{ Membership : contains
+            ChatGroup ||--o{ Document : stores
+            ChatGroup ||--o{ GroupAIProvider : configures
+            Document ||--o{ KnowledgeUnit : extracts
+            ChatGroup ||--o{ Subscription : has
+        """
+        return ArchitectureIntrospectionEngine._clean_mermaid(fallback_erd)
     
     @staticmethod
-    def generate_code_flow():
+    def generate_code_flow() -> str:
         """
         Sinh sơ đồ luồng dữ liệu (Code Flow) từ Upload đến LLM RAG Pipeline, 
         tích hợp các thư viện giảm tải code (Marker/Docling, LangGraph, LiteLLM).
         """
-        code_flow = (
-            "sequenceDiagram\n"
-            "    autonumber\n"
-            "    actor User\n"
-            "    participant n8n as n8n Webhook (Optional)\n"
-            "    participant FP as FileProcessor (Marker/Docling)\n"
-            "    participant VS as ChromaDB / Neo4j (GraphRAG)\n"
-            "    participant Router as Multi-Model Router (LiteLLM)\n"
-            "    participant LG as LangGraph (MoA / State Machine)\n"
-            "\n"
-            "    Note over User, LG: Luồng Ingestion & Tri thức\n"
-            "    alt Upload trực tiếp hoặc qua n8n\n"
-            "        User->>FP: Upload File / Tài liệu nhóm (group_id)\n"
-            "        n8n->>FP: Đồng bộ dữ liệu tự động từ POS/Drive\n"
-            "    end\n"
-            "    FP->>FP: Bóc tách PDF/Bảng biểu sang Markdown\n"
-            "    FP->>VS: Lưu Embeddings (ChromaDB) & Quan hệ (Neo4j)\n"
-            "\n"
-            "    Note over User, LG: Luồng Truy vấn & Phản hồi (RAG & Multi-Agent)\n"
-            "    User->>Router: Gửi câu hỏi qua WebSocket (ChatConsumer)\n"
-            "    Router->>VS: Kiểm tra Semantic Cache (cosine > 0.92)\n"
-            "    alt Cache Miss / Câu hỏi phức tạp\n"
-            "        Router->>LG: Kích hoạt Task Decomposition & MoA Pipeline\n"
-            "        LG->>Router: Tổng hợp dữ liệu phân tầng (Hierarchical Reduce)\n"
-            "    end\n"
-            "    Router->>Router: Kiểm tra Redis Budget & Circuit Breaker (HTTP 429)\n"
-            "    Router-->>User: Trả về kết quả JSON cấu trúc nghiêm ngặt"
-        )
-        return code_flow
+        code_flow = """
+        sequenceDiagram
+            autonumber
+            actor User
+            participant n8n as n8n Webhook (Optional)
+            participant FP as FileProcessor (Marker/Docling)
+            participant VS as ChromaDB / Neo4j (GraphRAG)
+            participant Router as Multi-Model Router (LiteLLM)
+            participant LG as LangGraph (MoA / State Machine)
+
+            Note over User, LG: Luồng Ingestion & Tri thức
+            alt Upload trực tiếp hoặc qua n8n
+                User->>FP: Upload File / Tài liệu nhóm (group_id)
+                n8n->>FP: Đồng bộ dữ liệu tự động từ POS/Drive
+            end
+            FP->>FP: Bóc tách PDF/Bảng biểu sang Markdown
+            FP->>VS: Lưu Embeddings (ChromaDB) & Quan hệ (Neo4j)
+
+            Note over User, LG: Luồng Truy vấn & Phản hồi (RAG & Multi-Agent)
+            User->>Router: Gửi câu hỏi qua WebSocket (ChatConsumer)
+            Router->>VS: Kiểm tra Semantic Cache (cosine > 0.92)
+            alt Cache Miss / Câu hỏi phức tạp
+                Router->>LG: Kích hoạt Task Decomposition & MoA Pipeline
+                LG->>Router: Tổng hợp dữ liệu phân tầng (Hierarchical Reduce)
+            end
+            Router->>Router: Kiểm tra Redis Budget & Circuit Breaker (HTTP 429)
+            Router-->>User: Trả về kết quả JSON cấu trúc nghiêm ngặt
+        """
+        return ArchitectureIntrospectionEngine._clean_mermaid(code_flow)
 
     @staticmethod
-    def generate_state_machine():
+    def generate_state_machine() -> str:
         """
         Sinh sơ đồ trạng thái (Knowledge Lifecycle State Machine) cho KnowledgeUnit.
         """
-        state_machine = (
-            "stateDiagram-v2\n"
-            "    [*] --> Pending : Extracted via Marker/Docling from Doc/Chat\n"
-            "    Pending --> Approved : User Review & Approval\n"
-            "    Approved --> VectorDB : Auto Index to ChromaDB / Neo4j\n"
-            "    Approved --> Rollback : Delete Embedding via Signals"
-        )
-        return state_machine
+        state_machine = """
+        stateDiagram-v2
+            [*] --> Pending : Extracted via Marker/Docling from Doc/Chat
+            Pending --> Approved : User Review & Approval
+            Approved --> VectorDB : Auto Index to ChromaDB / Neo4j
+            Approved --> Rollback : Delete Embedding via Signals
+        """
+        return ArchitectureIntrospectionEngine._clean_mermaid(state_machine)
 
     @staticmethod
-    def generate_component_diagram():
+    def generate_component_diagram() -> str:
+        """Sinh sơ đồ kiến trúc phân hệ theo mô hình Modular Monolith."""
+        comp_diag = """
+        graph TD
+            subgraph External_Ecosystem [Hệ sinh thái mở]
+                n8n[n8n Workflow] --> CoreSys[apps.core]
+                Marker[Marker / Docling] --> AIAssist[apps.ai_assistant]
+                Neo4j[(Neo4j DB)] -.-> AIAssist
+            end
+
+            subgraph VnxChatBot_Monolith [Kiến trúc Modular Monolith]
+                CoreSys[apps.core] --> GroupChat[apps.group_chat]
+                GroupChat --> AIAssist[apps.ai_assistant]
+                AIAssist --> ArchManager[apps.arch_manager]
+            end
+
+            style External_Ecosystem fill:#f9f,stroke:#333,stroke-width:2px
+            style VnxChatBot_Monolith fill:#bbf,stroke:#333,stroke-width:2px
         """
-        Sinh sơ đồ kiến trúc phân hệ theo mô hình Modular Monolith của VnxChatBot,
-        tích hợp các thành phần hệ sinh thái mở (n8n, Neo4j, LangGraph, LiteLLM).
+        return ArchitectureIntrospectionEngine._clean_mermaid(comp_diag)
+
+    @staticmethod
+    def generate_knowledge_pipeline_flow() -> str:
+        """Sinh sơ đồ Mermaid biểu diễn luồng xử lý tài liệu và phê duyệt tri thức."""
+        raw_flow = """
+        graph TD
+            A[User / Admin Upload File] --> B[Document Model Created]
+            B --> C[Celery Task: process_document_task]
+            C --> D[AI_Engine.extract_and_score]
+            D --> E[KnowledgeUnit Created: status = pending]
+            E --> F[Admin Review]
+            F -->|Approve| G[KnowledgeUnit.status = approved]
+            F -->|Reject / Delete| H[Cleanup Vector DB]
+            G --> I[Sync to Vector DB: ChromaDB]
+            
+            style A fill:#f9f,stroke:#333,stroke-width:2px
+            style E fill:#ff9,stroke:#333,stroke-width:2px
+            style G fill:#9f9,stroke:#333,stroke-width:2px
+            style I fill:#bbf,stroke:#333,stroke-width:2px
         """
-        comp_diag = (
-            "graph TD\n"
-            "    subgraph External_Ecosystem [Hệ sinh thái mở & Giảm tải]\n"
-            "        n8n[n8n Workflow Automation] -->|Webhook| Core\n"
-            "        Marker[Marker / Docling] -->|Bóc tách File| AIAssistant\n"
-            "        Neo4j[(Neo4j Graph DB)] -.->|GraphRAG| AIAssistant\n"
-            "    end\n"
-            "\n"
-            "    subgraph VnxChatBot_Monolith [Kiến trúc Modular Monolith]\n"
-            "        Core[apps.core<br/>User & Profile] --> GroupChat[apps.group_chat<br/>Chat & Membership]\n"
-            "        GroupChat --> AIAssistant[apps.ai_assistant<br/>RAG & AIFactory]\n"
-            "        AIAssistant --> ArchManager[apps.arch_manager<br/>Living Documentation]\n"
-            "        GroupChat --> Subscriptions[apps.subscriptions<br/>Gói cước & Giới hạn]\n"
-            "    end\n"
-            "\n"
-            "    subgraph Orchestration_Layer [Điều phối AI]\n"
-            "        LiteLLM[LiteLLM Router] -->|Chuẩn hóa API| AIAssistant\n"
-            "        LangGraph[LangGraph State Machine] -->|Điều phối MoA| AIAssistant\n"
-            "    end\n"
-            "\n"
-            "    style External_Ecosystem fill:#f9f,stroke:#333,stroke-width:2px\n"
-            "    style VnxChatBot_Monolith fill:#bbf,stroke:#333,stroke-width:2px\n"
-            "    style Orchestration_Layer fill:#bfb,stroke:#333,stroke-width:2px"
-        )
-        return comp_diag
+        return ArchitectureIntrospectionEngine._clean_mermaid(raw_flow)
+
+    @staticmethod
+    def generate_ai_extraction_pipeline() -> str:
+        """Tạo sơ đồ luồng (Pipeline) cho quá trình trích xuất dữ liệu AI."""
+        raw_pipeline = """
+        graph TD
+            A[User Uploads File] --> B[Document Created]
+            B --> C[AI Extraction]
+            
+            style A fill:#f9f,stroke:#333,stroke-width:2px
+            style C fill:#ccf,stroke:#333,stroke-width:2px
+        """
+        return ArchitectureIntrospectionEngine._clean_mermaid(raw_pipeline)

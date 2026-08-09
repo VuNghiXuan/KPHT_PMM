@@ -65,6 +65,7 @@ class ChatReactions {
 
     /**
      * Chuyển đổi tin nhắn thành Tri thức nhóm (KnowledgeUnit).
+     * Cập nhật trực tiếp số lượng badge chờ duyệt trên UI mà không cần tải lại trang.
      */
     static promoteToKnowledge(messageId) {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
@@ -78,10 +79,24 @@ class ChatReactions {
         })
             .then(res => res.json())
             .then(data => {
-                alert(data.message || "Đã gửi yêu cầu cập nhật tri thức vào kho học tập nhóm!");
-                console.log(`[KnowledgeLifecycle] 🧠 Tin nhắn ${messageId} đã được đưa vào hàng đợi phê duyệt (Pending).`);
+                if (data.status === 'success') {
+                    alert(data.message || "🧠 Đã đưa tin nhắn vào hàng đợi phê duyệt (Pending) thành công!");
+                    console.log(`[KnowledgeLifecycle] 🧠 Tin nhắn ${messageId} đã được đưa vào hàng đợi phê duyệt.`);
+
+                    // 🚀 Cập nhật giao diện tự động: Tăng số lượng badge "Chờ duyệt" thêm 1
+                    const unapprovedBadge = document.getElementById('unapproved-count');
+                    if (unapprovedBadge) {
+                        let currentCount = parseInt(unapprovedBadge.innerText) || 0;
+                        unapprovedBadge.innerText = currentCount + 1;
+                    }
+                } else {
+                    alert("⚠️ " + (data.message || "Không thể thực hiện hành động này."));
+                }
             })
-            .catch(err => console.error('❌ Lỗi Promote Knowledge:', err));
+            .catch(err => {
+                console.error('❌ Lỗi Promote Knowledge:', err);
+                alert('❌ Lỗi kết nối hoặc xử lý hệ thống.');
+            });
     }
 }
 
