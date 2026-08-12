@@ -13,6 +13,8 @@ Google:
 	6. Test trang QC: https://qc.giaiphapvang.net/
 		TK: gdncccn1@gmail.com ------role Giao dịch NCC
 		TK: khocn1@gmail.com   ------role quản lý kho
+			vukho@gmail.com  ------ Demo@123
+
 		TK: qlcn1@gmail.com   ------role quản lý
 		TK: vnx@gmail.com   ------ Vu123456#
 		TK: Vu_ThuChi@gmail.com   ------ Demo@123
