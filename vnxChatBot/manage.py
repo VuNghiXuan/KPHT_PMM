@@ -2,11 +2,23 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import codecs
+import asyncio
 
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 def main():
     """Run administrative tasks."""
+    # 🌟 Trỏ đúng vào package thư mục settings mới của chúng ta
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    
+    # Hỗ trợ hiển thị tiếng Việt trên Terminal của Windows/Linux
+    if sys.stdout.encoding.lower() != 'utf-8':
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    if sys.stderr.encoding.lower() != 'utf-8':
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -25,6 +37,9 @@ if __name__ == '__main__':
 # uvicorn config.asgi:application --reload --reload-dir apps --reload-dir config --host 127.0.0.1 --port 8000
 # Get-Content -Path .\debug_vnx.log -Tail 20 -Wait
 # Xoá taonf bộ cache:for /d /r . %d in (__pycache__) do @if exist "%d" rd /s /q "%d"
+
+
+# Chạy dự án thay cho các cách trên: python manage.py run_system
 
 "Buộc test cả 2 cách này"
 # python manage.py run_all_tests

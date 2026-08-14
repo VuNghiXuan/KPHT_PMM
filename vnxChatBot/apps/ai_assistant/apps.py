@@ -30,3 +30,6 @@ class AiAssistantConfig(AppConfig):
             msg = "[HE THONG - VnxChatBot]: Ket noi Redis thanh cong va san sang phuc vu RAG/WebSocket."
             logger.info(msg)
             print("\n" + "="*80 + f"\n[OK] {msg}\n" + "="*80 + "\n")
+
+        from .services.pipeline_manager import PipelineManager
+        PipelineManager.configure_environment()

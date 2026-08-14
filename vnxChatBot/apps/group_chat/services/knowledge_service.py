@@ -5,10 +5,12 @@ Mục đích: Cung cấp các phương thức xử lý nghiệp vụ cho vòng �
 Tác giả: Kỹ sư phần mềm cao cấp - vnxChatBot
 Module liên kết: apps.group_chat.models, apps.ai_assistant.rag_engine
 """
-
+import os
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from apps.group_chat.models import Message, KnowledgeUnit, ChatGroup, Document
 from django.utils import timezone
+from apps.ai_assistant.engine import AI_Engine
 
     
 
@@ -59,19 +61,12 @@ class KnowledgeService:
             "knowledge_id": knowledge_unit.id
         }
 
+
     @staticmethod
     def update_knowledge_status(knowledge_id, new_status, user):
         """
         Cập nhật trạng thái phê duyệt của đơn vị kiến thức (Approved/Rollback).
         Kích hoạt đồng bộ hóa dữ liệu sang Vector Store nếu được duyệt.
-
-        Args:
-            knowledge_id (int|str): ID của đơn vị kiến thức.
-            new_status (str): Trạng thái mới ('approved', 'pending', 'rollback').
-            user (User): Người thực hiện thao tác duyệt.
-
-        Returns:
-            dict: Kết quả thực thi.
         """
         knowledge_unit = get_object_or_404(KnowledgeUnit, id=knowledge_id)
         
@@ -79,22 +74,18 @@ class KnowledgeService:
         knowledge_unit.status = new_status
         knowledge_unit.save()
 
-        # [Logic RAG & VectorStore Integration]:
-        # Nếu trạng thái là 'approved', tín hiệu (Signals) hoặc pipeline sẽ tự động đẩy vector embedding.
-        # Nếu là 'rollback', hệ thống sẽ tự động xóa vector tương ứng khỏi Vector DB.
-
         return {
             "status": "success",
             "message": f"Đã cập nhật trạng thái tri thức thành '{new_status}' thành công."
         }
 
+    
     @staticmethod
     def synthesize_from_chat_group(chat_group, batch_size=20):
         """
-        Phương thức: synthesize_from_chat_group
-        Mô tả: Lấy các tin nhắn chưa học (is_learned=False), tổng hợp và tạo KnowledgeUnit ở trạng thái pending.
+        Lấy các tin nhắn chưa học (is_learned=False), sử dụng AI_Engine tổng hợp 
+        và tạo KnowledgeUnit ở trạng thái 'pending'.
         """
-        # 1. Lọc các tin nhắn chưa học trong nhóm chat
         unlearned_messages = Message.objects.filter(
             group=chat_group, 
             is_learned=False
@@ -103,31 +94,86 @@ class KnowledgeService:
         if not unlearned_messages.exists():
             return None
 
-        # Tổng hợp nội dung hội thoại
         conversation_text = "\n".join([
             f"- {msg.sender_username}: {msg.content}" for msg in unlearned_messages
         ])
 
-        # 2. Khởi tạo Document nguồn tự động
+        # Tạo file tạm thời chứa nội dung hội thoại để tương thích với signature extract_and_score(file_path)
+        temp_dir = os.path.join(settings.MEDIA_ROOT, 'documents', 'temp')
+        os.makedirs(temp_dir, exist_ok=True)
+        file_name = f"group_learning_{chat_group.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        file_relative_path = os.path.join('documents', 'temp', file_name)
+        absolute_file_path = os.path.join(settings.MEDIA_ROOT, file_relative_path)
+
+        with open(absolute_file_path, 'w', encoding='utf-8') as f:
+            f.write(conversation_text)
+
+        try:
+            # Gọi AI_Engine với đúng tham số file_path và group
+            extracted_data, confidence = AI_Engine.extract_and_score(
+                file_path=absolute_file_path,
+                group=chat_group
+            )
+        finally:
+            # Dọn dẹp tệp tạm sau khi xử lý xong
+            if os.path.exists(absolute_file_path):
+                try:
+                    os.remove(absolute_file_path)
+                except Exception:
+                    pass
+
         doc = Document.objects.create(
             group=chat_group,
-            file=f"documents/group_learning_{timezone.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            file=file_relative_path,
             upload_type='auto'
         )
 
-        # 3. Tạo KnowledgeUnit ở trạng thái 'pending' (Đảm bảo tuân thủ Quy tắc Vàng)[cite: 1]
         knowledge_unit = KnowledgeUnit.objects.create(
             document=doc,
             group=chat_group,
-            entity_name=f"Tổng hợp hội thoại nhóm {chat_group.name}",
+            entity_name=extracted_data.get("context_tag", f"Hội thoại nhóm {chat_group.name}"),
             context_tag="Group Learning Loop",
             source_reference=f"ChatGroup ID: {chat_group.id}",
-            content=f"Đúc kết từ hội thoại nhóm:\n{conversation_text}",
+            content=extracted_data.get("content", conversation_text),
             status='pending'
         )
 
-        # 4. Đánh dấu tin nhắn đã học để tránh lặp
         message_ids = [msg.id for msg in unlearned_messages]
         Message.objects.filter(id__in=message_ids).update(is_learned=True)
 
         return knowledge_unit
+    
+    @staticmethod
+    def get_pending_chapters(group_id):
+        """
+        Lấy danh sách các chương mục tri thức (KnowledgeChapter) đang ở trạng thái chờ duyệt ('pending')
+        hoặc đang phân tích ('staging') của một nhóm cụ thể.
+        
+        Args:
+            group_id (int|str): ID của ChatGroup cần lấy dữ liệu.
+            
+        Returns:
+            QuerySet: Danh sách các KnowledgeChapter thỏa mãn điều kiện.
+        """
+        from apps.group_chat.models import KnowledgeChapter
+        return KnowledgeChapter.objects.filter(
+            group_id=group_id,
+            status__in=['pending', 'staging']
+        ).order_by('-created_at')
+
+    @staticmethod
+    def update_chapter_status(chapter_id, new_status, user):
+        """
+        Cập nhật trạng thái phê duyệt cho KnowledgeChapter an toàn.
+        """
+        from apps.group_chat.models import KnowledgeChapter
+        
+        chapter = get_object_or_404(KnowledgeChapter, id=chapter_id)
+        chapter.status = new_status
+        chapter.save()  # Kích hoạt Django Signals xử lý đồng bộ Vector DB khi approved
+        
+        return {
+            "status": "success",
+            "message": f"Đã cập nhật trạng thái chương mục [{chapter.title}] thành '{new_status}' thành công.",
+            "chapter_id": chapter.id
+        }

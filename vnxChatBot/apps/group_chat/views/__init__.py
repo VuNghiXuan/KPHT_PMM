@@ -1,4 +1,4 @@
-# File: apps/group_chat/views/__init__.py
+# -*- coding: utf-8 -*-
 """
 Mục đích: Gom và export lại toàn bộ view của phân hệ group_chat để urls.py gọi bình thường.
 """
@@ -7,13 +7,18 @@ from .chat_views import (
     create_group,
     group_chat_detail,
 )
-from .knowledge_views import (
+from .knowledge_document_views import (
     upload_document,
+    trigger_ai_learn_document_view,
+)
+from .knowledge_lifecycle_views import (
     knowledge_management,
     knowledge_action_view,
-    trigger_ai_learn_document_view,
     promote_knowledge_view,
     rollback_knowledge,
+    knowledge_chapter_list_view,
+    approve_reject_chapter_view,
+    knowledge_dashboard_view
 )
 from .feedback_views import (
     knowledge_feedback_view,

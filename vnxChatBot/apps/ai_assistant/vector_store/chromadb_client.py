@@ -1,7 +1,7 @@
 """
 File: apps/ai_assistant/vector_store/chromadb_client.py
 Mục đích: Cung cấp lớp giao tiếp với ChromaDB để quản lý Vector Embedding cho hệ thống RAG, 
-          hỗ trợ phân tách dữ liệu theo nhóm (Group-Centric) và Vòng đời tri thức (Knowledge Lifecycle).
+         hỗ trợ phân tách dữ liệu theo nhóm (Group-Centric) và Vòng đời tri thức (Knowledge Lifecycle).
 Tác giả: Kỹ sư kiến trúc vnxChatBot
 Module liên kết: apps.ai_assistant, django.conf
 """
@@ -129,25 +129,58 @@ class ChromaDBClient:
     def delete_unit_embeddings(self, unit_id, group_id=None):
         """
         Xóa các vector embedding liên quan đến một KnowledgeUnit cụ thể trong ChromaDB,
-        sử dụng toán tử $and chuẩn để tránh lỗi cú pháp bộ lọc điều kiện kết hợp.
+        sử dụng kiểu chuỗi đồng nhất cho metadata filter để tránh lệch kiểu dữ liệu.
         """
         try:
             if group_id is not None:
                 where_filter = {
                     "$and": [
-                        {"unit_id": int(unit_id)},
-                        {"group_id": int(group_id)}
+                        {"unit_id": str(unit_id)},
+                        {"group_id": str(group_id)}
                     ]
                 }
             else:
-                where_filter = {"unit_id": int(unit_id)}
+                where_filter = {"unit_id": str(unit_id)}
 
             self.collection.delete(where=where_filter)
-            print(f"🗑️ [ChromaDB] Đã xóa embeddings cho Unit ID: {unit_id} (Group ID: {group_id})")
+            logger.info(f"🗑️ [ChromaDB] Đã xóa embeddings cho Unit ID: {unit_id} (Group ID: {group_id})")
             return True
         except Exception as e:
-            print(f"⚠️ [ChromaDB Warning] Không thể xóa embeddings cho Unit ID {unit_id}: {str(e)}")
+            logger.error(f"⚠️ [ChromaDB Warning] Không thể xóa embeddings cho Unit ID {unit_id}: {str(e)}")
             return False
+
+    @staticmethod
+    def add_texts(texts, metadatas=None, ids=None, group_id=None, **kwargs):
+        """
+        Phương thức tương thích ngược cho các service gọi hàm add_texts truyền thống.
+        Tự động chuyển hướng gọi tới cơ chế upsert_embedding của ChromaDBClient.
+        """
+        try:
+            client = ChromaDBClient()
+            if not texts:
+                return []
+            
+            # Nếu truyền vào danh sách texts và metadatas
+            results_ids = []
+            for i, text in enumerate(texts):
+                meta = metadatas[i] if metadatas and i < len(metadatas) else {}
+                doc_id = meta.get('doc_id')
+                unit_id = meta.get('unit_id')
+                g_id = meta.get('group_id') or group_id
+                
+                # Gọi upsert_embedding có sẵn
+                client.upsert_embedding(group_id=g_id, text=text, doc_id=doc_id, unit_id=unit_id)
+                
+                if ids and i < len(ids):
+                    results_ids.append(ids[i])
+                else:
+                    results_ids.append(f"text_{i}")
+                    
+            logger.info(f"✅ [ChromaDB] Đã xử lý add_texts thành công với {len(texts)} văn bản.")
+            return results_ids
+        except Exception as e:
+            logger.error(f"❌ [ChromaDB] Lỗi trong add_texts: {str(e)}", exc_info=True)
+            raise e
         
 # KHỞI TẠO INSTANCE TOÀN CỤC CHUẨN XÁC
 VectorDBManager = ChromaDBClient()

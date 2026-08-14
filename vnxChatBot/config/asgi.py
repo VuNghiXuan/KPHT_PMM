@@ -4,6 +4,11 @@ WSGI/ASGI config for config project.
 """
 
 import os
+import sys
+import asyncio
+
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 # 1. Thiết lập biến môi trường trỏ đến settings trước tiên
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')

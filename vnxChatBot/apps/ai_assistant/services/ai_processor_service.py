@@ -71,6 +71,22 @@ class AIProcessorService:
             return False
 
     @staticmethod
+    def enqueue_document_processing(unit_id):
+        """
+        🚀 Đẩy tác vụ xử lý tài liệu nặng vào hàng đợi Celery (Luồng P1 Background),
+        giúp giữ cho luồng HTTP Request luôn mượt mà và không bị nghẽn.
+        """
+        try:
+            from apps.ai_assistant.tasks import process_document_task
+            # Gọi .delay() để đưa task vào Redis/Celery queue
+            process_document_task.delay(unit_id)
+            logger.info(f"📤 [AI Service] Đã đưa KnowledgeUnit ID {unit_id} vào hàng đợi Celery thành công.")
+            return True
+        except Exception as e:
+            logger.error(f"❌ [AI Service Error] Không thể enqueue task cho KnowledgeUnit {unit_id}: {str(e)}")
+            return False
+
+    @staticmethod
     def sync_unit_to_vector(knowledge_unit):
         """Đẩy dữ liệu vào Vector DB thông qua DocumentProcessorService để đồng nhất luồng index."""
         DocumentProcessorService.commit_to_vector_db(knowledge_unit)
@@ -96,3 +112,22 @@ class AIProcessorService:
             return True
         except KnowledgeUnit.DoesNotExist:
             return False
+
+    @staticmethod
+    def sync_chapter_to_vector_async(chapter_id):
+        """
+        Đồng bộ KnowledgeChapter vào Vector DB khi được duyệt (approved).
+        Có thể cấu hình chạy nền qua Celery task hoặc thực thi trực tiếp qua DocumentProcessorService.
+        """
+        try:
+            from apps.group_chat.models import KnowledgeChapter
+            chapter = KnowledgeChapter.objects.select_related('group').get(id=chapter_id)
+            if chapter.status == 'approved':
+                # Sử dụng DocumentProcessorService để commit chapter vào Vector DB
+                DocumentProcessorService.commit_chapter_to_vector_db(chapter)
+                logger.info(f"Successfully synced KnowledgeChapter {chapter_id} to Vector DB.")
+                return True
+        except Exception as e:
+            logger.error(f"Error syncing KnowledgeChapter {chapter_id} to vector: {str(e)}")
+            return False
+        return False

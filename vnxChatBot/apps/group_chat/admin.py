@@ -1,12 +1,12 @@
 """
 File: apps/group_chat/admin.py
 Mục đích: Cấu hình giao diện quản trị Django Admin cho các thực thể thuộc phân hệ Group-Centric 
-          bao gồm ChatGroup, Membership, Document, KnowledgeUnit và Message.
+          bao gồm ChatGroup, Membership, Document, KnowledgeUnit, KnowledgeChapter và Message.
 Tác giả: Kiến trúc sư VnxChatBot
 Module liên kết: apps.group_chat.models
 """
 from django.contrib import admin
-from .models import ChatGroup, Membership, Document, KnowledgeUnit, Message
+from .models import ChatGroup, Membership, Document, KnowledgeUnit, KnowledgeChapter, Message
 
 @admin.register(ChatGroup)
 class ChatGroupAdmin(admin.ModelAdmin):
@@ -49,6 +49,18 @@ class KnowledgeUnitAdmin(admin.ModelAdmin):
     list_filter = ('status', 'group')
     list_editable = ('status',)
     search_fields = ('entity_name', 'context_tag', 'content')
+
+@admin.register(KnowledgeChapter)
+class KnowledgeChapterAdmin(admin.ModelAdmin):
+    """
+    Class: KnowledgeChapterAdmin
+    Description: Quản lý phân cấp chương tri thức theo nhóm, kiểm soát vòng đời và trạng thái mâu thuẫn (conflict detection).
+    """
+    list_display = ('title', 'group_id', 'parent', 'status', 'has_conflict', 'version')
+    list_filter = ('status', 'has_conflict')
+    list_editable = ('status', 'has_conflict')
+    search_fields = ('title', 'summary')
+    readonly_fields = ('version',)
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):

@@ -141,6 +141,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
+VECTOR_DB_ENGINE = "chroma"  # Có thể đổi thành "qdrant" hoặc "pgvector" sau này
 
 DATABASES = {
     'default': {

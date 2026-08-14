@@ -5,7 +5,7 @@ Author: Senior Software Engineer & Architecture Lead
 Description: 
     Kiểm thử tích hợp tự động cho luồng:
     1. Kết nối WebSocket bảo mật theo nhóm (Tenant Isolation).
-    2. Gửi tin nhắn qua WebSocket và kích hoạt RAGEngine phản hồi.
+    2. Gửi tin nhắn qua WebSocket và kích hoạt AIEngineService phản hồi.
     3. Thực hiện thao tác Feedback Loop (Like/Dislike) qua API endpoint.
 """
 
@@ -43,13 +43,18 @@ class WebSocketRAGAndFeedbackTestCase(ChannelsLiveServerTestCase):
             role='member'
         )
 
-    @patch('apps.ai_assistant.services.rag_engine.RAGEngine.query')
-    async def test_websocket_rag_and_feedback_flow(self, mock_rag_query):
+    @patch('apps.ai_assistant.services.ai_engine.AIEngineService.query_vector_async')
+    async def test_websocket_rag_and_feedback_flow(self, mock_query_vector_async):
         """
         Test Case: Kiểm tra luồng gửi tin nhắn qua WS -> Nhận RAG Response -> Gửi Feedback[cite: 1].
         """
-        # Giả lập kết quả trả về từ RAGEngine
-        mock_rag_query.return_value = "Đây là câu trả lời thông minh được trích xuất từ VectorStore của nhóm."
+        # Giả lập kết quả trả về từ AIEngineService.query_vector_async
+        mock_query_vector_async.return_value = [
+            {
+                'content': "Đây là câu trả lời thông minh được trích xuất từ VectorStore của nhóm.",
+                'metadata': {'group_id': str(self.group.id), 'chapter_id': 1}
+            }
+        ]
 
         from channels.testing import WebsocketCommunicator
         from config.asgi import application
@@ -68,30 +73,30 @@ class WebSocketRAGAndFeedbackTestCase(ChannelsLiveServerTestCase):
                 "message": "Hướng dẫn sử dụng hệ thống RAG?"
             })
 
-            # 📥 Lắng nghe gói tin từ WebSocket Server (Dùng asyncio.wait_for để tránh treo luồng test trên Windows)
+            # 📥 Lắng nghe gói tin từ WebSocket Server
             try:
                 async with asyncio.timeout(10):
                     while True:
                         response_data = await communicator.receive_json_from()
                         if response_data.get('is_ai'):
                             ai_message_id = response_data.get('message_id')
-                            self.assertEqual(
-                                response_data['content'], 
-                                "Đây là câu trả lời thông minh được trích xuất từ VectorStore của nhóm."
+                            self.assertIn(
+                                "Đây là câu trả lời thông minh",
+                                response_data['content']
                             )
                             break
             except asyncio.TimeoutError:
-                pass  # Nếu timeout qua kênh WS, chuyển sang dự phòng fallback qua DB
+                pass  
 
         finally:
-            # Ngắt kết nối an toàn với việc cô lập CancelledError tránh crash tiến trình test trên Windows
+            # Ngắt kết nối an toàn
             try:
                 await asyncio.wait_for(communicator.disconnect(), timeout=2.0)
             except (asyncio.TimeoutError, asyncio.CancelledError):
                 if hasattr(communicator, 'future') and not communicator.future.done():
                     communicator.future.cancel()
 
-        # Dự phòng fallback an toàn: Sử dụng đúng sender là ai_membership theo chuẩn mô hình Message
+        # Dự phòng fallback an toàn
         if not ai_message_id:
             ai_msg = await database_sync_to_async(Message.objects.create)(
                 group=self.group,

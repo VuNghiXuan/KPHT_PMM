@@ -110,7 +110,7 @@ class DocumentProcessorService:
     def commit_to_vector_db(knowledge_unit):
         """
         Được gọi tự động qua Django Signal khi KnowledgeUnit chuyển từ 'pending' sang 'approved'.
-        Đảm bảo cô lập tuyệt đối theo group_id[cite: 1].
+        Đảm bảo cô lập tuyệt đối theo group_id.
         """
         if knowledge_unit.status != 'approved':
             return False
@@ -122,11 +122,22 @@ class DocumentProcessorService:
 
             vector_manager = VectorDBManager()
             
-            # Xóa các embedding cũ và thêm mới, bắt buộc gắn group_id để cô lập dữ liệu nhóm[cite: 1]
+            # Xóa các embedding cũ trước khi thêm mới
             vector_manager.delete_unit_embeddings(unit_id=knowledge_unit.id, group_id=knowledge_unit.group_id)
+            
+            # 🌟 Tạo danh sách metadata khớp 1-1 với từng chunk để tránh mất identifier
+            chunks_metadatas = [
+                {
+                    "unit_id": str(knowledge_unit.id),
+                    "group_id": str(knowledge_unit.group_id),
+                    "chunk_index": i
+                }
+                for i in range(len(chunks))
+            ]
+
             vector_manager.add_texts(
                 texts=chunks, 
-                metadata={"unit_id": knowledge_unit.id, "group_id": knowledge_unit.group_id},
+                metadatas=chunks_metadatas,
                 group_id=knowledge_unit.group_id
             )
 

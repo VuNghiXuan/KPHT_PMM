@@ -7,8 +7,12 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import re
+from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from django.db.models import F
+from django.contrib.postgres.fields import JSONField # Hoặc models.JSONField
+
 
 User = get_user_model()
 
@@ -34,22 +38,42 @@ class ChatGroup(models.Model):
         return f"{self.name} ({self.plan_type})"
     
 
-    # ➕ THÊM CÁC THUỘC TÍNH NÀY ĐỂ DÙNG TRONG TEMPLATE TUYỆT ĐỐI AN TOÀN
-    # 🔗 Ủy quyền dữ liệu thông qua quan hệ OneToOneField 'ai_config'
+    # 🔗 Ủy quyền dữ liệu thông qua quan hệ OneToOneField 'ai_config' (GroupAIProvider)
     @property
     def ai_provider(self):
         config = getattr(self, 'ai_config', None)
         return config.provider if config else 'gemini'
+
+    @ai_provider.setter
+    def ai_provider(self, value):
+        from apps.ai_assistant.models import GroupAIProvider
+        config, created = GroupAIProvider.objects.get_or_create(group=self)
+        config.provider = value
+        config.save()
 
     @property
     def ai_model(self):
         config = getattr(self, 'ai_config', None)
         return config.model_name if config else 'gemini-2.0-flash'
 
+    @ai_model.setter
+    def ai_model(self, value):
+        from apps.ai_assistant.models import GroupAIProvider
+        config, created = GroupAIProvider.objects.get_or_create(group=self)
+        config.model_name = value
+        config.save()
+
     @property
     def custom_api_key(self):
         config = getattr(self, 'ai_config', None)
         return config.api_key if config else ''
+
+    @custom_api_key.setter
+    def custom_api_key(self, value):
+        from apps.ai_assistant.models import GroupAIProvider
+        config, created = GroupAIProvider.objects.get_or_create(group=self)
+        config.api_key = value
+        config.save()
 
     @property
     def is_gemini(self):
@@ -70,6 +94,8 @@ class ChatGroup(models.Model):
     @property
     def approved_knowledge_count(self):
         return self.knowledge_units.filter(status='approved').count()
+
+    
 
 class Membership(models.Model):
     """
@@ -121,28 +147,87 @@ class Document(models.Model):
         return self.original_filename or self.file.name.split('/')[-1]
     
 
+from django.db import models
+from django.contrib.postgres.fields import JSONField # Hoặc models.JSONField nếu dùng Django 3.0+
+
 class KnowledgeUnit(models.Model):
     """
-    Đơn vị kiến thức (RAG Source).
+    Đơn vị kiến thức (RAG Source) với cơ chế quản lý vòng đời chặt chẽ.
     """
-    STATUS_CHOICES = [('pending', 'Chờ duyệt'), ('approved', 'Đã duyệt'), ('rollback', 'Đã hủy')]
+    STATUS_CHOICES = [
+        ('pending', 'Chờ duyệt'), 
+        ('staging', 'Đang phân tích/Xử lý mâu thuẫn'), # Mới: Trạng thái trung gian AI
+        ('approved', 'Đã duyệt'), 
+        ('rollback', 'Đã hủy')
+    ]
+
+    document = models.ForeignKey('Document', on_delete=models.CASCADE, related_name="knowledge_units", verbose_name="Tài liệu gốc")
+    group = models.ForeignKey('ChatGroup', on_delete=models.CASCADE, related_name="knowledge_units", verbose_name="Nhóm")
     
-    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="knowledge_units", verbose_name="Tài liệu gốc")
-    group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE, related_name="knowledge_units", verbose_name="Nhóm")
+    # Định danh & Gắn nhãn tự động
     entity_name = models.CharField(max_length=100, verbose_name="Tên thực thể", help_text="VD: Vàng 610")
     context_tag = models.CharField(max_length=100, verbose_name="Ngữ cảnh", help_text="VD: Giao dịch")
     source_reference = models.CharField(max_length=255, verbose_name="Nguồn tham chiếu")
+    
+    # Nội dung & Phân cấp (Phục vụ mục lục tự động)
     content = models.TextField(verbose_name="Nội dung kiến thức")
+    raw_structure_json = models.JSONField(null=True, blank=True, verbose_name="Cây mục lục gợi ý", help_text="Cấu trúc phân cấp do AI_Engine tạo")
+    
+    # Đánh giá & Kiểm soát chất lượng
+    confidence_score = models.FloatField(default=0.0, verbose_name="Điểm tin cậy (0.0-1.0)")
+    is_conflict = models.BooleanField(default=False, verbose_name="Phát hiện mâu thuẫn")
+    conflict_report = models.JSONField(null=True, blank=True, verbose_name="Chi tiết mâu thuẫn")
+    
+    # Vòng đời & Quản lý
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Trạng thái duyệt")
     version = models.IntegerField(default=1, verbose_name="Phiên bản")
     approved_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian duyệt")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Đơn vị kiến thức"
         verbose_name_plural = "Đơn vị kiến thức"
+        # Bắt buộc index cho performance query theo group_id
+        indexes = [
+            models.Index(fields=['group', 'status']),
+            models.Index(fields=['entity_name']),
+        ]
+
+    def __str__(self):
+        return f"{self.entity_name} - v{self.version} ({self.status})"
 
 
+class KnowledgeChapter(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('staging', 'Staging'),
+        ('approved', 'Approved'),
+    ]
 
+    group_id = models.UUIDField(db_index=True) # Cô lập dữ liệu bắt buộc theo chuẩn Group-Centric
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children')
+    title = models.CharField(max_length=255)
+    summary = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    has_conflict = models.BooleanField(default=False)
+    version = models.PositiveIntegerField(default=1) # Dùng cho Optimistic Locking
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['group_id', 'status']),
+        ]    
+        verbose_name = "Mục lục tri thức"
+        verbose_name_plural = "Mục lục tri thức"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.title} ({self.status})"
+    
 class Message(models.Model):
     """
     [Class-level Docstring]: Quản lý toàn bộ thông tin tin nhắn trao đổi trong nhóm chat.
@@ -256,6 +341,8 @@ class MessageFeedback(models.Model):
     class Meta:
         verbose_name = "Phản hồi AI"
         verbose_name_plural = "Phản hồi AI"
+
+
 
 
 """

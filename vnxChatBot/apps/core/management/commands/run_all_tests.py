@@ -20,23 +20,24 @@ class Command(BaseCommand):
         base_dir = settings.BASE_DIR
 
         # 2. Định nghĩa danh sách các bài test chuẩn theo thứ tự phụ thuộc (Tầng 1 -> Tầng 4)
-        # Loại bỏ management command test_flow ra khỏi test suite để tránh lỗi Found 0 tests
+        # Cập nhật đường dẫn trỏ đúng vào thư mục tests của group_chat
         test_sequence = [
             # Tầng 1: Core Platform & User Profile
             "apps.core.tests",
             
-            # Tầng 2: Group Chat & AI Configuration
-            "apps.group_chat.test_group_chat",
-            "apps.group_chat.test_ai_config",
+            # Tầng 2 & 3: Group Chat & AI Configuration (gom nhóm hoặc gọi từng tệp trong thư mục tests)
+            "apps.group_chat.tests.test_group_chat",
+            "apps.group_chat.tests.test_ai_config",
+            "apps.group_chat.tests.tests_knowledge_views",
             
             # Tầng 3: AI Assistant & WebSockets Realtime
             "apps.ai_assistant.tests",
-            "apps.group_chat.tests_chat_consumer",
-            "apps.group_chat.tests_WebSocketRAGAndFeedback",
+            "apps.group_chat.tests.tests_chat_consumer",
+            "apps.group_chat.tests.tests_WebSocketRAGAndFeedback",
+            "apps.group_chat.tests.tests_knowledge_views",
             
             # Tầng 4: Subscriptions & Integration Flow
             "apps.subscriptions.tests",
-            # Thêm test arch_manager nếu có
             "apps.arch_manager.tests",
         ]
 
