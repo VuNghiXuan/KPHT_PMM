@@ -12,29 +12,32 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 
+
 class Command(BaseCommand):
-    help = "Bật Terminal mới và chạy toàn bộ quy trình Test theo thứ tự tầng kiến trúc."
+    help = "Bật Terminal mới và chạy toàn bộ quy trình Test theo đúng thứ tự tầng kiến trúc."
 
     def handle(self, *args, **options):
         # 1. Xác định thư mục gốc của dự án (nơi chứa file manage.py)
         base_dir = settings.BASE_DIR
 
         # 2. Định nghĩa danh sách các bài test chuẩn theo thứ tự phụ thuộc (Tầng 1 -> Tầng 4)
-        # Cập nhật đường dẫn trỏ đúng vào thư mục tests của group_chat
         test_sequence = [
             # Tầng 1: Core Platform & User Profile
             "apps.core.tests",
             
-            # Tầng 2 & 3: Group Chat & AI Configuration (gom nhóm hoặc gọi từng tệp trong thư mục tests)
+            # Tầng 2 & 3: Group Chat & AI Configuration & Conflict Resolution
             "apps.group_chat.tests.test_group_chat",
             "apps.group_chat.tests.test_ai_config",
+            "apps.group_chat.tests.test_conflict_resolution_api",  # 👈 Bổ sung bài test Conflict Resolution vừa hoàn thành
             "apps.group_chat.tests.tests_knowledge_views",
+            "apps.group_chat.tests.test_tasks",
+            "apps.group_chat.tests.test_document_pipeline",
+            "apps.group_chat.tests.test_conflict_chapter_list_api",
             
             # Tầng 3: AI Assistant & WebSockets Realtime
             "apps.ai_assistant.tests",
             "apps.group_chat.tests.tests_chat_consumer",
-            "apps.group_chat.tests.tests_WebSocketRAGAndFeedback",
-            "apps.group_chat.tests.tests_knowledge_views",
+            "apps.group_chat.tests.tests_WebSocketRAGAndFeedback", #
             
             # Tầng 4: Subscriptions & Integration Flow
             "apps.subscriptions.tests",
@@ -59,7 +62,7 @@ class Command(BaseCommand):
             batch_commands.append(f"echo [RUNNING TEST]: python manage.py test {test_target} --keepdb")
             batch_commands.append(f"python manage.py test {test_target} --keepdb")
 
-        # Sau khi chạy hết các test suite chuẩn, gọi luôn lệnh chẩn đoán hệ thống test_flow
+        # Sau khi chạy hết các test suite chuẩn, gọi luôn lệnh chẩn đoán hệ thống test_flow nếu có
         batch_commands.append("echo.")
         batch_commands.append("echo [RUNNING DIAGNOSTIC]: python manage.py test_flow")
         batch_commands.append("python manage.py test_flow")
@@ -85,3 +88,5 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("✅ Đã khởi tạo tiến trình test thành công trong Terminal mới!"))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"❌ Không thể bật Terminal mới: {str(e)}"))
+
+# python manage.py run_all_tests

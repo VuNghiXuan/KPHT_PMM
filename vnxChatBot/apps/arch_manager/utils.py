@@ -91,17 +91,21 @@ class ArchitectureIntrospectionEngine:
     @staticmethod
     def generate_state_machine() -> str:
         """
-        Sinh sơ đồ trạng thái (Knowledge Lifecycle State Machine) cho KnowledgeUnit.
+        Sinh sơ đồ trạng thái (Knowledge Lifecycle State Machine) bao gồm xử lý mâu thuẫn.
         """
         state_machine = """
         stateDiagram-v2
-            [*] --> Pending : Extracted via Marker/Docling from Doc/Chat
-            Pending --> Approved : User Review & Approval
+            [*] --> Pending : Extracted via Docling / Marker (Chapters & Tables)
+            Pending --> ConflictDetected : Semantic Overlap >= 0.85
+            ConflictDetected --> ReadyToApprove : Admin Conflict Resolution (Update / Merge / Ignore)
+            Pending --> ReadyToApprove : Direct Flow (No Conflict)
+            ReadyToApprove --> Approved : Admin Final Approval
             Approved --> VectorDB : Auto Index to ChromaDB / Neo4j
             Approved --> Rollback : Delete Embedding via Signals
         """
         return ArchitectureIntrospectionEngine._clean_mermaid(state_machine)
 
+    
     @staticmethod
     def generate_component_diagram() -> str:
         """Sinh sơ đồ kiến trúc phân hệ theo mô hình Modular Monolith."""
@@ -126,22 +130,26 @@ class ArchitectureIntrospectionEngine:
 
     @staticmethod
     def generate_knowledge_pipeline_flow() -> str:
-        """Sinh sơ đồ Mermaid biểu diễn luồng xử lý tài liệu và phê duyệt tri thức."""
+        """Sinh sơ đồ Mermaid biểu diễn chi tiết luồng chia chương, bảng biểu và phê duyệt tri thức."""
         raw_flow = """
         graph TD
             A[User / Admin Upload File] --> B[Document Model Created]
-            B --> C[Celery Task: process_document_task]
-            C --> D[AI_Engine.extract_and_score]
-            D --> E[KnowledgeUnit Created: status = pending]
-            E --> F[Admin Review]
-            F -->|Approve| G[KnowledgeUnit.status = approved]
-            F -->|Reject / Delete| H[Cleanup Vector DB]
-            G --> I[Sync to Vector DB: ChromaDB]
+            B --> C[Celery Task: Docling Parser]
+            C --> D[Split Document into Chapters & Extract Tables]
+            D --> E[AI Audio & Semantic Overlap Check]
+            E -->|Overlap >= 0.85| F[KnowledgeChapter: status = conflict_detected]
+            E -->|Clean Data| G[KnowledgeChapter: status = pending]
+            F --> H[Conflict Resolver UI: Overwrite / Merge / Ignore]
+            H --> I[Status: ready_to_approve]
+            G --> I
+            I -->|Admin Approve| J[KnowledgeUnit.status = approved]
+            I -->|Reject / Delete| K[Cleanup Vector Store]
+            J --> L[Sync to ChromaDB & Neo4j]
             
-            style A fill:#f9f,stroke:#333,stroke-width:2px
-            style E fill:#ff9,stroke:#333,stroke-width:2px
-            style G fill:#9f9,stroke:#333,stroke-width:2px
-            style I fill:#bbf,stroke:#333,stroke-width:2px
+            style F fill:#ff9,stroke:#333,stroke-width:2px
+            style I fill:#f9f,stroke:#333,stroke-width:2px
+            style J fill:#9f9,stroke:#333,stroke-width:2px
+            style L fill:#bbf,stroke:#333,stroke-width:2px
         """
         return ArchitectureIntrospectionEngine._clean_mermaid(raw_flow)
 

@@ -7,6 +7,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.functional import cached_property
 
 class User(AbstractUser):
     """
@@ -17,6 +18,14 @@ class User(AbstractUser):
 
     class Meta:
         verbose_name = "Người dùng"
+
+    @cached_property
+    def get_profile(self):
+        try:
+            return self.profile
+        except:
+            return None
+        
 
 class Profile(models.Model):
     """

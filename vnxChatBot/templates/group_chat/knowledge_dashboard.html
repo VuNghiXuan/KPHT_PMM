@@ -1,250 +1,40 @@
-{% extends "group_chat/group_detail.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Quản lý Kho Tri thức | {{ group.name }}{% endblock %}
 
-{% block chat_content %}
-<div class="container-fluid py-4 px-4 bg-light h-100 overflow-auto" style="height: 100vh;">
-    <!-- Tiêu đề trang quản lý tri thức -->
+{% block content %}
+<div class="container-fluid py-4 px-4 bg-light h-100 overflow-auto" style="min-height: 100vh;">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
         <div>
-            <h4 class="fw-bold text-primary mb-1">
-                <i class="fas fa-brain me-2"></i> Kho Tri thức Nhóm: {{ group.name }} 🧠
-            </h4>
-            <p class="text-muted small mb-0">
-                Quản lý vòng đời tri thức (Knowledge Lifecycle), duyệt tài liệu RAG và đồng bộ Vector Store theo định
-                danh Tenant (Nhóm).
-            </p>
+            <h4 class="fw-bold text-primary mb-1"><i class="fas fa-brain me-2"></i> Kho Tri thức Nhóm: {{ group.name }}
+                🧠</h4>
+            <p class="text-muted small mb-0">Quản lý vòng đời tri thức và duyệt tài liệu RAG.</p>
         </div>
-        <div>
-            <!-- Nút quay lại phòng chat của nhóm -->
-            <a href="{% url 'group_chat:group_detail' group.id %}" class="btn btn-outline-secondary btn-sm shadow-sm">
-                <i class="fas fa-arrow-left me-1"></i> Quay lại phòng Chat
-            </a>
-        </div>
+        <a href="{% url 'group_chat:group_detail' group.id %}" class="btn btn-outline-secondary btn-sm shadow-sm">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại Chat
+        </a>
     </div>
 
     <div class="row g-4">
-        <!-- Cột 1: Danh sách Tài liệu gốc đã tải lên -->
+        <!-- Cột 1: Tài liệu gốc -->
         <div class="col-lg-5">
-            <div class="card shadow-sm border-0 rounded-4 h-100">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="fw-bold fs-6 mb-0 text-dark">
-                        <i class="fas fa-file-alt text-secondary me-2"></i> Tài liệu gốc đã tải lên
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush" style="max-height: 450px; overflow-y: auto;">
-                        {% for doc in documents %}
-                        <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-bold text-dark small text-truncate" style="max-width: 220px;"
-                                    title="{{ doc.file.name }}">
-                                    <i class="fas fa-file-pdf text-danger me-1"></i> {{ doc.file.name }}
-                                </div>
-                                <small class="text-muted" style="font-size: 0.75rem;">
-                                    Tải lên lúc: {{ doc.uploaded_at|date:"d/m/Y H:i" }}
-                                </small>
-                            </div>
-                            <!-- Hành động xóa tài liệu và thu hồi tri thức -->
-                            <a href="{% url 'group_chat:delete_document' doc.id %}"
-                                class="btn btn-outline-danger btn-sm py-1 px-2"
-                                title="Xóa tài liệu và thu hồi tri thức">
-                                <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
-                            </a>
-                        </div>
-                        {% empty %}
-                        <div class="p-4 text-center text-muted small">
-                            Chưa có tài liệu nào được tải lên trong nhóm này.
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
+            {% include "group_chat/partials/document_list.html" with documents=documents %}
         </div>
 
-        <!-- Cột 2: Kho Tri thức RAG kết hợp Vòng đời (Knowledge Units) -->
+        <!-- Cột 2: Knowledge Units (Đã sửa bỏ lặp) -->
         <div class="col-lg-7">
-            <div class="card shadow-sm border-0 rounded-4 h-100">
-                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold fs-6 mb-0 text-dark">
-                        <i class="fas fa-project-diagram text-success me-2"></i> Đơn vị Tri thức RAG (Knowledge Units)
-                    </h5>
-                    <span class="badge bg-secondary" style="font-size: 0.75rem;">{{
-                        group.knowledge_units.count|default:0 }} tổng số</span>
-                </div>
-                <div class="card-body p-3">
-                    <!-- Accordion phân tách Chờ duyệt / Đã duyệt -->
-                    <div class="accordion accordion-flush shadow-sm rounded-3 overflow-hidden" id="knowledgeAccordion">
-
-                        <!-- Phần Chưa duyệt (Pending) -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingUnapproved">
-                                <button
-                                    class="accordion-button collapsed py-2 px-2 bg-warning-subtle text-warning-emphasis fw-semibold small"
-                                    type="button" data-bs-toggle="collapse" data-bs-target="#ohCollapsePending"
-                                    aria-expanded="false" aria-controls="ohCollapsePending">
-                                    <i class="fas fa-clock me-1"></i> Chờ duyệt (<span id="oh-pending-count">{{
-                                        group.pending_knowledge_count|default:0 }}</span>)
-                                </button>
-                            </h2>
-                            <div id="collapseUnapproved" class="accordion-collapse collapse"
-                                data-bs-parent="#knowledgeAccordion" aria-labelledby="headingUnapproved">
-                                <div class="accordion-body bg-white p-2" style="max-height: 250px; overflow-y: auto;">
-                                    {% for ku in group.knowledge_units.all %}
-                                    {% if ku.status == 'pending' %}
-                                    <div
-                                        class="p-2 border-bottom small d-flex align-items-center justify-content-between gap-2">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <p class="mb-1 fw-semibold text-truncate text-dark"
-                                                title="{{ ku.document.get_file_name }}">
-                                                <i class="fas fa-file-alt text-warning me-1"></i> {{
-                                                ku.document.get_file_name }}
-                                            </p>
-                                            <span class="text-muted d-block text-truncate" style="font-size: 0.7rem;">
-                                                Thực thể: <strong class="text-primary">{{ ku.entity_name|default:"Chưa
-                                                    xác định" }}</strong>
-                                            </span>
-                                        </div>
-                                        <!-- Cột nút hành động: Mở Popup chi tiết hoặc Duyệt nhanh -->
-                                        <div class="btn-group btn-group-sm flex-shrink-0 shadow-sm">
-                                            <button class="btn btn-outline-primary py-1 px-2 btn-inspect-knowledge"
-                                                data-bs-toggle="modal" data-bs-target="#knowledgeDetailModal"
-                                                data-id="{{ ku.id }}" data-filename="{{ ku.document.get_file_name }}"
-                                                data-entity="{{ ku.entity_name }}"
-                                                data-content="{{ ku.content|default:''|escapejs }}"
-                                                title="Xem phân tích chi tiết & Gợi ý từ AI">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <a href="{% url 'group_chat:knowledge_action' ku.id 'approve' %}"
-                                                class="btn btn-outline-success py-1 px-2"
-                                                title="Duyệt nhanh đưa vào Vector DB">
-                                                <i class="fas fa-check"></i>
-                                            </a>
-                                            <a href="{% url 'group_chat:knowledge_action' ku.id 'rollback' %}"
-                                                class="btn btn-outline-danger py-1 px-2" title="Từ chối tài liệu">
-                                                <i class="fas fa-times"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                    {% empty %}
-                                    <div class="text-center text-muted py-2 small">Không có tài liệu nào đang chờ duyệt.
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Phần Đã duyệt (Approved) -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingApproved">
-                                <button
-                                    class="accordion-button py-2 px-2 bg-success-subtle text-success-emphasis fw-semibold small"
-                                    type="button" data-bs-toggle="collapse" data-bs-target="#ohCollapseApproved"
-                                    aria-expanded="true" aria-controls="ohCollapseApproved">
-                                    <i class="fas fa-check-circle me-1"></i> Đã duyệt RAG (<span
-                                        id="oh-approved-count">{{ group.approved_knowledge_count|default:0 }}</span>)
-                                </button>
-                            </h2>
-                            <div id="collapseApproved" class="accordion-collapse collapse show"
-                                data-bs-parent="#knowledgeAccordion" aria-labelledby="headingApproved">
-                                <div class="accordion-body bg-white p-2" style="max-height: 250px; overflow-y: auto;">
-                                    {% for ku in group.knowledge_units.all %}
-                                    {% if ku.status == 'approved' %}
-                                    <div
-                                        class="p-2 border-bottom small d-flex align-items-center justify-content-between gap-2">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <p class="mb-1 fw-semibold text-truncate text-dark"
-                                                title="{{ ku.document.get_file_name }}">
-                                                <i class="fas fa-file-check text-success me-1"></i> {{
-                                                ku.document.get_file_name }}
-                                            </p>
-                                            <span class="text-success d-block text-truncate" style="font-size: 0.7rem;">
-                                                <i class="fas fa-shield-alt"></i> Sẵn sàng cho RAG ({{
-                                                ku.entity_name|default:"Chung" }})
-                                            </span>
-                                        </div>
-                                        <a href="{% url 'group_chat:knowledge_action' ku.id 'rollback' %}"
-                                            class="btn btn-sm btn-outline-danger py-1 px-2 flex-shrink-0 shadow-sm"
-                                            title="Gỡ khỏi tri thức (Rollback embedding)">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </a>
-                                    </div>
-                                    {% endif %}
-                                    {% empty %}
-                                    <div class="text-center text-muted py-2 small">Chưa có tài liệu nào được đưa vào
-                                        Vector DB.</div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
+            {% include "group_chat/partials/knowledge_units_list.html" %}
         </div>
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- MODAL POPUP: KIỂM DUYỆT TRI THỨC CHI TIẾT  -->
-<!-- ========================================== -->
-<div class="modal fade" id="knowledgeDetailModal" tabindex="-1" aria-labelledby="knowledgeDetailModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white py-2">
-                <h5 class="modal-title fs-6 fw-bold" id="knowledgeDetailModalLabel">
-                    <i class="fas fa-brain me-2"></i> Kiểm Duyệt Tri Thức Thông Minh (Smart Staging)
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-            <div class="modal-body bg-light p-3">
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-body p-3">
-                        <h6 class="text-muted small text-uppercase fw-bold mb-2">Thông tin tài liệu</h6>
-                        <p class="mb-1"><strong>Tên file:</strong> <span id="modal-file-name"
-                                class="text-primary">-</span></p>
-                        <p class="mb-0"><strong>Thực thể nhận diện:</strong> <span id="modal-entity-name"
-                                class="text-dark">-</span></p>
-                    </div>
-                </div>
+<!-- Modal Kiểm Duyệt -->
+{% include "group_chat/modals/knowledge_detail_modal.html" %}
 
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-body p-3">
-                        <h6 class="text-muted small text-uppercase fw-bold mb-2">Trích xuất nội dung cốt lõi (Content
-                            Preview)</h6>
-                        <div class="bg-white p-2 border rounded font-monospace small text-secondary"
-                            style="max-height: 150px; overflow-y: auto;" id="modal-content-preview">
-                            Đang tải nội dung trích xuất...
-                        </div>
-                    </div>
-                </div>
+{% endblock %}
 
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-3">
-                        <h6 class="text-muted small text-uppercase fw-bold mb-2">Gợi ý câu hỏi & Ngữ cảnh lịch sử nhóm
-                        </h6>
-                        <ul class="small text-muted mb-0 ps-3" id="modal-suggested-queries">
-                            <li>AI đang phân tích các câu hỏi tiềm năng cho tài liệu này...</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer bg-white py-2">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-                <a href="#" class="btn btn-danger btn-sm" id="modal-btn-reject">
-                    <i class="fas fa-times me-1"></i> Từ chối
-                </a>
-                <a href="#" class="btn btn-success btn-sm" id="modal-btn-approve">
-                    <i class="fas fa-check me-1"></i> Duyệt đưa vào RAG
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="{% static 'group_chat/js/tab/knowledge_tab.js' %}"></script>
+{% block extra_js %}
+<script src="{% static 'group_chat/js/knowledge_dashboard.js' %}"></script>
 {% endblock %}

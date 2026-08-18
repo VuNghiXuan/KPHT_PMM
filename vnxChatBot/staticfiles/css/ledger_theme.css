@@ -1,57 +1,200 @@
-body {
-    min-height: 100vh;
+/* ==========================================================================
+   vnxChatBot - Custom Workspace & Message Styling (Group-Centric Theme)
+   ========================================================================== */
+
+body,
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
     background: #f4f6f9;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-/* 🎨 Cố định kích thước sidebar, ngăn chặn co giãn gây đè chữ */
-.sidebar {
-    width: 260px;
-    min-width: 260px;
-    max-width: 260px;
-    min-height: 100vh;
-    background: #2c3e50;
-    transition: margin-left 0.3s ease;
-    position: sticky;
-    top: 0;
-    overflow-x: hidden;
+/* ==========================================================================
+   🛠️ ĐẶC TRỊ STYLE TIN NHẮN THEO CLASS ĐỊNH DANH (Bỏ phụ thuộc chọn sâu)
+   ========================================================================== */
+
+/* 1. Tin nhắn của User hiện tại (Bên phải) - Màu vàng gold chuẩn chỉnh */
+.vnx-user-message-card {
+    background-color: #fffdf0 !important;
+    color: #000000 !important;
+    border: 1px solid #ffd700 !important;
+    border-radius: 12px !important;
+}
+
+.vnx-user-message-card .card-body,
+.vnx-user-message-card .card-body p,
+.vnx-user-message-card .card-body span {
+    color: #000000 !important;
+}
+
+.vnx-user-header-box {
+    background-color: #faecc5 !important;
+    color: #000000 !important;
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    border-bottom: 1px solid #ffd700 !important;
+    font-weight: bold !important;
+}
+
+/* 2. Tin nhắn của AI Assistant */
+.vnx-ai-message-card {
+    background-color: #f0f8ff !important;
+    color: #000000 !important;
+    border: 1px solid #17a2b8 !important;
+    border-radius: 12px !important;
+}
+
+.vnx-ai-header-box {
+    background-color: #d1ecf1 !important;
+    color: #000000 !important;
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    border-bottom: 1px solid #17a2b8 !important;
+    font-weight: bold !important;
+}
+
+/* 3. Tin nhắn của người dùng khác trong nhóm */
+.vnx-other-message-card {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 12px !important;
+}
+
+.vnx-other-header-box {
+    background-color: #f8f9fa !important;
+    color: #000000 !important;
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    border-bottom: 1px solid #ced4da !important;
+    font-weight: bold !important;
+}
+
+/* ==========================================================================
+   📐 ĐỒNG BỘ BỐ CỤC 3 CỘT (LAYOUT ARCHITECTURE FIX)
+   ========================================================================== */
+
+/* Chống gãy khung vùng chứa chat trung tâm */
+#chat-messages {
+    flex: 1 1 auto;
     overflow-y: auto;
-    word-break: break-word;
+    background-color: #f8fafc;
+    scroll-behavior: smooth;
 }
 
-.sidebar.collapsed {
-    margin-left: -260px;
+/* Cố định thanh input ở đáy khung chat, không bị trôi hoặc đứt đoạn */
+.chat-input-container {
+    flex-shrink: 0;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
 }
 
-/* 📝 Ép buộc toàn bộ văn bản và thẻ con trong sidebar tự động rớt dòng */
-.sidebar *,
-.sidebar .nav-link,
-.sidebar h6,
-.sidebar span,
-.sidebar a,
-.sidebar small {
-    white-space: normal !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
+/* 🛠️ Khắc phục triệt để: Buộc tên thành viên trong khung trích dẫn reply hiển thị màu xanh, bỏ qua ràng buộc màu đen của card cha */
+.message-bubble-wrapper .reply-quote-box span.fw-bold,
+.message-bubble-wrapper .reply-quote-box .fw-bold.text-primary,
+div.reply-quote-box span.fw-bold {
+    color: #0d6efd !important;
 }
 
-/* Tối ưu hóa khoảng cách và hiển thị khối cho các mục menu trong sidebar */
-.sidebar .nav-link {
-    padding: 10px 15px;
-    display: block;
-    line-height: 1.4;
+/* ==========================================================================
+   🎨 TIỆN ÍCH CHUNG & SCROLLBAR HIỆN ĐẠI
+   ========================================================================== */
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
 
-.sidebar .nav-link:hover {
-    background: #34495e;
-    border-left: 4px solid #3498db;
+::-webkit-scrollbar-track {
+    background: #f8f9fa;
 }
 
-/* Xử lý các khối hiển thị tên nhóm dài trong nội dung chính */
-.main-content .list-group-item {
-    word-break: break-word;
-    overflow-wrap: break-word;
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
 }
 
-.navbar {
-    height: 60px;
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Hiệu ứng bóng mờ nhẹ cho khung workspace tập trung theo ChatGroup */
+.workspace-shadow {
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.03);
+}
+
+/* ==========================================================================
+   💬 INTERACTIVE FLOATING ELEMENTS & ANIMATIONS (Zalo-style Hover & Reactions)
+   ========================================================================== */
+
+.message-bubble-wrapper {
+    position: relative;
+    max-width: 75%;
+}
+
+.message-bubble-wrapper .message-hover-toolbar {
+    display: none !important;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+}
+
+.message-bubble-wrapper:hover .message-hover-toolbar {
+    display: flex !important;
+    opacity: 1;
+}
+
+.reaction-left {
+    left: 12px;
+}
+
+.reaction-right {
+    right: 12px;
+}
+
+.hover-scale {
+    transition: transform 0.15s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.15);
+}
+
+/* ==========================================================================
+   💬 Hiển thị @member chữ xanh cho input.js và formatMessageWithMentions trong websocket.js
+   ========================================================================== */
+
+/* Tùy chỉnh màu sắc hiển thị tên được nhắc đến trong đoạn chat */
+.text-primary {
+    color: #0d6efd !important;
+}
+
+.bg-primary-subtle {
+    background-color: #cfe2ff !important;
+}
+
+
+/* ==========================================================================
+   📜 SỬA LỖI MỞ KHÓA THANH CUỘN CHO DJANGO ADMIN / JAZZMIN
+   ========================================================================== */
+body.hold-transition,
+body.login-page,
+body.change-form,
+.admin-default {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh !important;
+}
+
+.wrapper,
+.content-wrapper {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: visible !important;
 }

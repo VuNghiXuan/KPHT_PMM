@@ -11,8 +11,11 @@ from django.shortcuts import get_object_or_404
 from apps.group_chat.models import Message, KnowledgeUnit, ChatGroup, Document
 from django.utils import timezone
 from apps.ai_assistant.engine import AI_Engine
+import logging
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 
-    
+logger = logging.getLogger(__name__)
 
 class KnowledgeService:
     """
@@ -164,16 +167,29 @@ class KnowledgeService:
     @staticmethod
     def update_chapter_status(chapter_id, new_status, user):
         """
-        Cập nhật trạng thái phê duyệt cho KnowledgeChapter an toàn.
+        Cập nhật trạng thái phê duyệt cho KnowledgeChapter với cơ chế bắt lỗi chi tiết.
         """
         from apps.group_chat.models import KnowledgeChapter
         
-        chapter = get_object_or_404(KnowledgeChapter, id=chapter_id)
-        chapter.status = new_status
-        chapter.save()  # Kích hoạt Django Signals xử lý đồng bộ Vector DB khi approved
-        
-        return {
-            "status": "success",
-            "message": f"Đã cập nhật trạng thái chương mục [{chapter.title}] thành '{new_status}' thành công.",
-            "chapter_id": chapter.id
-        }
+        try:
+            chapter = KnowledgeChapter.objects.get(id=chapter_id)
+            
+            chapter.status = new_status
+            # Dùng try-except bao quanh save để bắt lỗi từ Signals (VectorDB, Celery, v.v.)
+            chapter.save() 
+            
+            return {
+                "status": "success",
+                "message": f"Đã cập nhật trạng thái chương mục [{chapter.title}] thành '{new_status}' thành công.",
+                "chapter_id": chapter.id
+            }
+            
+        except ObjectDoesNotExist:
+            logger.error(f"❌ [KnowledgeService] Không tìm thấy chapter với ID: {chapter_id}")
+            raise Http404("Không tìm thấy chương tri thức yêu cầu.")
+            
+        except Exception as e:
+            # GHI LOG CỰC KỲ QUAN TRỌNG ĐỂ BIẾT NGUYÊN NHÂN LỖI 500
+            logger.exception(f"💥 [KnowledgeService] Lỗi khi save chapter {chapter_id}: {str(e)}")
+            # Ném lại ngoại lệ để test case nhận diện được lỗi
+            raise e

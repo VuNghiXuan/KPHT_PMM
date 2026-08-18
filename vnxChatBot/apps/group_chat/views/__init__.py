@@ -2,6 +2,13 @@
 """
 Mục đích: Gom và export lại toàn bộ view của phân hệ group_chat để urls.py gọi bình thường.
 """
+from .conflict_views import (
+    ConflictResolutionAPIView
+)
+
+from .conflict_chapter_listAPIView import (
+    ConflictChapterListAPIView
+)
 
 from .chat_views import (
     create_group,
@@ -9,6 +16,7 @@ from .chat_views import (
 )
 from .knowledge_document_views import (
     upload_document,
+    delete_document_view,
     trigger_ai_learn_document_view,
 )
 from .knowledge_lifecycle_views import (
@@ -20,6 +28,7 @@ from .knowledge_lifecycle_views import (
     approve_reject_chapter_view,
     knowledge_dashboard_view
 )
+
 from .feedback_views import (
     knowledge_feedback_view,
     message_reactions_detail_view,

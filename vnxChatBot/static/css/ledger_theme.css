@@ -178,3 +178,23 @@ div.reply-quote-box span.fw-bold {
 .bg-primary-subtle {
     background-color: #cfe2ff !important;
 }
+
+
+/* ==========================================================================
+   📜 SỬA LỖI MỞ KHÓA THANH CUỘN CHO DJANGO ADMIN / JAZZMIN
+   ========================================================================== */
+body.hold-transition,
+body.login-page,
+body.change-form,
+.admin-default {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh !important;
+}
+
+.wrapper,
+.content-wrapper {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: visible !important;
+}

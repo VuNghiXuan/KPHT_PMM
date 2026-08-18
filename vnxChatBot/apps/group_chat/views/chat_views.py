@@ -41,7 +41,6 @@ def create_group(request):
             
     return render(request, 'group_chat/create.html')
 
-
 @login_required
 def group_chat_detail(request, group_id):
     """
@@ -54,21 +53,20 @@ def group_chat_detail(request, group_id):
     # 1. Kiểm tra xem user có thuộc nhóm nào không, nếu không có nhóm nào -> chuyển hướng tạo nhóm
     user_groups = ChatGroup.objects.filter(memberships__user=request.user)
     if not user_groups.exists():
-        return redirect('group_chat:create_group') # Hoặc điều hướng về trang 'dashboard'
+        return redirect('group_chat:create_group')
 
-    # 2. Lấy thông tin nhóm an toàn, nếu group_id không tồn tại nhưng user có nhóm khác -> lấy nhóm đầu tiên của họ
+    # 2. Lấy thông tin nhóm an toàn
     group = ChatGroup.objects.filter(id=group_id).first()
     if not group:
         first_group = user_groups.first()
-        return redirect('group_detail', group_id=first_group.id)
+        return redirect('group_chat:group_detail', group_id=first_group.id)
     
     # 3. Xác thực xem user hiện tại có phải là thành viên hợp lệ của nhóm này không
     membership = Membership.objects.filter(group=group, user=request.user).first()
     if not membership:
-        # Nếu không phải thành viên nhưng nhóm tồn tại, chuyển về nhóm hợp lệ đầu tiên
         valid_group = user_groups.first()
         if valid_group:
-            return redirect('group_detail', group_id=valid_group.id)
+            return redirect('group_chat:group_detail', group_id=valid_group.id)
         return redirect('group_chat:create_group')
     
     # 4. Truy vấn tin nhắn và dữ liệu liên quan
@@ -84,6 +82,7 @@ def group_chat_detail(request, group_id):
 
     context = {
         'group': group,
+        'chat_group': group,  # Bổ sung đồng bộ tuyệt đối tránh lỗi VariableDoesNotExist cho template partials[cite: 1]
         'membership': membership,
         'messages': messages,
         'memberships': memberships,
@@ -94,4 +93,3 @@ def group_chat_detail(request, group_id):
     }
     
     return render(request, 'group_chat/group_detail.html', context)
-

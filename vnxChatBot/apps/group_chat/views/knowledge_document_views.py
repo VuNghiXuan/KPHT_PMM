@@ -76,6 +76,31 @@ def upload_document(request, group_id):
 
 @login_required
 @require_POST
+def delete_document_view(request, document_id):
+    """
+    Xóa tài liệu gốc, thu hồi tri thức liên quan và xóa tệp vật lý an toàn theo nhóm.
+    """
+    document = get_object_or_404(Document, id=document_id)
+    group = document.group
+
+    if not group.memberships.filter(user=request.user).exists():
+        return JsonResponse({'status': 'error', 'message': 'Bạn không có quyền xóa tài liệu này!'}, status=403)
+
+    try:
+        with transaction.atomic():
+            if document.file:
+                document.file.delete(save=False)
+            document.delete()
+        
+        logger.info(f"🗑️ [Document] Đã xóa thành công tài liệu ID: {document_id} trong nhóm ID: {group.id}")
+        return JsonResponse({'status': 'success', 'message': 'Xóa tài liệu thành công!'})
+    except Exception as e:
+        logger.error(f"❌ [Document Error] Lỗi khi xóa tài liệu ID {document_id}: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': f'Lỗi hệ thống khi xóa: {str(e)}'}, status=500)
+
+    
+@login_required
+@require_POST
 def trigger_ai_learn_document_view(request, document_id):
     """
     🧠 Trích xuất tri thức từ tài liệu và đưa vào hàng đợi chờ duyệt (Pending).

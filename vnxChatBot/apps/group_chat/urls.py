@@ -2,6 +2,7 @@
 """
 Mục đích: Định nghĩa các đường dẫn URL cho phân hệ group_chat,
 điều hướng các request đến các view chuyên biệt (Chat, Knowledge, Feedback, Member & AI).
+Tuân thủ tuyệt đối quy tắc cô lập group_id.
 """
 
 from django.urls import path
@@ -9,6 +10,7 @@ from apps.group_chat.views import (
     create_group,
     group_chat_detail,
     upload_document,
+    delete_document_view,
     trigger_ai_learn_document_view,
     knowledge_management,
     knowledge_action_view,
@@ -23,6 +25,8 @@ from apps.group_chat.views import (
     get_group_members_api,
     validate_and_test_ai_model,
     knowledge_dashboard_view,
+    ConflictResolutionAPIView,
+    ConflictChapterListAPIView
 )
 
 app_name = 'group_chat'
@@ -39,6 +43,8 @@ urlpatterns = [
     # 📊 Kho Tri Thức Nhóm & Dashboard Quản trị (Knowledge Dashboard)
     path('<int:group_id>/knowledge/', knowledge_dashboard_view, name='knowledge_dashboard'),
     path('<int:group_id>/knowledge/legacy/', knowledge_management, name='knowledge_management'),
+    path('documents/<int:document_id>/delete/', delete_document_view, name='delete_document'),
+    
 
     # 🔄 Quản lý vòng đời tri thức & Hành động phê duyệt (Pending / Approved / Rollback)
     path('<int:group_id>/knowledge/<int:knowledge_id>/<str:action>/', knowledge_action_view, name='knowledge_action'),
@@ -51,11 +57,30 @@ urlpatterns = [
         knowledge_chapter_list_view, 
         name='knowledge_chapter_list'
     ),
+    
+    
+    
     path(
         '<int:group_id>/knowledge/chapters/<int:chapter_id>/action/', 
         approve_reject_chapter_view, 
         name='approve_reject_chapter'
     ),
+
+    # 🛡️ API Xử lý Xung đột Tri thức (Conflict Resolution)
+    path(
+            '<int:group_id>/knowledge/chapters/conflicts/', 
+            ConflictChapterListAPIView.as_view(), 
+            name='conflict_chapter_list_api'
+        ),
+        
+    path(
+            '<int:group_id>/knowledge/chapters/<int:chapter_id>/resolve/', 
+            ConflictResolutionAPIView.as_view(), 
+            name='conflict_resolution_api'  # Đã đồng bộ dấu gạch dưới (_) khớp với test case
+        ),
+    # 🛡️ API Xử lý Xung đột Tri thức & Danh sách Xung đột (Conflict Resolution & Chapters List)
+    
+    
 
     # ❤️ Quản lý tương tác cảm xúc và Feedback Loop (feedback_views.py)
     path('message/<int:message_id>/feedback/', knowledge_feedback_view, name='knowledge_feedback'),

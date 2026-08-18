@@ -1,0 +1,39 @@
+/* 📜 Mở khóa thanh cuộn toàn cục cho Django Jazzmin / AdminLTE Dashboard */
+html,
+body,
+.wrapper,
+.content-wrapper {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Ép vùng chứa nội dung cho phép cuộn */
+body.sidebar-mini.layout-fixed .wrapper {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+.content-wrapper {
+    overflow-y: auto !important;
+}
+
+/* Tùy chỉnh thanh cuộn đẹp mắt, hiện đại */
+::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1 !important;
+    border-radius: 4px !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8 !important;
+}

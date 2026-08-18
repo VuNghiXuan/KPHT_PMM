@@ -1,38 +1,82 @@
 <!-- 
   File: templates/group_chat/partials/_workspace_header.html
-  Mục đích: Tiêu đề không gian làm việc chính của nhóm hiện tại.
+  Mục đích: Tiêu đề không gian làm việc chính, tương thích linh hoạt cả biến group và chat_group.
 -->
+{% with current_group=group|default:chat_group %}
+{% if current_group %}
 <div class="px-4 py-2 border-bottom d-flex justify-content-between align-items-center bg-white shadow-sm"
     style="height: 60px;">
     <div class="d-flex align-items-center gap-3">
-        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
             style="width: 38px; height: 38px;">
-            {{ group.name|slice:":2"|upper }}
+            {{ current_group.name|slice:":2"|upper }}
         </div>
         <div>
             <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                {{ group.name }}
+                {{ current_group.name }}
                 <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0"
                     style="font-size: 0.7rem;">
                     <i class="fas fa-circle" style="font-size: 0.4rem;"></i> Team & AI Active
                 </span>
             </h6>
-            <small class="text-muted" style="font-size: 0.75rem;">Tenant ID: {{ group.id }} | Kênh trao đổi
+            <small class="text-muted" style="font-size: 0.75rem;">Tenant ID: {{ current_group.id }} | Kênh trao đổi
                 chung</small>
         </div>
     </div>
 
     <div class="d-flex align-items-center gap-3 text-secondary">
-        <button class="btn btn-light btn-sm rounded-circle p-2" type="button" title="Gọi thoại nhóm">
-            <i class="fas fa-phone-alt"></i>
-        </button>
-        <button class="btn btn-light btn-sm rounded-circle p-2" type="button" title="Gọi video nhóm">
-            <i class="fas fa-video"></i>
-        </button>
+        {% if current_group.id %}
+        <a href="{% url 'group_chat:knowledge_dashboard' current_group.id %}"
+            class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2 rounded-pill px-3 shadow-sm position-relative"
+            title="Quản lý Kho Tri thức nhóm và Duyệt tài liệu">
+            <i class="fas fa-brain text-primary"></i>
+            <span class="fw-semibold d-none d-md-inline" style="font-size: 0.85rem;">Kho Tri Thức</span>
+
+            {% if pending_knowledge_count and pending_knowledge_count > 0 %}
+            <span
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light shadow-sm"
+                style="font-size: 0.65rem;">
+                {{ pending_knowledge_count }}
+                <span class="visually-hidden">kiến thức chưa xử lý</span>
+            </span>
+            {% endif %}
+        </a>
+        {% endif %}
+
         <div class="vr mx-1"></div>
-        <button class="btn btn-light btn-sm rounded-circle p-2" type="button" data-bs-toggle="offcanvas"
-            data-bs-target="#settingsSidebar" aria-controls="settingsSidebar" title="Thông tin & Cấu hình nhóm">
-            <i class="fas fa-info-circle fs-5 text-primary"></i>
+
+        <div class="d-flex align-items-center gap-2">
+            <button
+                class="btn btn-success btn-sm rounded-circle d-flex align-items-center justify-content-center shadow-sm p-0"
+                type="button" style="width: 36px; height: 36px; background-color: #198754; border-color: #198754;"
+                title="Bắt đầu cuộc gọi thoại nhóm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-telephone-fill text-white" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z" />
+                </svg>
+            </button>
+            <button
+                class="btn btn-primary btn-sm rounded-circle d-flex align-items-center justify-content-center shadow-sm p-0"
+                type="button" style="width: 36px; height: 36px; background-color: #0d6efd; border-color: #0d6efd;"
+                title="Bắt đầu cuộc gọi video nhóm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-camera-video-fill text-white" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.11-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="vr mx-1"></div>
+
+        <button class="btn btn-light btn-sm rounded-circle p-2 text-primary shadow-sm" type="button"
+            data-bs-toggle="offcanvas" data-bs-target="#settingsSidebar" aria-controls="settingsSidebar"
+            title="Thông tin & Cấu hình nhóm"
+            style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-info-circle fs-5"></i>
         </button>
     </div>
 </div>
+{% endif %}
+{% endwith %}
