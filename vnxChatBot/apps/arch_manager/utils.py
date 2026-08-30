@@ -40,7 +40,7 @@ class ArchitectureIntrospectionEngine:
             if erd_content and len(erd_content.strip()) > 15:
                 return erd_content
         except Exception as e:
-            logger.warning(f"❌ [DEBUG ERD ERROR]: Không thể quét dynamic ERD từ models: {str(e)}")
+            logger.warning(f"❌ [DEBUG ERD ERROR]: Không thể quét dynamic erd từ models: {str(e)}")
 
         fallback_erd = """
         erDiagram
@@ -104,7 +104,6 @@ class ArchitectureIntrospectionEngine:
             Approved --> Rollback : Delete Embedding via Signals
         """
         return ArchitectureIntrospectionEngine._clean_mermaid(state_machine)
-
     
     @staticmethod
     def generate_component_diagram() -> str:
@@ -136,7 +135,7 @@ class ArchitectureIntrospectionEngine:
             A[User / Admin Upload File] --> B[Document Model Created]
             B --> C[Celery Task: Docling Parser]
             C --> D[Split Document into Chapters & Extract Tables]
-            D --> E[AI Audio & Semantic Overlap Check]
+            D --> E[AI Audit & Semantic Overlap Check]
             E -->|Overlap >= 0.85| F[KnowledgeChapter: status = conflict_detected]
             E -->|Clean Data| G[KnowledgeChapter: status = pending]
             F --> H[Conflict Resolver UI: Overwrite / Merge / Ignore]
@@ -159,9 +158,13 @@ class ArchitectureIntrospectionEngine:
         raw_pipeline = """
         graph TD
             A[User Uploads File] --> B[Document Created]
-            B --> C[AI Extraction]
+            B --> C[Celery Task: Docling Parser]
+            C --> D[AI Entity Extraction & Business Tagging]
+            D --> E[Confidence Score Evaluation]
+            E --> F[Save to Database Model (KnowledgeChapter)]
             
             style A fill:#f9f,stroke:#333,stroke-width:2px
             style C fill:#ccf,stroke:#333,stroke-width:2px
+            style F fill:#bfb,stroke:#333,stroke-width:2px
         """
         return ArchitectureIntrospectionEngine._clean_mermaid(raw_pipeline)

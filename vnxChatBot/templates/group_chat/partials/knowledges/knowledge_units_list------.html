@@ -1,0 +1,98 @@
+{% comment %}
+File: templates/group_chat/partials/knowledges/knowledge_units_list.html
+Mô tả: Hiển thị danh sách chương mục tri thức, cảnh báo mâu thuẫn và các nút thao tác chi tiết.
+{% endcomment %}
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold fs-6 mb-0 text-dark">
+            <i class="fas fa-sitemap text-success me-2"></i> 📚 Cây Mục lục Tri thức & Kiểm duyệt Xung đột (Knowledge
+            Chapters)
+        </h5>
+        <span class="badge bg-success-subtle text-success px-3 py-2 fw-semibold">
+            <i class="fas fa-shield-alt me-1"></i> Hard Scoped (Group-Isolated)
+        </span>
+    </div>
+    <div class="card-body p-3 bg-light bg-opacity-25">
+        {% if chapters %}
+        <div class="d-flex flex-column gap-3">
+            {% for chapter in chapters %}
+            <div
+                class="card border rounded-3 shadow-xs bg-white p-3 {% if chapter.has_conflict %}border-danger border-2{% endif %}">
+                <div class="row align-items-center g-3">
+
+                    <!-- Cột 1: Tiêu đề chương & Cấp bậc mục lục -->
+                    <div class="col-lg-5 col-md-12">
+                        <div class="d-flex align-items-start">
+                            <div class="bg-success-subtle text-success p-2 rounded-3 me-3 fs-4 flex-shrink-0">
+                                <i class="fas fa-book-bookmark"></i>
+                            </div>
+                            <div class="overflow-hidden w-100">
+                                <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ chapter.title }}">
+                                    📂 {{ chapter.title }}
+                                </h6>
+                                <p class="text-muted small mb-1 text-truncate" title="{{ chapter.summary }}">
+                                    {{ chapter.summary|default:"Chưa có tóm tắt nội dung chương..." }}
+                                </p>
+                                <div class="small text-secondary">
+                                    <span><i class="fas fa-code-branch me-1"></i> Phiên bản: v{{ chapter.version
+                                        }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột 2: Cảnh báo Mâu thuẫn & Trạng thái vòng đời -->
+                    <div class="col-lg-3 col-md-12">
+                        <div class="small text-secondary mb-1 fw-semibold">Trạng thái & Kiểm toán:</div>
+                        {% if chapter.has_conflict %}
+                        <div class="badge bg-danger text-white px-2 py-1 mb-1 d-inline-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Phát hiện xung đột ngữ nghĩa
+                        </div>
+                        <div class="small text-danger fw-semibold">Đề xuất: Hợp nhất / Ghi đè</div>
+                        {% else %}
+                        <div class="badge bg-success text-white px-2 py-1 mb-1 d-inline-flex align-items-center">
+                            <i class="fas fa-check-circle me-1"></i> {{ chapter.get_status_display }}
+                        </div>
+                        <div class="small text-success">Ngữ nghĩa đồng nhất</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Cột 3: Nhóm nút Thao tác (Human-in-the-Loop Actions) -->
+                    <div class="col-lg-4 col-md-12">
+                        <div class="small text-secondary mb-1 fw-semibold">Thao tác xử lý:</div>
+                        <div class="d-flex flex-wrap gap-2 mt-1">
+                            <!-- Nút xem chi tiết / chỉnh sửa -->
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                data-bs-toggle="modal" data-bs-target="#knowledgeDetailModal"
+                                data-chapter-id="{{ chapter.id }}">
+                                <i class="fas fa-eye me-1"></i> Xem & Sửa
+                            </button>
+
+                            {% if chapter.has_conflict %}
+                            <!-- Nút xử lý xung đột (Gởi AI hợp nhất hoặc chọn bản thảo gợi ý) -->
+                            <button type="button" class="btn btn-sm btn-danger rounded-pill px-3"
+                                onclick="resolveConflict('{{ chapter.id }}')">
+                                <i class="fas fa-code-merge me-1"></i> Giải quyết mâu thuẫn
+                            </button>
+                            {% else %}
+                            <!-- Nút phê duyệt nhanh -->
+                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3"
+                                onclick="approveChapter('{{ chapter.id }}')">
+                                <i class="fas fa-check me-1"></i> Phê duyệt (Sync Vector)
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-book text-muted fs-1 mb-2"></i>
+            <p class="text-muted small mb-0">Chưa có mục lục chương tri thức nào được khởi tạo trong nhóm này.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Path: apps/ai_assistant/tasks.py
+
 """
 Module: ai_assistant.tasks
 Mục đích: Gom nhóm toàn bộ Celery Tasks xử lý tài liệu, kiểm tra mâu thuẫn ngữ nghĩa 
@@ -17,33 +18,52 @@ from apps.ai_assistant.vector_store import VectorDBManager
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task(bind=True, queue='documents_p1_processing', max_retries=3)
 def process_document_task(self, raw_document_id: int, group_id: int, user_id: int):
     """
-    Task xử lý tài liệu thô bất đồng bộ (P1 Background).
-    Tách biệt luồng xử lý khỏi P0 Realtime để tránh block Chat.
+    🔄 Task xử lý tài liệu thô bất đồng bộ (P1 Background).
+    Thực hiện bóc tách, khởi tạo cấu trúc cây tri thức nháp (KnowledgeChapter) ở trạng thái pending,
+    tuyệt đối không đưa vào Vector Store cho đến khi được phê duyệt (Approved).
     """
     try:
-        logger.info(f"🔄 [Celery P1] Bắt đầu xử lý file ID: {raw_document_id} cho nhóm: {group_id}")
+        logger.info(f"📚 [Celery P1] Bắt đầu phân tích file ID: {raw_document_id} cho nhóm: {group_id}")
         
-        # 🛡️ Truy vấn bảo mật: Bắt buộc khớp cả ID tài liệu và group_id (Hard Scoping)
+        # 🛡️ Hard Scoping: Bắt buộc khớp cả ID tài liệu và group_id
         raw_doc = RawDocument.objects.get(id=raw_document_id, group_id=group_id)
         
-        # Chuyển trạng thái sang STAGING để hệ thống biết file đang được bóc tách
+        # Chuyển trạng thái sang STAGING để hệ thống ghi nhận tiến trình phân tích cấu trúc
         raw_doc.status = 'STAGING'
         raw_doc.save(update_fields=['status'])
         
-        # 🚀 Thực thi trích xuất qua Service layer
-        success = DocumentProcessorService.process_and_index(raw_doc)
+        # 🚀 1. Thực thi trích xuất văn bản thô
+        processing_result = DocumentProcessorService.process_and_index(raw_doc)
         
-        return {"status": "success" if success else "failed", "raw_document_id": raw_document_id}
-        
+        if processing_result:
+            # 🚀 2. Tự động sinh ra các KnowledgeChapter nháp (pending)
+            chapters = DocumentProcessorService.create_draft_chapters_from_raw(raw_doc)
+            
+            # 🚀 3. Kích hoạt tiếp tác vụ kiểm tra mâu thuẫn cho từng chương vừa tạo
+            for chapter in chapters:
+                detect_semantic_overlap_task.delay(chapter.id)
+                
+            raw_doc.status = 'COMPLETED'
+            raw_doc.save(update_fields=['status'])
+            
+            logger.info(f"✅ [Celery P1] Hoàn tất phân tích và sinh mục lục nháp cho RawDocument ID: {raw_document_id}")
+            return {"status": "success", "raw_document_id": raw_document_id, "chapters_created": len(chapters)}
+        else:
+            logger.warning(f"⚠️ [Celery P1] Quá trình xử lý trả về kết quả không thành công cho ID: {raw_document_id}")
+            raw_doc.status = 'FAILED'
+            raw_doc.save(update_fields=['status'])
+            return {"status": "failed", "raw_document_id": raw_document_id}
+            
     except RawDocument.DoesNotExist:
         logger.error(f"❌ [Celery P1 Security] Không tìm thấy tài liệu ID {raw_document_id} trong phạm vi nhóm {group_id}")
         return {"status": "not_found"}
         
     except Exception as exc:
-        logger.error(f"❌ [Celery P1 Error] Lỗi xử lý task tài liệu: {str(exc)}")
+        logger.error(f"❌ [Celery P1 Error] Lỗi nghiêm trọng khi xử lý task tài liệu ID {raw_document_id}: {str(exc)}")
         raise self.retry(exc=exc, countdown=60)
     
 @shared_task(bind=True, max_retries=3)
@@ -74,10 +94,10 @@ def detect_semantic_overlap_task(self, chapter_id):
                 chapter.status = 'conflict_detected'
                 chapter.has_conflict = True
                 
-                # Trích xuất nội dung hợp nhất an toàn để gán đúng trường test yêu cầu (suggested_content)
+                # Trích xuất nội dung hợp nhất an toàn từ kết quả AI Rewrite
                 merged_summary = conflict_result.get('merged_content') if isinstance(conflict_result, dict) else str(conflict_result)
                 if hasattr(chapter, 'suggested_content'):
-                    chapter.suggested_content = "Nội dung đã được hợp nhất an toàn" # Hoặc gán từ merged_summary tùy biến
+                    chapter.suggested_content = merged_summary
                 
                 chapter.metadata = {
                     "conflict_with": [res.get('id') for res in results],

@@ -141,10 +141,8 @@ Module liên kết:
                             class="btn btn-sm btn-outline-primary py-1 px-2" title="Tải xuống máy">
                             <i class="fas fa-download"></i>
                         </a>
-                        <button type="button"
-                            class="btn btn-sm btn-success py-1 px-2 fw-bold d-flex align-items-center gap-1"
-                            onclick="triggerAILearnDocument('{{ message.document.id }}')"
-                            title="Yêu cầu AI phân tích và nạp vào Tri thức RAG">
+                        <button type="button" class="btn btn-sm btn-success btn-ai-learn"
+                            data-doc-id="{{ message.document.id }}">
                             <i class="fas fa-graduation-cap"></i> Học 🧠
                         </button>
                     </div>

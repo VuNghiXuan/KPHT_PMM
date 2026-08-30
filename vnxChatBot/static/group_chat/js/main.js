@@ -1,9 +1,9 @@
 /**
  * File: static/group_chat/js/main.js
  * Mục đích: Nhạc trưởng trung tâm khởi chạy các module chức năng độc lập (WebSocket/ChatCore, 
- *           Reply, Reactions, Uploader) theo kiến trúc Modular Monolith.
+ *           Reply, Reactions, Uploader, KnowledgeLearner) theo kiến trúc Modular Monolith.
  * Tác giả: Kỹ sư hệ thống vnxChatBot
- * Module liên kết: websocket.js, reply.js, reactions.js, uploader.js
+ * Module liên kết: websocket.js, reply.js, reactions.js, uploader.js, knowledge_learner.js
  */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -45,11 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log(`[Main] ✅ DocumentUploader đã được kích hoạt cho nhóm ID: ${groupId}`);
     }
 
-    console.log("[vnxChatBot] 🎉 Hoàn tất khởi chạy toàn bộ module!");
-
     // 5. Khởi tạo module Quản lý Nhập liệu & @Mention (ChatInputManager)
     if (typeof ChatInputManager !== "undefined") {
-        // Dữ liệu thành viên có thể được truyền từ Django context qua biến toàn cục hoặc dataset
         const groupMembers = window.groupMembersData || [
             { username: "AI Assistant", is_ai: true, display: "🤖 AI Assistant" },
             { username: "admin", is_ai: false, display: "👤 admin (Quản trị viên)" },
@@ -65,4 +62,21 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         console.log("[Main] ✅ ChatInputManager đã được kích hoạt thành công.");
     }
+
+    // 6. Khởi tạo context user toàn cục từ DOM
+    const container = document.getElementById('message-list-container');
+    if (container && container.dataset.userId) {
+        window.currentUserId = parseInt(container.dataset.userId);
+        console.log("[Main] 👤 Context User ID đã được thiết lập:", window.currentUserId);
+    }
+
+    // 7. Khởi tạo module Kích hoạt tiến trình học tập tài liệu (KnowledgeLearner)
+    if (typeof KnowledgeLearner !== "undefined") {
+        window.knowledgeLearner = new KnowledgeLearner();
+        console.log("[Main] ✅ KnowledgeLearner đã được kích hoạt và sẵn sàng lắng nghe sự kiện học tri thức.");
+    } else {
+        console.warn("[Main] ⚠️ Không tìm thấy lớp KnowledgeLearner. Hãy kiểm tra thứ tự nhúng file script!");
+    }
+
+    console.log("[vnxChatBot] 🎉 Hoàn tất khởi chạy toàn bộ module!");
 });

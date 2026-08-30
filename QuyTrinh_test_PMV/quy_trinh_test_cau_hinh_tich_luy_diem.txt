@@ -1,0 +1,58 @@
+QUY TRÌNH KIỂM THỬ PHẦN MỀM: TÍNH NĂNG "CẤU HÌNH TÍCH LŨY ĐIỂM"
+
+1. PHÂN TÍCH USER STORY (US) THEO CHUẨN BDD
+- Đối tượng sử dụng: Quản trị viên, Quản lý hệ thống, Nhân viên vận hành có phân quyền theo Roles và Record Permission.
+- Tính năng cốt lõi: Quản lý vòng đời màn hình "Cấu hình tích lũy điểm" từ Khởi tạo -> Chờ duyệt -> Đã duyệt -> Kết thúc (hoặc Không duyệt / Hủy), quản lý danh sách cấu hình, chi tiết điều kiện tích điểm theo hóa đơn hoặc sản phẩm (vàng cũ / vàng mới), tự động chuyển trạng thái kết thúc theo ngày, và kiểm soát phân quyền 4 cấp (Nhân viên, Phòng ban, Chi nhánh, Công ty).
+- Yêu cầu chức năng (Functional Requirements):
+  + Quản lý danh sách, tìm kiếm, phân trang (5, 10, 20, 50, 250), sắp xếp cột.
+  + Thêm, sửa, xem, xóa vĩnh viễn (kiểm tra ràng buộc đã được sử dụng hay chưa).
+  + Quy trình duyệt qua MUI Stepper với các nút hành động: Trình duyệt, Hủy, Quay lại khởi tạo, Duyệt, Không duyệt, Kết thúc.
+  + Kiểm soát tính độc nhất: Tại một thời điểm chỉ tồn tại 1 Cấu hình tích lũy điểm theo Chi nhánh, Loại giao dịch, Phạm vi áp dụng có trạng thái = Đã duyệt.
+  + Tự động cập nhật trạng thái "Kết thúc" khi ngày hiện tại bằng ngày kết thúc.
+  + Quản lý section thông tin chung và 2 grid chi tiết "Vàng cũ", "Vàng mới" khi phạm vi áp dụng là Sản phẩm.
+  + Ghi log đầy đủ mọi thao tác thay đổi dữ liệu hoặc trạng thái (Audit log).
+- Yêu cầu phi chức năng (Non-functional Requirements):
+  + Ràng buộc nhập liệu chặt chẽ (Mã cấu hình viết hoa, không dấu, không ký tự đặc biệt, max 50 ký tự; Tên, Mô tả max 255 ký tự).
+  + Khóa (readonly) các trường dữ liệu tự động khi phiếu chuyển sang trạng thái chờ duyệt, đã duyệt, hủy, không duyệt, kết thúc.
+  + Xử lý bảo mật: Phân quyền theo nhóm người dùng và bản ghi; chặn truy cập trực tiếp URL trả về trang 403 nếu không có quyền.
+
+2. XÁC ĐỊNH ACCEPTANCE CRITERIA (TIÊU CHÍ NGHIỆM THU)
+- Luồng xử lý chính (Happy Path):
+  + Tạo mới Cấu hình tích lũy điểm ở trạng thái "Khởi tạo", điền đầy đủ các trường bắt buộc (Mã, Tên, Loại giao dịch, Ngày bắt đầu, Phạm vi áp dụng, Hạng KH,...). Nhấn "Lưu và đóng".
+  + Nhấn "Trình duyệt", hệ thống hiển thị popup xác nhận, chuyển trạng thái sang "Chờ duyệt", form khóa readonly.
+  + Người có quyền duyệt bấm "Duyệt", xác nhận popup, trạng thái chuyển sang "Đã duyệt" (kiểm tra tính duy nhất theo Chi nhánh, Loại giao dịch, Phạm vi áp dụng).
+  + Khi đến "Ngày kết thúc", hệ thống tự động chuyển trạng thái sang "Kết thúc" và khóa toàn bộ form.
+- Luồng thay thế (Alternative Paths):
+  + Ở trạng thái "Chờ duyệt", người có quyền bấm "Quay lại khởi tạo", trạng thái về lại "Khởi tạo", form mở lại quyền chỉnh sửa.
+  + Ở trạng thái "Khởi tạo", người dùng bấm "Hủy" (nhập lý do), trạng thái chuyển sang "Hủy".
+- Luồng lỗi (Exception/Error Flows):
+  + Nhập Mã cấu hình chứa ký tự đặc biệt hoặc tiếng Việt -> Hệ thống chặn hoặc báo lỗi.
+  + Xóa cấu hình tích lũy điểm đã được sử dụng trong hệ thống -> Hiển thị cảnh báo: "Cấu hình tích lũy điểm đã được sử dụng, không thể xóa." và chặn xóa.
+  + Trùng lặp cấu hình Đã duyệt cho cùng Chi nhánh, Loại giao dịch, Phạm vi áp dụng -> Hệ thống không cho phép duyệt.
+  + Cố gắng truy cập trực tiếp URL khi không có quyền -> Hiển thị trang 403.
+
+3. CHUYỂN HÓA US THÀNH KỊCH BẢN KIỂM THỬ (TEST SCENARIOS - GIVEN/WHEN/THEN)
+- TS01: Kiểm tra validate dữ liệu đầu vào khi Thêm/Sửa Cấu hình tích lũy điểm
+  + Given Người dùng đang ở form "Thêm cấu hình tích lũy điểm"
+  + When Người dùng nhập trường Mã chứa ký tự đặc biệt hoặc tiếng Việt có dấu
+  + Then Hệ thống hiển thị cảnh báo định dạng mã và không cho phép lưu.
+- TS02: Kiểm tra nghiệp vụ xóa cấu hình tích lũy điểm
+  + Given Danh sách cấu hình tích lũy điểm có bản ghi đã từng phát sinh giao dịch sử dụng
+  + When Người dùng chọn chức năng "Xóa" trên bản ghi đó
+  + Then Hệ thống hiển thị thông báo: "Cấu hình tích lũy điểm đã được sử dụng, không thể xóa." và từ chối xóa vĩnh viễn.
+- TS03: Kiểm tra quy trình duyệt qua MUI Stepper và tính độc nhất
+  + Given Cấu hình tích lũy điểm đang ở trạng thái "Chờ duyệt"
+  + When Người có quyền duyệt click nút "Duyệt" (trên hệ thống đã có một cấu hình khác Đã duyệt trùng Chi nhánh, Loại giao dịch, Phạm vi áp dụng)
+  + Then Hệ thống không cho phép duyệt hoặc cảnh báo vi phạm tính độc nhất (chỉ tồn tại 1 cấu hình Đã duyệt trong cùng điều kiện).
+
+4. THIẾT KẾ TEST CASE CHI TIẾT
+- TC01: Kiểm tra tự động viết hoa và chặn ký tự đặc biệt/khoảng trắng tại trường "Mã".
+- TC02: Kiểm tra ràng buộc ngày tháng: "Ngày bắt đầu <= Ngày kết thúc".
+- TC03: Kiểm tra hiển thị tương ứng các section theo "Phạm vi áp dụng" (Nếu là Hóa đơn hiển thị các trường loại áp dụng, giá trị, số điểm quy đổi; nếu là Sản phẩm hiển thị 2 grid Vàng cũ / Vàng mới).
+- TC04: Kiểm tra tính năng tự động chuyển trạng thái "Kết thúc" khi Ngày hiện tại = Ngày kết thúc đối với cấu hình đang ở trạng thái "Đã duyệt".
+- TC05: Kiểm tra quyền ẩn/hiện menu và chuyển hướng trang 403 khi truy cập trái phép qua URL.
+- TC06: Kiểm tra ghi nhận đầy đủ Audit log cho mọi hành động thay đổi trạng thái phiếu.
+
+5. RÀ SOÁT VÀ ĐỒNG BỘ (REVIEW & TRACEABILITY)
+- Lập bảng RTM (Requirements Traceability Matrix) ánh xạ toàn bộ các yêu cầu chức năng từ đặc tả màn hình "Cấu hình tích lũy điểm" sang Test Scenarios và Test Cases.
+- Thống nhất các ràng buộc về tính độc nhất của cấu hình Đã duyệt và cơ chế tự động kết thúc theo ngày với đội ngũ phát triển.

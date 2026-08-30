@@ -13,7 +13,7 @@ class ChatReplyManager {
     }
 
     initReplyEvents() {
-        const chatMessagesContainer = document.getElementById('chat-messages');
+        const chatMessagesContainer = document.getElementById('#message-list-container');
         if (!chatMessagesContainer) return;
 
         chatMessagesContainer.addEventListener('click', (e) => {

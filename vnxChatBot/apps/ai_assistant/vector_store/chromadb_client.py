@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# Path: apps/ai_assistant/vector_store/chromadb_client.py
 """
 File: apps/ai_assistant/vector_store/chromadb_client.py
 Mục đích: Cung cấp lớp giao tiếp với ChromaDB để quản lý Vector Embedding cho hệ thống RAG, 
@@ -53,14 +55,58 @@ class ChromaDBClient:
         return self._collection
 
     @staticmethod
+    def compute_embedding(text: str):
+        """
+        Tính toán vector embedding cho văn bản đầu vào.
+        Tích hợp qua LiteLLM hoặc AI Engine chuẩn hóa của hệ thống.
+        """
+        try:
+            from apps.ai_assistant.services.ai_engine import AI_Engine
+            # Sử dụng AI Engine để tạo embedding chuẩn xác
+            return AI_Engine.get_embedding(text)
+        except Exception as e:
+            logger.warning(f"⚠️ [ChromaDB] Không thể dùng AI_Engine để tạo embedding, dùng vector giả lập dự phòng: {str(e)}")
+            # Fallback vector cơ bản nếu chưa cấu hình API Key embedding đầy đủ trong môi trường test
+            return [0.0] * 1536
+
+    @staticmethod
+    def search(embedding, group_id, limit=3, threshold=0.85):
+        """
+        Tìm kiếm vector tương đồng trong phạm vi group_id (Hard Scoping).
+        """
+        try:
+            client = ChromaDBClient()
+            results = client.collection.query(
+                query_embeddings=[embedding],
+                n_results=limit,
+                where={"group_id": str(group_id)}
+            )
+            
+            formatted_results = []
+            if results and results.get('documents') and results['documents'][0]:
+                docs = results['documents'][0]
+                metas = results['metadatas'][0]
+                distances = results['distances'][0] if 'distances' in results and results['distances'] else [0.0] * len(docs)
+                
+                for doc, meta, dist in zip(docs, metas, distances):
+                    # Chuyển đổi khoảng cách (distance) thành điểm tương đồng (similarity) nếu cần
+                    similarity = 1.0 - dist if dist <= 1.0 else 0.0
+                    if similarity >= threshold:
+                        formatted_results.append({
+                            "id": meta.get("unit_id") or meta.get("doc_id"),
+                            "document": doc,
+                            "metadata": meta,
+                            "similarity": similarity
+                        })
+            return formatted_results
+        except Exception as e:
+            logger.error(f"❌ [ChromaDB] Lỗi khi thực hiện search vector: {str(e)}", exc_info=True)
+            return []
+
+    @staticmethod
     def insert(group_id, text, doc_id):
         """
         Thêm hoặc cập nhật tri thức từ tài liệu vào VectorDB.
-        
-        Args:
-            group_id (int|str): ID định danh nhóm (Tenant isolation).
-            text (str): Nội dung văn bản cần nhúng vector.
-            doc_id (int|str): ID định danh tài liệu (Document ID).
         """
         try:
             if not text or not text.strip():
@@ -68,7 +114,6 @@ class ChromaDBClient:
                 return
 
             client = ChromaDBClient()
-            
             client.collection.upsert(
                 documents=[text],
                 metadatas=[{"group_id": str(group_id), "doc_id": str(doc_id)}],
@@ -91,7 +136,6 @@ class ChromaDBClient:
     def upsert_embedding(group_id, text, doc_id=None, unit_id=None):
         """
         Thêm hoặc cập nhật tri thức từ tài liệu hoặc KnowledgeUnit vào VectorDB (ChromaDB).
-        Hỗ trợ nhận linh hoạt cả doc_id hoặc unit_id để tránh lỗi unexpected keyword argument.
         """
         try:
             if not text or not text.strip():
@@ -103,7 +147,6 @@ class ChromaDBClient:
                 return
 
             client = ChromaDBClient()
-            
             client.collection.upsert(
                 documents=[text],
                 metadatas=[{
@@ -128,8 +171,7 @@ class ChromaDBClient:
 
     def delete_unit_embeddings(self, unit_id, group_id=None):
         """
-        Xóa các vector embedding liên quan đến một KnowledgeUnit cụ thể trong ChromaDB,
-        sử dụng kiểu chuỗi đồng nhất cho metadata filter để tránh lệch kiểu dữ liệu.
+        Xóa các vector embedding liên quan đến một KnowledgeUnit cụ thể trong ChromaDB.
         """
         try:
             if group_id is not None:
@@ -153,14 +195,12 @@ class ChromaDBClient:
     def add_texts(texts, metadatas=None, ids=None, group_id=None, **kwargs):
         """
         Phương thức tương thích ngược cho các service gọi hàm add_texts truyền thống.
-        Tự động chuyển hướng gọi tới cơ chế upsert_embedding của ChromaDBClient.
         """
         try:
             client = ChromaDBClient()
             if not texts:
                 return []
             
-            # Nếu truyền vào danh sách texts và metadatas
             results_ids = []
             for i, text in enumerate(texts):
                 meta = metadatas[i] if metadatas and i < len(metadatas) else {}
@@ -168,7 +208,6 @@ class ChromaDBClient:
                 unit_id = meta.get('unit_id')
                 g_id = meta.get('group_id') or group_id
                 
-                # Gọi upsert_embedding có sẵn
                 client.upsert_embedding(group_id=g_id, text=text, doc_id=doc_id, unit_id=unit_id)
                 
                 if ids and i < len(ids):

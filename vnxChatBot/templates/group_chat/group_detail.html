@@ -13,19 +13,36 @@
     <link href="{% static 'css/fontawesome/css/all.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/ledger_theme.css' %}" rel="stylesheet">
 
-    <!-- Khai báo biến toàn cục an toàn tại file template chính group_chat_detail.html -->
+    <!-- 🌐 [WORKSPACE CONTEXT]: Khởi tạo ngữ cảnh toàn cục cho Group-Centric -->
     <script>
-        if (typeof window.currentUsername === 'undefined') {
-            window.currentUsername = "{{ request.user.username }}";
-        }
-        if (typeof window.currentUserAvatarUrl === 'undefined') {
-            window.currentUserAvatarUrl = "{% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% endif %}";
-        }
-        if (typeof window.currentGroupId === 'undefined') {
-            window.currentGroupId = "{{ group.id }}";
-        }
+        window.VNXWorkspaceContext = {
+            group: {
+                id: "{{ group.id }}",
+                name: "{{ group.name }}",
+                aiProvider: "{{ group.ai_provider|default:'gemini' }}",
+                aiModel: "{{ group.ai_model|default:'gemini-2.0-flash' }}",
+                isConfigured: "{% if group.is_ai_configured %}true{% else %}false{% endif %}" === "true"
+            },
+            user: {
+                username: "{{ request.user.username }}"
+            },
+            // Phương thức cập nhật cấu hình AI động không cần reload trang
+            updateAIConfig(newProvider, newModel) {
+                this.group.aiProvider = newProvider;
+                this.group.aiModel = newModel;
+                console.log("🔄 [VNXContext] Đã cập nhật cấu hình AI mới cho nhóm:", this.group);
+
+                // Phát sự kiện toàn hệ thống để các module lắng nghe và thích ứng
+                window.dispatchEvent(new CustomEvent('vnx:aiConfigChanged', {
+                    detail: { provider: newProvider, model: newModel }
+                }));
+            }
+        };
     </script>
 
+    <!-- 🔗 Nhúng các tệp JavaScript xử lý độc lập -->
+    <script src="{% static 'group_chat/js/documents/knowledge_status_poller.js' %}"></script>
+    <script src="{% static 'group_chat/js/group_workspace.js' %}"></script>
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -55,7 +72,7 @@
 
                 <!-- Các icon điều hướng nội bộ của nhóm -->
                 <div class="flex-grow-1 w-100">
-                    {% include "group_chat/partials/_sidebar_nav.html" %}
+                    {% include "group_chat/partials/chat_ui/_sidebar_nav.html" %}
                 </div>
 
                 <!-- User Profile / Trạng thái dưới cùng -->
@@ -66,23 +83,25 @@
 
             <!-- ================= CỘT 2: Danh sách nhóm & Kênh chat (Rộng vừa phải) ================= -->
             <div class="flex-shrink-0 border-end bg-white" style="width: 290px;">
-                {% include "group_chat/partials/_sidebar_groups.html" %}
+                {% include "group_chat/partials/chat_ui/_sidebar_groups.html" %}
             </div>
 
             <!-- ================= CỘT 3: Main Workspace (Khu vực chat chính co giãn linh hoạt) ================= -->
             <div class="flex-grow-1 d-flex flex-column h-100 bg-white overflow-hidden">
-                {% include "group_chat/partials/_workspace_header.html" %}
+                {% include "group_chat/partials/chat_ui/_workspace_header.html" %}
 
                 <!-- Khung chứa tin nhắn cuộn độc lập -->
-                <div class="flex-grow-1 overflow-y-auto p-4 bg-light" id="chat-messages" data-group-id="{{ group.id }}"
+                <div class="flex-grow-1 overflow-y-auto p-4 bg-light" id="message-list-container"
+                    data-group-id="{{ group.id }}" data-user-id="{{ request.user.id }}"
                     data-current-username="{{ request.user.username }}" data-csrf-token="{{ csrf_token }}"
                     style="min-height: 0;">
-                    {% include "group_chat/partials/message_list.html" %}
+
+                    {% include "group_chat/partials/chat_ui/message_list.html" %}
                 </div>
 
                 <!-- Khung nhập nội dung chat ở đáy -->
                 <div class="flex-shrink-0 bg-white border-top p-3 shadow-sm">
-                    {% include "group_chat/partials/_chat_input.html" %}
+                    {% include "group_chat/partials/chat_ui/_chat_input.html" %}
                 </div>
             </div>
 
@@ -105,7 +124,7 @@
 
             <!-- ================= PANEL PHẢI: Thông tin & Quản trị nhóm ================= -->
             <div class="flex-shrink-0 border-start bg-white overflow-auto" style="width: 380px;">
-                {% include "group_chat/partials/_settings_offcanvas.html" %}
+                {% include "group_chat/partials/chat_ui/_settings_offcanvas.html" %}
             </div>
 
         </div>
@@ -115,23 +134,16 @@
     <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
 
 
-    <!-- <script src="{% static 'group_chat/js/func_for_group_detail.js' %}"></script> 
-    <script src="{% static 'group_chat/js/ChatManager.js' %}"></script>
-    <script src="{% static 'group_chat/js/chat/actions.js' %}"></script>
-    
-    -->
-
-    <!-- Khai báo các module JavaScript đã tách  -->
-    <!-- Khai báo các module JavaScript đã tách theo đúng thứ tự phụ thuộc  -->
-    <script src="{% static 'group_chat/js/chat/websocket.js' %}"></script>
-    <script src="{% static 'group_chat/js/chat/input.js' %}"></script>
+    <!-- 1. Các module tiện ích và xử lý nền tảng -->
+    <script src="{% static 'group_chat/js/documents/uploader.js' %}"></script>
+    <script src="{% static 'group_chat/js/documents/knowledge_learner.js' %}"></script>
     <script src="{% static 'group_chat/js/chat/reply.js' %}"></script>
     <script src="{% static 'group_chat/js/chat/reactions.js' %}"></script>
-    <script src="{% static 'group_chat/js/documents/uploader.js' %}"></script>
+    <script src="{% static 'group_chat/js/chat/input.js' %}"></script>
+    <script src="{% static 'group_chat/js/chat/websocket.js' %}"></script>
 
-    <!-- File điều phối trung tâm để kích hoạt toàn bộ hệ thống -->
+    <!-- 2. Tệp điều phối chính (Main) nạp sau cùng -->
     <script src="{% static 'group_chat/js/main.js' %}"></script>
-
 
 
 </body>

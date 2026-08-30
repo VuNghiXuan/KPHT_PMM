@@ -5,7 +5,7 @@ Module liên kết: group_chat.views.group_chat_detail
 
 {% if messages %}
 {% for message in messages %}
-{% include "group_chat/partials/message_item.html" with message=message %}
+{% include "group_chat/partials/chat_ui/message_item.html" with message=message %}
 {% endfor %}
 {% else %}
 <div class="text-center text-muted mt-5">

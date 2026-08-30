@@ -12,6 +12,7 @@ from apps.group_chat.views import (
     upload_document,
     delete_document_view,
     trigger_ai_learn_document_view,
+    search_knowledge_view,
     knowledge_management,
     knowledge_action_view,
     promote_knowledge_view,
@@ -26,7 +27,8 @@ from apps.group_chat.views import (
     validate_and_test_ai_model,
     knowledge_dashboard_view,
     ConflictResolutionAPIView,
-    ConflictChapterListAPIView
+    ConflictChapterListAPIView,
+    AIRewriteAPIView
 )
 
 app_name = 'group_chat'
@@ -38,13 +40,18 @@ urlpatterns = [
     
     # 📁 Quản lý tài liệu và vòng đời tri thức (knowledge_document_views.py)
     path('<int:group_id>/upload/', upload_document, name='upload_document'),
-    path('documents/<int:document_id>/learn/', trigger_ai_learn_document_view, name='trigger_ai_learn_document'),
+    path('<int:group_id>/documents/<int:document_id>/learn/', trigger_ai_learn_document_view, name='trigger_ai_learn_document'),
+    path('<int:group_id>/documents/<int:document_id>/reanalyze/', trigger_ai_learn_document_view, name='reanalyze_document'),
+    path('<int:group_id>/documents/<int:document_id>/delete/', delete_document_view, name='delete_document'),
+
+
+
+    # 🔍 API Tìm kiếm tri thức trong nhóm (Group-Centric Search API)
+    path('<int:group_id>/knowledge/search/', search_knowledge_view, name='search_knowledge'),
 
     # 📊 Kho Tri Thức Nhóm & Dashboard Quản trị (Knowledge Dashboard)
     path('<int:group_id>/knowledge/', knowledge_dashboard_view, name='knowledge_dashboard'),
     path('<int:group_id>/knowledge/legacy/', knowledge_management, name='knowledge_management'),
-    path('documents/<int:document_id>/delete/', delete_document_view, name='delete_document'),
-    
 
     # 🔄 Quản lý vòng đời tri thức & Hành động phê duyệt (Pending / Approved / Rollback)
     path('<int:group_id>/knowledge/<int:knowledge_id>/<str:action>/', knowledge_action_view, name='knowledge_action'),
@@ -78,9 +85,19 @@ urlpatterns = [
             ConflictResolutionAPIView.as_view(), 
             name='conflict_resolution_api'  # Đã đồng bộ dấu gạch dưới (_) khớp với test case
         ),
-    # 🛡️ API Xử lý Xung đột Tri thức & Danh sách Xung đột (Conflict Resolution & Chapters List)
-    
-    
+
+
+  
+
+    # 🛡️ API gọi AI viết lại nội dung sau tìm kiếm  
+    # Trong urlpatterns:
+    path(
+        '<int:group_id>/knowledge/chapters/<int:chapter_id>/rewrite/', 
+        AIRewriteAPIView.as_view(), 
+        name='ai_rewrite'
+    ),
+
+
 
     # ❤️ Quản lý tương tác cảm xúc và Feedback Loop (feedback_views.py)
     path('message/<int:message_id>/feedback/', knowledge_feedback_view, name='knowledge_feedback'),

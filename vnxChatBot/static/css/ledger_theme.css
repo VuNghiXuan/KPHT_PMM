@@ -78,11 +78,15 @@ html {
    ========================================================================== */
 
 /* Chống gãy khung vùng chứa chat trung tâm */
-#chat-messages {
+#chat-messages,
+#message-list-container {
     flex: 1 1 auto;
     overflow-y: auto;
     background-color: #f8fafc;
     scroll-behavior: smooth;
+    display: flex;
+    /* Đảm bảo flexbox hoạt động */
+    flex-direction: column;
 }
 
 /* Cố định thanh input ở đáy khung chat, không bị trôi hoặc đứt đoạn */

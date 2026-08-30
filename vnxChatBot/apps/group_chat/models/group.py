@@ -62,11 +62,11 @@ class ChatGroup(models.Model):
 
     @property
     def pending_knowledge_count(self):
-        return self.knowledge_units.filter(status='pending').count()
+        return self.knowledge_units.filter(status='PENDING').count()
 
     @property
     def approved_knowledge_count(self):
-        return self.knowledge_units.filter(status='approved').count()
+        return self.knowledge_units.filter(status='APPROVED').count()
 
 
 class Membership(models.Model):

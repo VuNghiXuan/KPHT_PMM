@@ -26,13 +26,12 @@ class ChatInputManager {
         console.log("[ChatInputManager] 🔗 Đang thiết lập các bộ lắng nghe sự kiện (Event Listeners)...");
 
         this.inputChat.addEventListener("input", (e) => {
-            console.log("[ChatInputManager] ⌨️ Phát hiện sự kiện gõ phím tại ô input. Giá trị hiện tại:", this.inputChat.value);
             this.handleChatInput(e);
         });
 
         if (this.fileInput) {
             this.fileInput.addEventListener("change", (e) => {
-                console.log("[ChatInputManager] 📁 Phát hiện sự kiện chọn file/folder. Số lượng file:", this.fileInput.files.length);
+                console.log("[ChatInputManager] 📁 Phát hiện sự kiện chọn file. Số lượng file:", this.fileInput.files.length);
                 this.handleFileUpload(e);
             });
         }
@@ -41,7 +40,6 @@ class ChatInputManager {
             if (this.mentionDropdown.style.display === "block" &&
                 !this.inputChat.contains(e.target) &&
                 !this.mentionDropdown.contains(e.target)) {
-                console.log("[ChatInputManager] 🖱️ Click ra ngoài vùng mention -> Ẩn dropdown.");
                 this.mentionDropdown.style.display = "none";
             }
         });
@@ -53,21 +51,15 @@ class ChatInputManager {
         const words = textBeforeCursor.split(" ");
         const lastWord = words[words.length - 1];
 
-        console.log("[ChatInputManager] 🔍 Đang phân tích từ khóa tại con trỏ:", { cursorPosition, lastWord, groupMembersCount: this.groupMembers.length });
-
         if (lastWord.startsWith("@")) {
             const query = lastWord.substring(1).toLowerCase();
             const filteredMembers = this.groupMembers.filter(m => m.username.toLowerCase().includes(query));
 
-            console.log(`[ChatInputManager] 🎯 Từ khóa tìm kiếm '@${query}': Tìm thấy ${filteredMembers.length} thành viên khớp.`);
-
             if (filteredMembers.length > 0) {
                 this.renderMentionDropdown(filteredMembers);
                 this.mentionDropdown.style.display = "block";
-                console.log("[ChatInputManager] 📂 Đã hiển thị dropdown mention.");
             } else {
                 this.mentionDropdown.style.display = "none";
-                console.log("[ChatInputManager] 📂 Không có thành viên khớp -> Ẩn dropdown mention.");
             }
         } else {
             this.mentionDropdown.style.display = "none";
@@ -83,7 +75,6 @@ class ChatInputManager {
             item.innerHTML = `<span>${member.display}</span>`;
             item.onclick = (e) => {
                 e.preventDefault();
-                console.log(`[ChatInputManager] 👉 Người dùng chọn mention: ${member.username}`);
                 this.insertMention(member.username);
             };
             this.mentionDropdown.appendChild(item);
@@ -101,7 +92,6 @@ class ChatInputManager {
             this.inputChat.focus();
             const newCursorPos = lastAtIndex + username.length + 2;
             this.inputChat.setSelectionRange(newCursorPos, newCursorPos);
-            console.log("[ChatInputManager] ✨ Đã chèn mention thành công:", newText);
         }
         this.mentionDropdown.style.display = "none";
     }
@@ -111,28 +101,39 @@ class ChatInputManager {
         if (files.length > 0) {
             let fileNames = Array.from(files).map(f => f.name);
             if (this.filePreview) {
-                this.filePreview.textContent = `Đã chọn: ${fileNames.join(", ")}`;
+                this.filePreview.textContent = `Đang tải lên: ${fileNames.join(", ")}...`;
             }
-            console.log("[ChatInputManager] 📤 Chuẩn bị tải lên các file:", fileNames);
             this.uploadFilesToKnowledgeBase(files);
         }
     }
 
     uploadFilesToKnowledgeBase(files) {
         const uploadUrl = this.fileInput.getAttribute("data-upload-url");
-        console.log("[ChatInputManager] 🌐 Đường dẫn URL tải lên RAG:", uploadUrl);
-
         if (!uploadUrl) {
-            console.error("[ChatInputManager] ❌ Lỗi: Thiếu thuộc tính data-upload-url trên input file!");
+            console.error("[ChatInputManager] ❌ Lỗi: Thiếu thuộc tính data-upload-url!");
             if (this.filePreview) this.filePreview.textContent = "❌ Lỗi: Thiếu URL tải lên tài liệu!";
             return;
         }
 
         const formData = new FormData();
         Array.from(files).forEach(file => {
-            formData.append("documents", file);
-            console.log(`[ChatInputManager] 📦 Thêm file vào FormData: ${file.name} (${file.size} bytes)`);
+            formData.append("file", file);
         });
+
+        // 🎯 [Single Source of Truth]: Sử dụng hằng số chuẩn duy nhất theo template chat_detail.html
+        const CHAT_CONTAINER_ID = 'message-list-container';
+        const chatMessagesContainer = document.getElementById(CHAT_CONTAINER_ID);
+
+        if (!chatMessagesContainer) {
+            console.error(`[ChatInputManager] ❌ Lỗi kiến trúc: Không tìm thấy container chuẩn #${CHAT_CONTAINER_ID}`);
+            if (this.filePreview) this.filePreview.textContent = "❌ Lỗi giao diện: Không tìm thấy khung chat!";
+            return;
+        }
+
+        const groupId = window.currentGroupId || chatMessagesContainer.dataset.groupId;
+        if (groupId) {
+            formData.append("group_id", groupId);
+        }
 
         const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
             document.querySelector("meta[name=csrf-token]")?.content;
@@ -144,25 +145,34 @@ class ChatInputManager {
                 "X-CSRFToken": csrfToken || ""
             }
         })
-            .then(response => {
-                console.log("[ChatInputManager] 📥 Nhận phản hồi từ Server, mã trạng thái:", response.status);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log("[ChatInputManager] 📄 Dữ liệu JSON trả về từ Server:", data);
                 if (data.status === "success") {
+                    // 📥 [Realtime UI Update]: Chèn ngay HTML tin nhắn file mới trả về vào khung chat chuẩn
+                    if (data.html) {
+                        chatMessagesContainer.insertAdjacentHTML('beforeend', data.html);
+                        console.log("[ChatInputManager] 📥 Đã render trực tiếp tin nhắn tài liệu mới lên giao diện.");
+                    }
+
+                    // 📜 Tự động cuộn xuống đáy khung chat
+                    if (window.chatCore && typeof window.chatCore.scrollToBottom === 'function') {
+                        window.chatCore.scrollToBottom();
+                    }
+
+                    // 🧹 Reset input file sau khi upload thành công
+                    this.fileInput.value = "";
                     if (this.filePreview) {
-                        this.filePreview.textContent = "✅ Đã nạp tài liệu vào Kho Tri thức nhóm thành công!";
+                        this.filePreview.textContent = "✅ Đã nạp tài liệu vào Kho Tri thức thành công!";
                         setTimeout(() => { this.filePreview.textContent = ""; }, 4000);
                     }
                 } else {
                     if (this.filePreview) {
-                        this.filePreview.textContent = `❌ Lỗi từ server: ${data.message || 'Không xác định'}`;
+                        this.filePreview.textContent = `❌ Lỗi: ${data.message || 'Không xác định'}`;
                     }
                 }
             })
             .catch(error => {
-                console.error("[ChatInputManager] ❌ Lỗi kết nối mạng hoặc xử lý AJAX:", error);
+                console.error("[ChatInputManager] ❌ Lỗi kết nối:", error);
                 if (this.filePreview) {
                     this.filePreview.textContent = "❌ Lỗi kết nối máy chủ!";
                 }

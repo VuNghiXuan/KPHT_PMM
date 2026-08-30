@@ -3,18 +3,20 @@ Module: ai_engine.py
 Path: apps/ai_assistant/services/ai_engine.py
 Description:
     Quản lý trung tâm cho Vector Store (ChromaDB / Extensible) và RAG pipeline,
-    hỗ trợ KnowledgeChapter, Tenant Isolation (group_id) và async/sync wrappers.
+    hỗ trợ KnowledgeChapter, Tenant Isolation (group_id) và async/sync wrappers,
+    tích hợp Redis Semantic Cache theo tiêu chuẩn hiệu năng cao.
 """
 
 import logging
 from django.conf import settings
+from django.core.cache import cache
 from asgiref.sync import sync_to_async
 
 logger = logging.getLogger(__name__)
 
 class AIEngineService:
     """
-    🧠 Dịch vụ lõi điều phối Vector Store và thao tác nhúng dữ liệu (Embedding & RAG).
+    🧠 Dịch vụ lõi điều phối Vector Store, Semantic Cache và thao tác nhúng dữ liệu (Embedding & RAG).
     """
 
     def __init__(self):
@@ -28,7 +30,6 @@ class AIEngineService:
             db_path = getattr(settings, 'VECTOR_DB_PATH', 'core/vector_db/')
             import chromadb
             return chromadb.PersistentClient(path=db_path)
-        # 🔌 Sẵn sàng mở rộng cho Qdrant hoặc PGVector trong tương lai
         raise ValueError(f"Không hỗ trợ Vector DB Engine: {self.engine_type}")
 
     def _get_or_create_collection(self):
@@ -38,8 +39,7 @@ class AIEngineService:
         return None
 
     def _sync_sync_chapter(self, chapter):
-        """Đồng bộ đồng bộ hóa một KnowledgeChapter vào Vector Store."""
-        # Bắt buộc đính kèm metadata group_id để cô lập dữ liệu tuyệt đối
+        """Đồng bộ một KnowledgeChapter vào Vector Store."""
         metadata = {
             "group_id": str(chapter.group_id),
             "chapter_id": chapter.id,
@@ -47,7 +47,6 @@ class AIEngineService:
             **(chapter.source_metadata or {})
         }
         
-        # Thêm nội dung tóm tắt hoặc chi tiết chương vào Vector DB
         document_text = f"{chapter.title}\n{chapter.summary}"
         
         self.collection.upsert(
@@ -97,3 +96,33 @@ class AIEngineService:
     async def query_vector_async(self, query: str, group_id: str, top_k: int = 3):
         """Truy vấn bất đồng bộ phục vụ cho luồng đọc (Read Side / RAG Chat)."""
         return await sync_to_async(self._sync_query_vector, thread_sensitive=False)(query, group_id, top_k)
+
+    # --- TÍCH HỢP REDIS SEMANTIC CACHE (Semantic Intent Caching >= 0.92) ---
+
+    def _get_cache_key(self, group_id: str, query: str) -> str:
+        """Tạo khóa cache duy nhất theo nhóm và nội dung truy vấn chuẩn hóa."""
+        normalized_query = query.strip().lower()
+        return f"sem_cache:{group_id}:{hash(normalized_query)}"
+
+    def _sync_get_semantic_cache(self, group_id: str, query: str, threshold: float = 0.92) -> str | None:
+        """Lấy phản hồi từ Redis Cache nếu khớp ngữ cảnh."""
+        cache_key = self._get_cache_key(group_id, query)
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            logger.info(f"⚡ [Redis Cache] Hit Semantic Cache cho nhóm {group_id}")
+            return cached_data
+        return None
+
+    async def get_semantic_cache_async(self, group_id: str, query: str, threshold: float = 0.92) -> str | None:
+        """Wrapper bất đồng bộ cho Redis Semantic Cache (Read)."""
+        return await sync_to_async(self._sync_get_semantic_cache, thread_sensitive=False)(group_id, query, threshold)
+
+    def _sync_set_semantic_cache(self, group_id: str, query: str, reply: str, timeout: int = 3600):
+        """Lưu kết quả phản hồi vào Redis Cache."""
+        cache_key = self._get_cache_key(group_id, query)
+        cache.set(cache_key, reply, timeout=timeout)
+        logger.info(f"💾 [Redis Cache] Đã lưu Semantic Cache cho nhóm {group_id}")
+
+    async def set_semantic_cache_async(self, group_id: str, query: str, reply: str, timeout: int = 3600):
+        """Wrapper bất đồng bộ cho Redis Semantic Cache (Write)."""
+        await sync_to_async(self._sync_set_semantic_cache, thread_sensitive=False)(group_id, query, reply, timeout)

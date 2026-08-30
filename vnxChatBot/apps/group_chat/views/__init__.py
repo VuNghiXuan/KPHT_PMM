@@ -18,6 +18,7 @@ from .knowledge_document_views import (
     upload_document,
     delete_document_view,
     trigger_ai_learn_document_view,
+    search_knowledge_view,
 )
 from .knowledge_lifecycle_views import (
     knowledge_management,
@@ -26,7 +27,7 @@ from .knowledge_lifecycle_views import (
     rollback_knowledge,
     knowledge_chapter_list_view,
     approve_reject_chapter_view,
-    knowledge_dashboard_view
+    knowledge_dashboard_view,
 )
 
 from .feedback_views import (
@@ -39,4 +40,6 @@ from .member_ai_views import (
     get_group_members_api,
     update_ai_config_view,
     validate_and_test_ai_model,
+)
+from .ai_action_serializer import (AIRewriteAPIView
 )

@@ -37,33 +37,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 5. Lắng nghe sự kiện mở Modal Chi Tiết (Smart Staging Inspection)
+    // 5. Lắng nghe sự kiện mở Modal Chi Tiết (Smart Staging Inspection) một cách an toàn
     const knowledgeDetailModal = document.getElementById('knowledgeDetailModal');
     if (knowledgeDetailModal) {
         knowledgeDetailModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget; // Nút kích hoạt modal
+            const button = event.relatedTarget;
+            if (!button) return;
 
-            // Lấy data attributes từ button
             const knowledgeId = button.getAttribute('data-id');
             const fileName = button.getAttribute('data-filename');
             const entityName = button.getAttribute('data-entity');
             const content = button.getAttribute('data-content');
 
-            // Đổ dữ liệu vào các phần tử tương ứng trong Modal
-            document.getElementById('modal-file-name').textContent = fileName || 'Không có tên';
-            document.getElementById('modal-entity-name').textContent = entityName || 'Chưa xác định';
-            document.getElementById('modal-content-preview').textContent = content || 'Không có nội dung trích xuất.';
+            const nameEl = document.getElementById('modal-file-name');
+            if (nameEl) nameEl.textContent = fileName || 'Không có tên';
 
-            // Gán ID cho các nút hành động bên trong footer của Modal
-            document.getElementById('modal-btn-approve').setAttribute('data-id', knowledgeId);
-            document.getElementById('modal-btn-reject').setAttribute('data-id', knowledgeId);
+            const entityEl = document.getElementById('modal-entity-name');
+            if (entityEl) entityEl.textContent = entityName || 'Chưa xác định';
 
-            // Mô phỏng / load các câu hỏi gợi ý (có thể mở rộng gọi API riêng nếu cần)
-            const queryList = document.getElementById('modal-suggested-queries');
-            queryList.innerHTML = `
-                <li>Tài liệu liên quan trực tiếp đến thực thể: <strong>${entityName}</strong></li>
-                <li>Hệ thống sẵn sàng đưa vào RAG sau khi Admin xác nhận kiểm duyệt thủ công.</li>
-            `;
+            const contentEl = document.getElementById('modal-content-preview');
+            if (contentEl) contentEl.textContent = content || 'Không có nội dung trích xuất.';
+
+            const btnApprove = document.getElementById('modal-btn-approve');
+            if (btnApprove && knowledgeId) btnApprove.setAttribute('data-id', knowledgeId);
+
+            const btnReject = document.getElementById('modal-btn-reject');
+            if (btnReject && knowledgeId) btnReject.setAttribute('data-id', knowledgeId);
         });
     }
 });

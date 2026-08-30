@@ -1,0 +1,161 @@
+{% load static %}
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom-0">
+        <h5 class="fw-bold text-dark mb-0">
+            <i class="fas fa-sitemap text-primary me-2"></i> Cây Mục lục Tri thức & Xử lý Xung đột (Knowledge Chapters)
+        </h5>
+        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
+            Nhóm: {{ chat_group.name }}
+        </span>
+    </div>
+    <div class="card-body px-4 py-3">
+        <!-- Khối hiển thị thông báo nếu có xung đột tri thức -->
+        <div id="conflict-alert-banner" class="alert alert-warning alert-dismissible fade show rounded-3 mb-4"
+            style="display: none;" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                <div>
+                    <h6 class="fw-bold mb-1">Phát hiện mâu thuẫn tri thức cần xử lý!</h6>
+                    <p class="mb-0 small">Hệ thống ghi nhận một số chương mục có nội dung trùng lặp hoặc mâu thuẫn ngữ
+                        nghĩa (`conflict_detected`). Vui lòng xem xét các tùy chọn bên dưới.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách các Chương Tri thức -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary small text-uppercase">
+                    <tr>
+                        <th class="py-3">Tiêu đề Chương</th>
+                        <th class="py-3">Trạng thái (Status)</th>
+                        <th class="py-3">Độ tin cậy</th>
+                        <th class="py-3">Cập nhật cuối</th>
+                        <th class="py-3 text-end">Hành động / Xử lý Xung đột</th>
+                    </tr>
+                </thead>
+                <tbody id="knowledge-chapters-tbody">
+                    <!-- Dữ liệu được nạp động thông qua JavaScript -->
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            Đang tải danh sách chương mục tri thức...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Script tích hợp gọi API lấy danh sách xung đột và thực thi hành động -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const groupId = "{{ chat_group.id }}";
+        const conflictApiUrl = `/groups/${groupId}/knowledge/chapters/conflicts/`;
+
+        // Gọi API lấy danh sách chương xung đột
+        fetch(conflictApiUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('knowledge-chapters-tbody');
+                const alertBanner = document.getElementById('conflict-alert-banner');
+
+                if (data.status === 'success' && data.conflicts && data.conflicts.length > 0) {
+                    alertBanner.style.display = 'block';
+                    let rowsHtml = '';
+
+                    data.conflicts.forEach(item => {
+                        rowsHtml += `
+                    <tr id="chapter-row-${item.id}" class="table-warning-subtle">
+                        <td>
+                            <div class="fw-bold text-dark">${item.title}</div>
+                            <small class="text-muted text-truncate d-block" style="max-width: 300px;">${item.summary || 'Không có tóm tắt'}</small>
+                            ${item.reason ? `<span class="badge bg-danger-subtle text-danger mt-1">Lý do: ${item.reason}</span>` : ''}
+                        </td>
+                        <td>
+                            <span class="badge bg-warning text-dark px-2 py-1">Conflict Detected</span>
+                        </td>
+                        <td><span class="text-secondary">-</span></td>
+                        <td><small class="text-muted">${new Date(item.updated_at).toLocaleString()}</small></td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-success" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'update')" title="Ghi đè nội dung mới">
+                                    <i class="fas fa-sync-alt me-1"></i> Ghi đè
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'merge')" title="Hợp nhất kiến thức">
+                                    <i class="fas fa-object-group me-1"></i> Hợp nhất
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'ignore')" title="Bỏ qua cảnh báo">
+                                    <i class="fas fa-times me-1"></i> Bỏ qua
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                    });
+                    tbody.innerHTML = rowsHtml;
+                } else {
+                    tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        <i class="fas fa-check-circle text-success me-2"></i> Không có mâu thuẫn tri thức nào được ghi nhận. Hệ thống đang hoạt động ổn định.
+                    </td>
+                </tr>
+            `;
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi tải danh sách xung đột:', error);
+                document.getElementById('knowledge-chapters-tbody').innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-circle me-1"></i> Không thể tải dữ liệu chương tri thức từ máy chủ.
+                </td>
+            </tr>
+        `;
+            });
+    });
+
+    // Hàm xử lý hành động giải quyết xung đột (Ghi đè / Hợp nhất / Bỏ qua)
+    function resolveChapterConflict(groupId, chapterId, actionType) {
+        if (!confirm(`Bạn có chắc chắn muốn thực hiện hành động [${actionType.toUpperCase()}] đối với chương này không?`)) {
+            return;
+        }
+
+        const resolveUrl = `/groups/${groupId}/knowledge/chapters/${chapterId}/resolve/`;
+
+        fetch(resolveUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ action: actionType })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Đã xử lý xung đột tri thức thành công!');
+                    const row = document.getElementById(`chapter-row-${chapterId}`);
+                    if (row) {
+                        row.style.transition = 'opacity 0.5s ease';
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 500);
+                    }
+                } else {
+                    alert('Lỗi xử lý: ' + (data.detail || 'Không xác định'));
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi kết nối:', error);
+                alert('Đã xảy ra lỗi kết nối đến máy chủ.');
+            });
+    }
+</script>

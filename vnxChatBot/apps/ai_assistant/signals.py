@@ -1,10 +1,10 @@
 """
 Module: ai_assistant.signals
 Author: Kỹ sư Phần mềm Cao cấp / Kiến trúc trưởng VnxChatBot
-Description: Kết nối sự kiện Vòng đời tri thức (KnowledgeUnit status: pending -> approved) 
+Description: Kết nối sự kiện Vòng đời tri thức (KnowledgeChapter status: pending -> approved) 
              với VectorDB theo chuẩn Group-Centric.
-             Tối ưu hóa: Loại bỏ indexing tự động bừa bãi ở Document, tuân thủ tuyệt đối 
-             quy trình kiểm duyệt trước khi đẩy vào RAG.
+             Tối ưu hóa: Loại bỏ hoàn toànindexing tự động bừa bãi ở Document, tuân thủ tuyệt đối 
+             quy trình kiểm duyệt chương mục trước khi đẩy vào RAG.
 """
 
 from django.db.models.signals import post_save, post_delete
@@ -13,8 +13,9 @@ from django.conf import settings
 from django.utils import timezone
 import logging
 
-from apps.group_chat.models import Document, ChatGroup, Membership, KnowledgeUnit
+from apps.group_chat.models import Document, ChatGroup, Membership, KnowledgeChapter
 from apps.ai_assistant.services.document_processor import DocumentProcessorService
+from apps.ai_assistant.vector_store import VectorDBManager
 
 logger = logging.getLogger(__name__)
 
@@ -29,45 +30,45 @@ def handle_document_cleanup(sender, instance, **kwargs):
         logger.error(f"❌ [Signals] Lỗi xử lý dọn dẹp Document {instance.id}: {str(e)}")
 
 
-# --- SIGNALS CHO KNOWLEDGE UNIT (Vòng đời tri thức chuẩn RAG theo nhóm) ---
+# --- SIGNALS CHO KNOWLEDGE CHAPTER (Vòng đời tri thức chuẩn RAG theo chương mục nhóm) ---
 
-@receiver(post_save, sender=KnowledgeUnit)
-def handle_knowledge_unit_lifecycle(sender, instance, created, **kwargs):
+@receiver(post_save, sender=KnowledgeChapter)
+def handle_knowledge_chapter_lifecycle(sender, instance, created, **kwargs):
     """
-    Lắng nghe sự thay đổi trạng thái của KnowledgeUnit.
-    - Nếu tạo mới: Giữ nguyên trạng thái chờ duyệt (pending).
-    - Nếu status chuyển thành 'approved': Tự động gọi Service đưa dữ liệu vào VectorDB theo group_id.
-    Sử dụng cơ chế kiểm tra an toàn, chống đệ quy vòng lặp.
+    Lắng nghe sự thay đổi trạng thái của KnowledgeChapter.
+    - Nếu tạo mới: Giữ nguyên trạng thái chờ duyệt (pending) hoặc staging.
+    - Nếu status chuyển thành 'approved': Tự động gọi Service đưa dữ liệu chương vào VectorDB theo group_id.
+    - Tuân thủ Quy tắc Vàng: Dữ liệu pending/staging cấm tuyệt đối không đẩy vào Vector Store.
     """
     if created:
-        logger.info(f"⏳ [Knowledge Lifecycle] Đơn vị kiến thức mới #{instance.id} được tạo ở trạng thái 'pending' (Group: {instance.group_id})")
+        logger.info(f"⏳ [Knowledge Lifecycle] Chương tri thức mới #{instance.id} được khởi tạo ở trạng thái '{instance.status}' (Group: {instance.group_id})")
         return
 
-    # Kiểm tra nếu KnowledgeUnit vừa được phê duyệt (approved)
+    # Kiểm tra nếu KnowledgeChapter vừa chuyển sang trạng thái phê duyệt (approved)
     if instance.status == 'approved':
         try:
-            success = DocumentProcessorService.commit_to_vector_db(instance)
+            # Gọi service commit chương tri thức vào VectorDB theo chuẩn group_id
+            success = DocumentProcessorService.commit_chapter_to_vector_db(instance)
             if success:
-                # Cập nhật mốc thời gian duyệt (approved_at) nếu chưa có mà không kích hoạt signal lặp
+                # Cập nhật mốc thời gian duyệt (approved_at) nếu chưa có mà không kích hoạt signal lặp vòng
                 if not instance.approved_at:
-                    KnowledgeUnit.objects.filter(pk=instance.pk).update(approved_at=timezone.now())
-                logger.info(f"✅ [Signals] Đã đồng bộ thành công KnowledgeUnit #{instance.id} vào VectorDB.")
+                    KnowledgeChapter.objects.filter(pk=instance.pk).update(approved_at=timezone.now())
+                logger.info(f"✅ [Signals] Đã đồng bộ thành công KnowledgeChapter #{instance.id} vào VectorDB.")
             else:
-                logger.warning(f"⚠️ [Signals] Đồng bộ VectorDB không thành công cho KnowledgeUnit #{instance.id}.")
+                logger.warning(f"⚠️ [Signals] Đồng bộ VectorDB không thành công cho KnowledgeChapter #{instance.id}.")
         except Exception as e:
-            logger.error(f"❌ [Signals] Lỗi xử lý commit VectorDB cho KnowledgeUnit #{instance.id}: {str(e)}")
+            logger.error(f"❌ [Signals] Lỗi xử lý commit VectorDB cho KnowledgeChapter #{instance.id}: {str(e)}")
 
 
-@receiver(post_delete, sender=KnowledgeUnit)
-def handle_knowledge_unit_cleanup(sender, instance, **kwargs):
-    """Xóa embedding tương ứng trong VectorDB trước khi KnowledgeUnit bị xóa vĩnh viễn."""
+@receiver(post_delete, sender=KnowledgeChapter)
+def handle_knowledge_chapter_cleanup(sender, instance, **kwargs):
+    """Xóa các embedding tương ứng trong VectorDB trước khi KnowledgeChapter bị xóa vĩnh viễn."""
     try:
-        from apps.ai_assistant.vector_store import VectorDBManager
         vector_manager = VectorDBManager(group_id=instance.group_id)
-        vector_manager.delete_unit_embeddings(unit_id=instance.id)
-        logger.info(f"🗑️ [Signals] Đã dọn dẹp toàn bộ vector của KnowledgeUnit #{instance.id} (Group ID: {instance.group_id})")
+        vector_manager.delete_chapter_embeddings(chapter_id=instance.id)
+        logger.info(f"🗑️ [Signals] Đã dọn dẹp toàn bộ vector của KnowledgeChapter #{instance.id} (Group ID: {instance.group_id})")
     except Exception as e:
-        logger.error(f"❌ [Signals] Lỗi khi dọn dẹp vector cho KnowledgeUnit #{instance.id}: {str(e)}")
+        logger.error(f"❌ [Signals] Lỗi khi dọn dẹp vector cho KnowledgeChapter #{instance.id}: {str(e)}")
 
 
 # --- SIGNALS CHO USER ONBOARDING ---

@@ -30,10 +30,13 @@ class Command(BaseCommand):
             "apps.group_chat.tests.test_ai_config",
             "apps.group_chat.tests.test_conflict_resolution_api",  # 👈 Bổ sung bài test Conflict Resolution vừa hoàn thành
             "apps.group_chat.tests.tests_knowledge_views",
+            "apps.group_chat.tests.test_knowledge_search",
+            
             "apps.group_chat.tests.test_tasks",
             "apps.group_chat.tests.test_document_pipeline",
             "apps.group_chat.tests.test_conflict_chapter_list_api",
-            
+            "apps.group_chat.tests.test_ai_rewrite_api",
+
             # Tầng 3: AI Assistant & WebSockets Realtime
             "apps.ai_assistant.tests",
             "apps.group_chat.tests.tests_chat_consumer",

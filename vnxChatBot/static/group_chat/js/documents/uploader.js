@@ -110,7 +110,6 @@ class DocumentUploader {
      * @param {Object} result - Dữ liệu JSON trả về từ server chứa thông tin file và HTML fragment.
      */
     refreshChatInterface(result) {
-        // 🎯 Ưu tiên 1: Chèn trực tiếp đoạn HTML fragment chuẩn được render từ server (chứa đầy đủ nút Tải xuống, Học 🧠, v.v.)
         const chatMessages = document.getElementById('chat-messages') || document.getElementById('chat-messages-container');
 
         if (result.html && chatMessages) {
@@ -120,7 +119,6 @@ class DocumentUploader {
             return;
         }
 
-        // Ưu tiên 2: Sử dụng WebSocket nếu có hỗ trợ đẩy HTML trực tiếp
         if (window.chatWs && typeof window.chatWs.appendMessage === 'function') {
             const messageData = {
                 sender_name: window.currentUsername || 'Bạn',
@@ -133,7 +131,6 @@ class DocumentUploader {
             return;
         }
 
-        // Fallback cuối cùng nếu không tìm thấy khung chứa
         if (chatMessages) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'd-flex justify-content-end mb-3 message-item';
@@ -150,7 +147,7 @@ class DocumentUploader {
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         } else {
-            console.warn("[Uploader] ⚠️ Không tìm thấy khung chứa tin nhắn #chat-messages để render trực tiếp.");
+            console.warn("[Uploader] ⚠️ Không tìm thấy khung chứa tin nhắn để render trực tiếp.");
         }
     }
 
@@ -180,7 +177,18 @@ class DocumentUploader {
  */
 function initDocumentUploader() {
     const chatMessagesContainer = document.getElementById('chat-messages');
-    const groupId = window.currentGroupId || chatMessagesContainer?.dataset.groupId;
+
+    // 🔍 Quét tìm groupId từ nhiều nguồn dự phòng khác nhau để tránh lỗi undefined
+    let groupId = window.currentGroupId || chatMessagesContainer?.dataset.groupId;
+
+    if (!groupId) {
+        // Fallback: Tự động bóc tách group_id từ URL hiện tại (ví dụ: /groups/5/workspace/)
+        const match = window.location.pathname.match(/\/groups\/(\d+)\//);
+        if (match && match[1]) {
+            groupId = match[1];
+            console.info("[Uploader] ℹ️ Lấy groupId tự động từ URL pathname:", groupId);
+        }
+    }
 
     if (groupId) {
         window.documentUploader = new DocumentUploader(groupId, 'chat-messages');
@@ -189,41 +197,3 @@ function initDocumentUploader() {
         console.warn("[Uploader] ⚠️ Không tìm thấy Group ID hợp lệ để khởi tạo DocumentUploader.");
     }
 }
-
-/**
- * Kích hoạt AI học tài liệu thủ công từ giao diện chat.
- * @param {number|string} documentId - ID của Document cần đưa vào tiến trình học RAG.
- */
-window.triggerAILearnDocument = async function (documentId) {
-    if (!documentId) {
-        console.warn("[AILearn] ⚠️ Không tìm thấy ID tài liệu hợp lệ.");
-        return;
-    }
-
-    try {
-        console.log(`🧠 [AILearn] Đang gửi yêu cầu cho AI học tài liệu ID: ${documentId}`);
-
-        // Lấy CSRF token thông qua hàm có sẵn của uploader hoặc helper chung
-        const csrfToken = window.documentUploader ? window.documentUploader.getCsrfToken() : document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-        const response = await fetch(`/groups/documents/${documentId}/learn/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            }
-        });
-
-        const result = await response.json();
-        if (response.ok && result.status === 'success') {
-            console.log("[AILearn] ✅ AI đã tiếp thu tài liệu thành công:", result);
-            alert("✅ Tài liệu đã được AI tiếp thu và đưa vào kho tri thức thành công!");
-        } else {
-            console.error("[AILearn] ❌ Lỗi từ server:", result);
-            alert("❌ Không thể kích hoạt AI học: " + (result.message || 'Lỗi không xác định'));
-        }
-    } catch (error) {
-        console.error("[AILearn Error] ❌ Lỗi kết nối mạng khi gọi API học tài liệu:", error);
-        alert("❌ Đã xảy ra lỗi kết nối mạng.");
-    }
-};

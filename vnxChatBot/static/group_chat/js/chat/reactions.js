@@ -12,9 +12,9 @@ class ChatReactions {
     }
 
     initReactionEvents() {
-        const chatMessagesContainer = document.getElementById('chat-messages');
+        const chatMessagesContainer = document.getElementById('message-list-container');
         if (!chatMessagesContainer) {
-            console.warn("[ChatReactions] Không tìm thấy vùng chứa #chat-messages để gắn sự kiện tương tác.");
+            console.warn("[ChatReactions] Không tìm thấy vùng chứa #message-list-container để gắn sự kiện tương tác.");
             return;
         }
 

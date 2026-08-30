@@ -1,0 +1,55 @@
+QUY TRÌNH KIỂM THỬ PHẦN MỀM: TÍNH NĂNG "PHIẾU TÁCH VÀNG"
+
+BƯỚC 1: PHÂN TÍCH USER STORY (US) THEO CHUẨN BDD
+- Đối tượng sử dụng: Nhân viên kho/vận hành, Quản lý/Thủ kho (có role theo cấu hình quy trình duyệt), Người duyệt phiếu.
+- Tính năng cốt lõi: Quản lý vòng đời "Phiếu tách vàng" từ Khởi tạo -> Chờ duyệt -> Đã duyệt/Không duyệt/Hủy, thực hiện chi tiết tách vàng từ 1 serial nguyên liệu thành nhiều serial sau tách, tự động cập nhật tồn kho, tính toán hao hụt và xử lý phân quyền theo 4 cấp (Nhân viên, Phòng ban, Chi nhánh, Công ty).
+- Yêu cầu chức năng (Functional Requirements): 
+  + Quản lý danh sách, tìm kiếm, lọc, phân trang, sắp xếp, ẩn/hiện cột.
+  + Thêm, sửa, xem, xóa (mềm), trình duyệt, duyệt, không duyệt, hủy phiếu tách vàng.
+  + Quản lý lưới Chi tiết trước tách và Chi tiết sau tách (tách vàng qua popup, ràng buộc trọng lượng, tự động sinh serial, tính TL vàng quy 10, hao hụt).
+  + Cơ chế lưu trữ: Lưu tạm, lưu và giữ nguyên form, lưu và đóng, in phiếu, in serial, in số lô.
+  + Ghi log đầy đủ lịch sử thao tác (Audit log).
+- Yêu cầu phi chức năng (Non-functional Requirements):
+  + Hiển thị giao diện mượt mà, cố định chiều cao bảng (height = 600) có thanh cuộn ngang/dọc, thanh ghim trái/phải (freeze columns).
+  + Kiểm soát chặt chẽ phân quyền đồng thời qua Roles và Record Permission; xử lý lỗi truy cập trái phép qua URL (hiển thị trang 403).
+  + Cơ chế khóa/mở (readonly/enable) các trường dữ liệu tự động tương ứng với trạng thái quy trình duyệt.
+
+BƯỚC 2: XÁC ĐỊNH ACCEPTANCE CRITERIA (TIÊU CHÍ NGHIỆM THU)
+1. Luồng xử lý chính (Happy Path):
+   - Tạo mới Phiếu tách vàng ở trạng thái "Khởi tạo", hệ thống tự sinh số phiếu theo cấu trúc PTV-{Mã CN}-{Ngày}-{STT}.
+   - Chọn Khu vực, Kho hàng, nhập Lý do tách. Thêm serial cần tách vào lưới "Chi tiết trước tách".
+   - Click "Tách vàng", popup hiển thị thông tin serial, cho phép thêm dòng tách, kiểm tra ràng buộc tổng TL sau tách không lớn hơn tổng TL trước tách, TL vàng = Tổng TL - TL hột. Nhấn "Lưu & in serial".
+   - Kiểm tra lưới "Chi tiết sau tách" cập nhật đúng dữ liệu, cột "Đã tách" ở lưới trước được tick true.
+   - Nhấn "Trình duyệt", hệ thống check tất cả chi tiết trước tách có `Đã tách = true`, hiển thị popup xác nhận, chuyển trạng thái sang "Chờ duyệt", form chuyển sang readonly.
+   - Người có quyền duyệt bấm "Duyệt", xác nhận popup, trạng thái chuyển sang "Đã duyệt", tự động trừ tồn kho serial cũ và nhập kho các serial mới sau tách.
+
+2. Luồng thay thế (Alternative Paths):
+   - Ở trạng thái "Chờ duyệt", người có quyền bấm "Quay lại khởi tạo" (nhập lý do), phiếu về lại trạng thái "Khởi tạo", form mở lại quyền chỉnh sửa.
+   - Ở trạng thái "Khởi tạo", người dùng bấm "Hủy" (nhập lý do), phiếu chuyển sang trạng thái "Hủy", serial ban đầu hoàn về tồn kho.
+
+3. Luồng lỗi (Exception/Error Flows):
+   - Trình duyệt khi có chi tiết chưa tách (`Đã tách = false`) -> Hệ thống chặn hoặc yêu cầu tách hết.
+   - Nhập tổng TL sau tách lớn hơn tổng TL trước tách -> Hệ thống hiển thị cảnh báo, không cho lưu.
+   - Cố gắng truy cập trực tiếp URL màn hình Phiếu tách vàng khi không có quyền -> Chuyển hướng đến trang 403.
+   - Nhập lý do tách quá 255 ký tự -> Cảnh báo ngay tại trường.
+
+BƯỚC 3: CHUYỂN HÓA US THÀNH KỊCH BẢN KIỂM THỬ (TEST SCENARIOS)
+- TS01: Kiểm tra hiển thị giao diện danh sách Phiếu tách vàng (Cố định cột, ghim trái/phải, ẩn/hiện cột, thanh cuộn).
+- TS02: Kiểm tra tính năng tìm kiếm, bộ lọc, sắp xếp và phân trang trên danh sách.
+- TS03: Kiểm tra các ràng buộc khi thêm mới Phiếu tách vàng (Mã tự sinh, các trường bắt buộc: Khu vực, Kho hàng, Lý do tách).
+- TS04: Kiểm tra nghiệp vụ Tách vàng tại popup Chi tiết tách vàng (Ràng buộc tổng TL, tính TL vàng, phân luồng theo loại hàng hư/khác).
+- TS05: Kiểm tra luồng duyệt qua MUI Stepper (Khởi tạo -> Chờ duyệt -> Đã duyệt / Không duyệt / Hủy / Quay lại khởi tạo) kèm ghi nhận Audit log.
+- TS06: Kiểm tra cơ chế tự động xuất/nhập kho serial (Trừ tồn kho serial cũ, sinh serial mới sau tách, cập nhật trạng thái tồn kho).
+- TS07: Kiểm tra phân quyền truy cập theo 4 cấp (Nhân viên, Phòng ban, Chi nhánh, Công ty) và xử lý lỗi 403 khi truy cập trái phép URL.
+
+BƯỚC 4: THIẾT KẾ TEST CASE CHI TIẾT
+- TC01: Kiểm tra tự sinh số phiếu đúng định dạng `PTV-C1-250426-001`.
+- TC02: Kiểm tra validate trường "Lý do tách" khi nhập quá 255 ký tự (phải hiển thị cảnh báo ngay).
+- TC03: Kiểm tra ràng buộc Tổng TL sau tách > Tổng TL trước tách trong popup tách vàng (Hệ thống phải báo lỗi, không cho lưu).
+- TC04: Kiểm tra trạng thái nút "Trình duyệt" khi có dòng trong lưới Chi tiết trước tách chưa thực hiện tách (`Đã tách = false`).
+- TC05: Kiểm tra cơ chế sinh số serial tự động ở lưới chi tiết sau tách (`Số serial ban đầu + STT dòng`).
+- TC06: Kiểm tra quyền hạn các nút hành động (Trình duyệt, Hủy, Duyệt, Không duyệt, Quay lại khởi tạo) chỉ hiển thị đúng theo role người dùng và trạng thái phiếu.
+
+BƯỚC 5: RÀ SOÁT VÀ ĐỒNG BỘ (REVIEW & TRACEABILITY)
+- Lập bảng RTM (Requirements Traceability Matrix) ánh xạ toàn bộ các yêu cầu từ Đặc tả giao diện/Nghiệp vụ sang Test Scenarios và Test Cases đảm bảo độ bao phủ 100%.
+- Đối soát logic quy trình duyệt, hạch toán hao hụt, tự động trừ/nhập kho với BA và Tech Lead để thống nhất trước khi thực thi kiểm thử.

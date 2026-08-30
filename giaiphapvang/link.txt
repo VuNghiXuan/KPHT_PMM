@@ -23,6 +23,16 @@ Google:
 		TK:ThuNgan_QLCN1@gmail.com ------ Demo@123
 		TK: ThuNganKD@gmail.com   ------ Demo@123 (Test nút nhận tiền KVKD)
 		Tk: CN2_QLCN2_VuTest@gmail.com ------ Demo@123
+		
+		Kiểm kê sản phẩm
+		Vu_SanPham@gmail.com
+		Vu_CN2_SanPham@gmail.com 
+
+		Vu_qlcn1@gmail.com 
+		Vu_CSKH@gmail.com
+
+
+
 	6a/ Công thức nhâp phần mêm:
 		+ Giá vốn: OriginLabor +( GoldWeight * LossRate * GoldRate )+ TaxAmount + OtherCosts 
 		+ Công vốn: OriginLabor +( GoldWeight * LossRate * GoldRate )+ TaxAmount + OtherCosts +200000

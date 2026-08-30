@@ -12,11 +12,20 @@ class ChatWebSocketClient {
      * @param {string|number} [groupId] - Định danh nhóm chat hiện tại (Group-Centric isolation).
      */
     constructor(groupId) {
-        const chatMessagesContainer = document.getElementById('chat-messages');
-        this.groupId = groupId || window.currentGroupId || chatMessagesContainer?.dataset.groupId;
+        const messageContainer = document.getElementById('message-list-container');
+        this.groupId = groupId || window.VNXWorkspaceContext?.group?.id || messageContainer?.dataset.groupId;
 
         this.socket = null;
-        this.reconnectInterval = 3000; // Thời gian chờ kết nối lại (ms)
+        this.reconnectInterval = 3000;
+
+        // 🚀 Đăng ký MutationObserver để theo dõi sự thay đổi DOM của khung chat
+        if (messageContainer) {
+            this.observer = new MutationObserver(() => {
+                this.scrollToBottom();
+            });
+            this.observer.observe(messageContainer, { childList: true });
+        }
+
         this.initConnection();
         this.initChatFormEvents();
     }
@@ -137,15 +146,20 @@ class ChatWebSocketClient {
       * @param {Object} data - Dữ liệu tin nhắn nhận từ server qua WebSocket.
       */
     appendMessage(data) {
-        const messagesContainer = document.getElementById('chat-messages');
+        // Thành đoạn mới:
+        const messagesContainer = document.getElementById('message-list-container');
         if (!messagesContainer) {
-            console.warn("⚠️ [WebSocket] Không tìm thấy #chat-messages để hiển thị tin nhắn.");
+            console.warn("⚠️ [WebSocket] Không tìm thấy #message-list-container để hiển thị tin nhắn.");
             return;
         }
 
         const currentUsername = window.currentUsername || messagesContainer.dataset.username || '';
         const senderName = data.sender_name || data.username || (data.is_ai ? '🤖 AI Assistant' : 'Thành viên');
-        const isMe = senderName === currentUsername;
+        // const isMe = senderName === currentUsername;
+        const currentUserId = parseInt(messagesContainer.dataset.userId || window.currentUserId);
+        const senderId = data.sender_id ? parseInt(data.sender_id) : null;
+        const isMe = (senderId !== null && senderId === currentUserId);
+
 
         const messageDiv = document.createElement('div');
         const messageId = data.message_id || data.id || '';
@@ -247,7 +261,7 @@ class ChatWebSocketClient {
      * Tự động cuộn khung chat xuống vị trí tin nhắn mới nhất một cách chính xác.
      */
     scrollToBottom() {
-        const messagesContainer = document.getElementById('chat-messages');
+        const messagesContainer = document.getElementById('message-list-container');
         if (!messagesContainer) return;
 
         const executeScroll = () => {
