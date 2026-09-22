@@ -1,22 +1,35 @@
 {% comment %}
 File: templates/group_chat/partials/documents/document_list.html
-Mô tả: Danh sách tài liệu nguồn, chặn sự kiện bong bóng để ngăn Bootstrap modal.js bắt nhầm sự kiện.
+Mô tả: Danh sách tài liệu nguồn, bọc trong container có chiều cao cố định và thanh cuộn độc lập.
 {% endcomment %}
 <div class="card shadow-sm border-0 rounded-4 mb-4" id="chat-messages" data-group-id="{{ group.id }}">
-    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+    <div
+        class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
         <h5 class="fw-bold fs-6 mb-0 text-dark">
             📁 Tài liệu nguồn & Trạng thái Trích xuất (Source of Truth)
         </h5>
-        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" data-bs-toggle="modal"
-            data-bs-target="#uploadDocumentModal">
-            ⬆️ Tải lên tài liệu mới
-        </button>
+
+        <!-- Thanh công cụ tìm kiếm và nút tải lên -->
+        <div class="d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm shadow-xs" style="width: 220px;">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" id="documentSearchInput" class="form-control border-start-0 ps-0"
+                    placeholder="Tìm kiếm file..." onkeyup="filterDocuments()">
+            </div>
+            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" data-bs-toggle="modal"
+                data-bs-target="#uploadDocumentModal">
+                ⬆️ Tải lên
+            </button>
+        </div>
     </div>
-    <div class="card-body p-3 bg-light bg-opacity-25">
+
+    <!-- Khung chứa danh sách tài liệu với thanh cuộn dọc độc lập và chiều cao tối ưu tránh đè giao diện -->
+    <div class="card-body p-3 bg-light bg-opacity-25" style="height: 350px; max-height: 350px; overflow-y: auto;">
         {% if documents %}
-        <div class="d-flex flex-column gap-3">
+        <div class="d-flex flex-column gap-3" id="documentsListContainer">
             {% for doc in documents %}
-            <div class="card border rounded-3 shadow-xs bg-white p-3">
+            <div class="card border rounded-3 shadow-xs bg-white p-3 document-item"
+                data-filename="{{ doc.original_filename|default:doc.file.name|lower }}">
                 <div class="row align-items-center g-3">
                     <!-- Cột 1: Thông tin file & Người tải -->
                     <div class="col-lg-4 col-md-12 border-end-md">
@@ -59,18 +72,18 @@ Mô tả: Danh sách tài liệu nguồn, chặn sự kiện bong bóng để ng
                     <div class="col-lg-4 col-md-12 border-end-md">
                         <div class="small text-secondary mb-1 fw-semibold">🤖 Trạng thái AI Pipeline:</div>
                         <div class="p-2 bg-light rounded-2 mb-2 border-start border-3 
-                            {% if doc.status == 'PENDING' %}border-secondary
-                            {% elif doc.status == 'STAGING' %}border-primary
-                            {% elif doc.status == 'APPROVED' %}border-success
-                            {% else %}border-danger{% endif %}">
+                        {% if doc.status == 'PENDING' %}border-secondary
+                        {% elif doc.status == 'STAGING' %}border-primary
+                        {% elif doc.status == 'APPROVED' %}border-success
+                        {% else %}border-danger{% endif %}">
 
                             <div class="d-flex justify-content-between align-items-center small mb-1">
                                 <span class="text-muted">Trạng thái:</span>
                                 <span class="badge 
-                                    {% if doc.status == 'PENDING' %}bg-secondary-subtle text-secondary
-                                    {% elif doc.status == 'STAGING' %}bg-primary-subtle text-primary
-                                    {% elif doc.status == 'APPROVED' %}bg-success-subtle text-success
-                                    {% else %}bg-danger-subtle text-danger{% endif %}">
+                                {% if doc.status == 'PENDING' %}bg-secondary-subtle text-secondary
+                                {% elif doc.status == 'STAGING' %}bg-primary-subtle text-primary
+                                {% elif doc.status == 'APPROVED' %}bg-success-subtle text-success
+                                {% else %}bg-danger-subtle text-danger{% endif %}">
                                     {{ doc.get_status_display }}
                                 </span>
                             </div>
@@ -89,17 +102,23 @@ Mô tả: Danh sách tài liệu nguồn, chặn sự kiện bong bóng để ng
                             🛠️ Hành động kiểm duyệt:
                         </div>
                         <div class="d-flex justify-content-start justify-content-lg-end flex-wrap gap-2 mt-2">
-                            <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                target="_blank">
-                                📥 Xem file gốc
+                            <a href="{{ doc.file.url }}"
+                                class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" target="_blank">
+                                📥 Xem file
                             </a>
-                            <!-- Sử dụng doc.group.id thay vì group.id để an toàn tuyệt đối trước mọi biến động ngữ cảnh view -->
                             <button type="button"
-                                class="btn btn-sm btn-outline-warning py-1 px-2 btn-isolated-reanalyze"
+                                class="btn btn-sm btn-outline-warning py-1 px-2 btn-isolated-reanalyze shadow-xs"
                                 data-doc-name="{{ doc.original_filename|default:doc.file.name }}"
                                 data-reanalyze-url="{% url 'group_chat:reanalyze_document' doc.group.id doc.id %}"
                                 title="Gởi AI phân tích lại tài liệu này">
-                                <i class="fas fa-brain"></i> Gởi AI phân tích
+                                <i class="fas fa-brain"></i> Gởi AI
+                            </button>
+                            <button type="button"
+                                class="btn btn-sm btn-outline-danger py-1 px-2 shadow-xs btn-isolated-delete"
+                                data-doc-name="{{ doc.original_filename|default:doc.file.name }}"
+                                data-delete-url="{% url 'group_chat:delete_document' doc.group.id doc.id %}"
+                                title="Xóa vĩnh viễn tài liệu này">
+                                <i class="fas fa-trash-alt"></i> Xóa
                             </button>
                         </div>
                     </div>
@@ -117,7 +136,7 @@ Mô tả: Danh sách tài liệu nguồn, chặn sự kiện bong bóng để ng
 </div>
 
 <!-- ================================================================= -->
-<!-- 🪄 ISOLATED CUSTOM MODAL (Hoàn toàn độc lập, chặn đứng Bootstrap JS) -->
+<!-- 🪄 ISOLATED CUSTOM MODAL: XÁC NHẬN CHẠY LẠI AI PIPELINE          -->
 <!-- ================================================================= -->
 <div id="isolatedReanalyzeOverlay"
     style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 99999; align-items: center; justify-content: center;">
@@ -136,7 +155,7 @@ Mô tả: Danh sách tài liệu nguồn, chặn sự kiện bong bóng để ng
                 lại tiến trình trích xuất và kiểm toán cho tài liệu:</p>
             <div id="isolatedModalDocName"
                 style="padding: 0.5rem 0.75rem; background: #f8f9fa; border-radius: 0.5rem; font-weight: 600; color: #333; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1rem;">
-                📄 <!-- Tên file -->
+                📄
             </div>
             <p style="color: #6c757d; font-size: 0.8rem; margin: 0;">Hệ thống sẽ đưa tác vụ này vào hàng đợi ngầm
                 (Celery Background Task) để xử lý mà không làm gián đoạn trải nghiệm chat realtime của nhóm.</p>
@@ -156,19 +175,84 @@ Mô tả: Danh sách tài liệu nguồn, chặn sự kiện bong bóng để ng
     </div>
 </div>
 
-<!-- Script cô lập sự kiện click, chặn tuyệt đối không cho event lọt vào modal.js của Bootstrap -->
+<!-- ================================================================= -->
+<!-- 🗑️ ISOLATED CUSTOM MODAL: XÁC NHẬN XÓA TÀI LIỆU NGUỒN             -->
+<!-- ================================================================= -->
+<div id="isolatedDeleteOverlay"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 99999; align-items: center; justify-content: center;">
+    <div
+        style="background: #fff; width: 100%; max-width: 480px; border-radius: 1rem; box-shadow: 0 1rem 3rem rgba(0,0,0,.175); overflow: hidden; margin: 1rem;">
+        <div
+            style="background: #f8d7da; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+            <h5 style="margin: 0; font-size: 1rem; font-weight: 700; color: #842029;">
+                🗑️ Xác nhận xóa tài liệu nguồn
+            </h5>
+            <button type="button" class="isolated-delete-close"
+                style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #666;">&times;</button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <p style="color: #555; font-size: 0.875rem; margin-bottom: 0.75rem;">Hành động này sẽ xóa vĩnh viễn tài liệu
+                nguồn cũng như các chương mục tri thức phát sinh liên quan:</p>
+            <div id="isolatedDeleteDocName"
+                style="padding: 0.5rem 0.75rem; background: #f8f9fa; border-radius: 0.5rem; font-weight: 600; color: #333; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1rem;">
+                📄
+            </div>
+            <p style="color: #842029; font-size: 0.8rem; margin: 0;">Lưu ý: Dữ liệu đã xóa không thể khôi phục trực tiếp
+                từ giao diện.</p>
+        </div>
+        <div style="padding: 0 1.25rem 1.25rem 1.25rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="isolated-delete-close"
+                style="padding: 0.375rem 0.75rem; font-size: 0.875rem; background: #f8f9fa; border: 1px solid #ced4da; border-radius: 50rem; cursor: pointer;">Hủy
+                bỏ</button>
+            <form id="isolatedDeleteForm" method="POST" action="" style="margin: 0; display: inline;">
+                {% csrf_token %}
+                <button type="submit"
+                    style="padding: 0.375rem 1rem; font-size: 0.875rem; background: #dc3545; border: none; border-radius: 50rem; font-weight: 600; color: #fff; cursor: pointer; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+                    Xác nhận xóa
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script xử lý tìm kiếm nhanh và cô lập sự kiện modal -->
 <script>
+    /**
+     * Lọc danh sách tài liệu theo từ khóa nhập vào ô tìm kiếm
+     */
+    function filterDocuments() {
+        const input = document.getElementById('documentSearchInput');
+        const filter = input.value.toLowerCase();
+        const items = document.querySelectorAll('.document-item');
+
+        items.forEach(item => {
+            const filename = item.getAttribute('data-filename') || '';
+            if (filename.includes(filter)) {
+                item.style.display = "";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
+        // Modal Reanalyze
         const overlay = document.getElementById("isolatedReanalyzeOverlay");
         const docNameDisplay = document.getElementById("isolatedModalDocName");
         const reanalyzeForm = document.getElementById("isolatedReanalyzeForm");
-
         const openButtons = document.querySelectorAll(".btn-isolated-reanalyze");
         const closeButtons = document.querySelectorAll(".isolated-modal-close");
 
+        // Modal Delete
+        const deleteOverlay = document.getElementById("isolatedDeleteOverlay");
+        const deleteDocNameDisplay = document.getElementById("isolatedDeleteDocName");
+        const deleteForm = document.getElementById("isolatedDeleteForm");
+        const openDeleteButtons = document.querySelectorAll(".btn-isolated-delete");
+        const closeDeleteButtons = document.querySelectorAll(".isolated-delete-close");
+
+        // Xử lý mở modal Reanalyze
         openButtons.forEach(btn => {
             btn.addEventListener("click", function (event) {
-                // 🛑 QUAN TRỌNG: Chặn đứng sự kiện bong bóng để Bootstrap event-handler không bắt được
                 event.stopPropagation();
                 event.preventDefault();
 
@@ -177,8 +261,6 @@ Mô tả: Danh sách tài liệu nguồn, chặn sự kiện bong bóng để ng
 
                 docNameDisplay.textContent = "📄 " + name;
                 reanalyzeForm.setAttribute("action", url);
-
-                // Hiển thị overlay thuần CSS
                 overlay.style.display = "flex";
             });
         });
@@ -194,9 +276,39 @@ Mô tả: Danh sách tài liệu nguồn, chặn sự kiện bong bóng để ng
             });
         });
 
+        // Xử lý mở modal Delete
+        openDeleteButtons.forEach(btn => {
+            btn.addEventListener("click", function (event) {
+                event.stopPropagation();
+                event.preventDefault();
+
+                const name = this.getAttribute("data-doc-name");
+                const url = this.getAttribute("data-delete-url");
+
+                deleteDocNameDisplay.textContent = "📄 " + name;
+                deleteForm.setAttribute("action", url);
+                deleteOverlay.style.display = "flex";
+            });
+        });
+
+        function closeDeleteOverlay() {
+            deleteOverlay.style.display = "none";
+        }
+
+        closeDeleteButtons.forEach(btn => {
+            btn.addEventListener("click", function (event) {
+                event.stopPropagation();
+                closeDeleteOverlay();
+            });
+        });
+
+        // Click bên ngoài đóng overlay
         window.addEventListener("click", function (event) {
             if (event.target === overlay) {
                 closeOverlay();
+            }
+            if (event.target === deleteOverlay) {
+                closeDeleteOverlay();
             }
         });
     });

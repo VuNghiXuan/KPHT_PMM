@@ -5,6 +5,7 @@ Tuân thủ tuyệt đối quy tắc phân tách luồng P0 (Realtime) và P1 (B
 """
 
 import os
+import sys
 from pathlib import Path
 from config.settings.base import SECRET_KEY
 
@@ -19,17 +20,32 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
 REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            # Truyền trực tiếp timeout qua query parameters của Redis URL
-            "hosts": [f"redis://{REDIS_HOST}:{REDIS_PORT}/0?socket_timeout=60&socket_connect_timeout=60"],
-            "capacity": 1500,  # Sức chứa hàng đợi tin nhắn WebSocket
-            "expiry": 60,      # Thời gian hết hạn message (giây)
+# Kiểm tra xem hệ thống có đang chạy trong môi trường kiểm thử không 🧪
+IS_TESTING = (
+    any(arg in sys.argv for arg in ['test', 'run_all_tests', 'pytest']) 
+    or os.getenv('TESTING', 'False').lower() in ('true', '1')
+)
+
+if IS_TESTING:
+    # Môi trường Testing: Dùng In-Memory để tăng tốc độ & dọn dẹp kết nối sạch sẽ 🧠
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
         },
-    },
-}
+    }
+else:
+    # Môi trường Thực tế: Dùng Redis Channel Layer cho Realtime WebSocket (P0) 🚀
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                # Truyền trực tiếp timeout qua query parameters của Redis URL
+                "hosts": [f"redis://{REDIS_HOST}:{REDIS_PORT}/0?socket_timeout=60&socket_connect_timeout=60"],
+                "capacity": 1500,  # Sức chứa hàng đợi tin nhắn WebSocket
+                "expiry": 60,      # Thời gian hết hạn message (giây)
+            },
+        },
+    }
 
 # --- CELERY TASK ROUTING (Luồng số 1 & Luồng số 2) ---
 CELERY_TASK_ROUTES = {

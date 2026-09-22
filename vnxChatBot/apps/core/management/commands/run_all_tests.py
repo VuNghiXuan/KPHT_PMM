@@ -33,14 +33,21 @@ class Command(BaseCommand):
             "apps.group_chat.tests.test_knowledge_search",
             
             "apps.group_chat.tests.test_tasks",
+            "apps.group_chat.tests.test_validators",
+            
             "apps.group_chat.tests.test_document_pipeline",
             "apps.group_chat.tests.test_conflict_chapter_list_api",
             "apps.group_chat.tests.test_ai_rewrite_api",
-
-            # Tầng 3: AI Assistant & WebSockets Realtime
-            "apps.ai_assistant.tests",
+            "apps.group_chat.tests.test_knowledge_signals",
             "apps.group_chat.tests.tests_chat_consumer",
             "apps.group_chat.tests.tests_WebSocketRAGAndFeedback", #
+
+            # Tầng 3: AI Assistant & WebSockets Realtime
+            "apps.ai_assistant.tests.tests_AIAssistantTestCase",
+            "apps.ai_assistant.tests.test_semantic_search",
+            "apps.ai_assistant.tests.test_knowledge_pipeline_strict",
+            "apps.ai_assistant.tests.test_pipeline_and_signals",
+            
             
             # Tầng 4: Subscriptions & Integration Flow
             "apps.subscriptions.tests",

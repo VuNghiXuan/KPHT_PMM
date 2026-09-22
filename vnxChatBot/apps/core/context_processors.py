@@ -1,3 +1,5 @@
+
+# apps\core\context_processors.py
 from apps.group_chat.models import Membership
 def company_list(request):
     if request.user.is_authenticated:

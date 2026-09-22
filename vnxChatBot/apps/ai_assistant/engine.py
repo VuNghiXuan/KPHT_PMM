@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Module: apps.ai_assistant.engine
 Author: Kiến trúc sư VnxChatBot & Senior Software Engineer
@@ -11,7 +12,6 @@ import os
 import json
 import logging
 from django.conf import settings
-from apps.ai_assistant.services.ai_factory import AIFactory
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class AI_Engine:
 
     @staticmethod
     def _extract_text(file_path: str) -> str:
-        """Helper tách text dựa trên đuôi file."""
+        """Helper tách text dựa trên đuôi file (Local import để tránh vòng lặp phụ thuộc)."""
         if not os.path.exists(file_path):
             logger.error(f"❌ [AI_Engine] Không tìm thấy file tại đường dẫn: {file_path}")
             return ""
@@ -84,7 +84,7 @@ class AI_Engine:
             }, 0.0
 
         try:
-            # Lấy group_id an toàn dù truyền object ChatGroup hay int ID
+            from apps.ai_assistant.services.ai_factory import AIFactory
             group_id = group.id if hasattr(group, 'id') else group
             llm_client = AIFactory.get_provider(group_id=group_id)
         except Exception as e:
@@ -151,7 +151,7 @@ Nội dung tài liệu: {raw_text[:3000]}
         base_result, confidence = cls.extract_and_score(file_path, group=group_id)
         raw_text = cls._extract_text(file_path)
 
-        # 2. Truy vấn kho tri thức đã duyệt ('approved') của nhóm để kiểm tra mâu thuẫn (Tenant Isolation)[cite: 1]
+        # 2. Truy vấn kho tri thức đã duyệt ('approved') của nhóm để kiểm tra mâu thuẫn (Tenant Isolation)
         from apps.group_chat.models import KnowledgeUnit
         existing_approved_units = KnowledgeUnit.objects.filter(
             document__group_id=group_id,
@@ -162,6 +162,7 @@ Nội dung tài liệu: {raw_text[:3000]}
 
         # 3. Gọi LLM phân tích sâu và đối chiếu mâu thuẫn
         try:
+            from apps.ai_assistant.services.ai_factory import AIFactory
             llm_client = AIFactory.get_provider(group_id=group_id)
             prompt = f"""
 Bạn là chuyên gia kiểm định tri thức hệ thống vnxChatBot. 

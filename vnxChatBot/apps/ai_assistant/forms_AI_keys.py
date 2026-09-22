@@ -3,7 +3,7 @@ File: apps/ai_assistant/forms.py
 Mục đích: Form cấu hình AI cho người dùng.
 """
 from django import forms
-from .models import GroupAIProvider
+from .models.groupAI import GroupAIProvider
 
 class AIProviderForm(forms.ModelForm):
     class Meta:

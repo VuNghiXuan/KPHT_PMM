@@ -116,23 +116,21 @@ class AIProcessorService:
     @staticmethod
     def sync_chapter_to_vector_async(group_id_or_chapter_id, chapter_id=None):
         """
-        Đồng bộ KnowledgeChapter vào Vector DB khi được duyệt (approved).
+        🚀 Đẩy tác vụ đồng bộ KnowledgeChapter vào hàng đợi Celery khi được duyệt (approved).
         Hỗ trợ nhận cả 1 tham số (chapter_id) hoặc 2 tham số (group_id, chapter_id) 
         để tránh lỗi TypeError từ Django Signals.
         """
         try:
-            from apps.group_chat.models import KnowledgeChapter
+            from apps.ai_assistant.tasks import sync_to_vector_store
             
             # Xác định đúng chapter_id dựa trên số lượng tham số truyền vào
             target_chapter_id = chapter_id if chapter_id is not None else group_id_or_chapter_id
             
-            chapter = KnowledgeChapter.objects.select_related('group').get(id=target_chapter_id)
-            if chapter.status == 'approved':
-                # Sử dụng DocumentProcessorService để commit chapter vào Vector DB
-                DocumentProcessorService.commit_chapter_to_vector_db(chapter)
-                logger.info(f"✨ [AIProcessorService] Successfully synced KnowledgeChapter {target_chapter_id} to Vector DB.")
-                return True
+            # Gọi Celery task bất đồng bộ
+            sync_to_vector_store.delay(target_chapter_id)
+            logger.info(f"📤 [AIProcessorService] Đã đưa KnowledgeChapter ID {target_chapter_id} vào hàng đợi Celery sync_to_vector_store.")
+            return True
+            
         except Exception as e:
-            logger.error(f"❌ [AIProcessorService] Error syncing KnowledgeChapter to vector: {str(e)}")
+            logger.error(f"❌ [AIProcessorService Error] Không thể enqueue sync task cho KnowledgeChapter: {str(e)}")
             return False
-        return False

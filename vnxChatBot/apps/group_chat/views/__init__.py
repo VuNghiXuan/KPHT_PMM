@@ -7,7 +7,7 @@ from .conflict_views import (
 )
 
 from .conflict_chapter_listAPIView import (
-    ConflictChapterListAPIView
+    ConflictChapterListAPIView, KnowledgeChapterApprovalAPIView
 )
 
 from .chat_views import (

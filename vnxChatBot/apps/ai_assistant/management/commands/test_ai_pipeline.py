@@ -2,7 +2,7 @@
 import os
 from django.core.management.base import BaseCommand
 from apps.ai_assistant.services.parser import DocumentParserService
-from apps.ai_assistant.models import KnowledgeUnit # Giả định mô hình dữ liệu
+from apps.ai_assistant.models.groupAI import KnowledgeUnit # Giả định mô hình dữ liệu
 
 class Command(BaseCommand):
     help = "Kiểm thử luồng AI bóc tách tài liệu và kiểm toán mâu thuẫn ngầm"

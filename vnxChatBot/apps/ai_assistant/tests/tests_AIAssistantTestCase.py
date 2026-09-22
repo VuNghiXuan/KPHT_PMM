@@ -9,6 +9,8 @@ Module liên kết: apps.ai_assistant.services.document_processor, apps.ai_assis
 
 import tempfile
 import os
+from django.core.files.base import ContentFile
+from django.test import TestCase, override_settings
 from django.test import TestCase
 from apps.ai_assistant.services.document_processor import DocumentProcessorService
 from apps.ai_assistant.utils import check_redis_status
@@ -80,45 +82,61 @@ class AIAssistantTestCase(TestCase):
 
     def test_extract_and_score_advanced(self):
         """
-        Kiểm thử nghiệp vụ: AI_Engine.extract_and_score phải thực hiện trích xuất thô,
-        gán điểm tin cậy (confidence score từ 0.0 đến 1.0) và nhãn ngữ cảnh chính xác.
+        Kiểm thử nghiệp vụ: AI_Engine.extract_and_score phải thực hiện trích xuất,
+        gán điểm tin cậy và nhãn ngữ cảnh chính xác từ file tài liệu.
         """
         sample_text = "Quy định tài chính và bảo mật thông tin nội bộ của hệ thống vnxChatBot phiên bản 2.1."
         
-        engine = AI_Engine()
-        if hasattr(engine, 'extract_and_score'):
-            result = engine.extract_and_score(sample_text, self.chat_group)
-            
-            if isinstance(result, dict):
-                score = result.get('confidence_score', 0.85)
-                self.assertGreaterEqual(score, 0.0)
-                self.assertLessEqual(score, 1.0)
-            else:
-                self.assertTrue(True, "AI Engine đã thực thi thành công phương thức extract_and_score.")
+        # 1. Tạo file tạm chứa nội dung quy định tài chính
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', encoding='utf-8', delete=False) as temp_file:
+            temp_file.write(sample_text)
+            temp_file_path = temp_file.name
+
+        try:
+            engine = AI_Engine()
+            if hasattr(engine, 'extract_and_score'):
+                # 2. Truyền đường dẫn file tạm (temp_file_path) thay vì truyền chuỗi thuần
+                result = engine.extract_and_score(temp_file_path, self.chat_group)
+                
+                if isinstance(result, dict):
+                    score = result.get('confidence_score', 0.85)
+                    self.assertGreaterEqual(score, 0.0)
+                    self.assertLessEqual(score, 1.0)
+                else:
+                    self.assertTrue(True, "AI Engine đã thực thi thành công phương thức extract_and_score.")
+        finally:
+            # 3. Dọn dẹp file tạm sau khi test xong
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
 
     def test_deep_analyze_document_and_conflict(self):
-        """
-        Kiểm thử nghiệp vụ: Đảm bảo KnowledgeUnit chạy được phân tích sâu, 
-        sinh câu hỏi gợi ý (suggested_queries) và kiểm tra mâu thuẫn (has_conflict).
-        """
-        # Tạo Document mẫu để thỏa mãn ràng buộc NOT NULL constraint của KnowledgeUnit
-        document = Document.objects.create(
-            group=self.chat_group,
-            file="documents/test_architecture.txt"
-        )
+        """Kiểm thử nghiệp vụ: Đảm bảo KnowledgeUnit chạy được phân tích
 
-        # Khởi tạo KnowledgeUnit gắn kết với document và group hợp lệ
+        sâu, sinh câu hỏi gợi ý và kiểm tra mâu thuẫn.
+        """
+        # 📄 1. Khởi tạo nội dung và file thực tế trong thư mục tạm
+        file_content = b"Hien thuc kien truc Modular Monolith va Group-Centric cho vnxChatBot."
+        file_name = "test_architecture.txt"
+
+        # 📦 2. Tạo đối tượng Document với file thực tế thông qua ContentFile
+        document = Document.objects.create(group=self.chat_group)
+        # Gắn file thực tế vào FileField để Django lưu vào TEMP_MEDIA_ROOT
+        document.file.save(file_name, ContentFile(file_content), save=True)
+
+        # 🧠 3. Khởi tạo KnowledgeUnit gắn kết với document hợp lệ
         ku = KnowledgeUnit.objects.create(
             group=self.chat_group,
             document=document,
             content="Hệ thống Modular Monolith tuân thủ cô lập tuyệt đối theo group_id.",
-            status='pending'
+            status="pending",
         )
 
         engine = AI_Engine()
-        if hasattr(engine, 'deep_analyze_document'):
+        if hasattr(engine, "deep_analyze_document"):
             analysis_result = engine.deep_analyze_document(ku)
-            self.assertIsNotNone(analysis_result, "Kết quả phân tích sâu không được để trống.")
+            self.assertIsNotNone(
+                analysis_result, "Kết quả phân tích sâu không được để trống."
+            )
 
     # Bổ sung phương thức test vào class GroupChatTestCase trong apps/group_chat/test_group_chat.py:
 

@@ -19,7 +19,7 @@ from apps.group_chat.models import ChatGroup, Membership, Document, KnowledgeUni
 from apps.group_chat.services.knowledge_service import KnowledgeService
 from apps.subscriptions.models import Subscription
 from apps.core.models import Profile
-from apps.ai_assistant.models import GroupAIProvider
+from apps.ai_assistant.models.groupAI import GroupAIProvider
 
 
 

@@ -9,7 +9,7 @@ Module liên kết: apps.group_chat.models, apps.group_chat.signals, apps.core.m
 from django.test import TestCase
 from apps.core.models import User
 from apps.group_chat.models import ChatGroup, Membership, Document, KnowledgeUnit
-from apps.ai_assistant.models import GroupAIProvider
+from apps.ai_assistant.models.groupAI import GroupAIProvider
 
 class GroupChatTestCase(TestCase):
     """

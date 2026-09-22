@@ -5,7 +5,7 @@
             <i class="fas fa-sitemap text-primary me-2"></i> Cây Mục lục Tri thức & Xử lý Xung đột (Knowledge Chapters)
         </h5>
         <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
-            Nhóm: {{ chat_group.name }}
+            🏷️ Nhóm: {{ chat_group.name }}
         </span>
     </div>
     <div class="card-body px-4 py-3">
@@ -15,31 +15,35 @@
             <div class="d-flex align-items-center">
                 <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
                 <div>
-                    <h6 class="fw-bold mb-1">Phát hiện mâu thuẫn tri thức cần xử lý!</h6>
+                    <h6 class="fw-bold mb-1">⚠️ Phát hiện mâu thuẫn tri thức cần xử lý!</h6>
                     <p class="mb-0 small">Hệ thống ghi nhận một số chương mục có nội dung trùng lặp hoặc mâu thuẫn ngữ
-                        nghĩa (`conflict_detected`). Vui lòng xem xét các tùy chọn bên dưới.</p>
+                        nghĩa (<code class="fw-bold text-danger">conflict_detected</code>). Vui lòng kiểm tra và chọn
+                        phương án xử lý bên dưới.</p>
                 </div>
             </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
-        <!-- Danh sách các Chương Tri thức -->
-        <div class="table-responsive">
+        <!-- Danh sách các Chương Tri thức có tích hợp thanh cuộn dọc và Sticky Header -->
+        <div class="table-responsive shadow-xs rounded-3 border"
+            style="max-height: 480px; overflow-y: auto; position: relative;">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-secondary small text-uppercase">
+                <thead class="table-light text-secondary small text-uppercase"
+                    style="position: sticky; top: 0; z-index: 10; background-color: #f8f9fa;">
                     <tr>
-                        <th class="py-3">Tiêu đề Chương</th>
-                        <th class="py-3">Trạng thái (Status)</th>
-                        <th class="py-3">Độ tin cậy</th>
-                        <th class="py-3">Cập nhật cuối</th>
-                        <th class="py-3 text-end">Hành động / Xử lý Xung đột</th>
+                        <th class="py-3 ps-3">📖 Tiêu đề Chương</th>
+                        <th class="py-3">⚡ Trạng thái</th>
+                        <th class="py-3">📊 Độ tương đồng</th>
+                        <th class="py-3">🕒 Cập nhật cuối</th>
+                        <th class="py-3 text-end pe-3">🛠️ Hành động / Xử lý Xung đột</th>
                     </tr>
                 </thead>
                 <tbody id="knowledge-chapters-tbody">
                     <!-- Dữ liệu được nạp động thông qua JavaScript -->
                     <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">
+                        <td colspan="5" class="text-center py-5 text-muted">
                             <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                            Đang tải danh sách chương mục tri thức...
+                            Đang tải danh sách chương mục tri thức theo phạm vi nhóm...
                         </td>
                     </tr>
                 </tbody>
@@ -54,7 +58,7 @@
         const groupId = "{{ chat_group.id }}";
         const conflictApiUrl = `/groups/${groupId}/knowledge/chapters/conflicts/`;
 
-        // Gọi API lấy danh sách chương xung đột
+        // Gọi API lấy danh sách chương xung đột theo group_id
         fetch(conflictApiUrl, {
             method: 'GET',
             headers: {
@@ -73,59 +77,69 @@
 
                     data.conflicts.forEach(item => {
                         rowsHtml += `
-                    <tr id="chapter-row-${item.id}" class="table-warning-subtle">
-                        <td>
-                            <div class="fw-bold text-dark">${item.title}</div>
-                            <small class="text-muted text-truncate d-block" style="max-width: 300px;">${item.summary || 'Không có tóm tắt'}</small>
-                            ${item.reason ? `<span class="badge bg-danger-subtle text-danger mt-1">Lý do: ${item.reason}</span>` : ''}
-                        </td>
-                        <td>
-                            <span class="badge bg-warning text-dark px-2 py-1">Conflict Detected</span>
-                        </td>
-                        <td><span class="text-secondary">-</span></td>
-                        <td><small class="text-muted">${new Date(item.updated_at).toLocaleString()}</small></td>
-                        <td class="text-end">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-success" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'update')" title="Ghi đè nội dung mới">
-                                    <i class="fas fa-sync-alt me-1"></i> Ghi đè
-                                </button>
-                                <button type="button" class="btn btn-primary" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'merge')" title="Hợp nhất kiến thức">
-                                    <i class="fas fa-object-group me-1"></i> Hợp nhất
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'ignore')" title="Bỏ qua cảnh báo">
-                                    <i class="fas fa-times me-1"></i> Bỏ qua
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                        <tr id="chapter-row-${item.id}" class="table-warning-subtle">
+                            <td class="ps-3">
+                                <div class="fw-bold text-dark">${item.title}</div>
+                                <small class="text-muted text-truncate d-block" style="max-width: 300px;" title="${item.summary || ''}">${item.summary || 'Không có tóm tắt ngữ nghĩa'}</small>
+                                ${item.reason ? `<span class="badge bg-danger-subtle text-danger mt-1">🔍 Lý do: ${item.reason}</span>` : ''}
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark px-2 py-1 shadow-xs">⚠️ Conflict Detected</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-danger-subtle text-danger fw-bold">${item.similarity_score ? (item.similarity_score * 100).toFixed(1) + '%' : '>85%'}</span>
+                            </td>
+                            <td><small class="text-muted">${new Date(item.updated_at).toLocaleString('vi-VN')}</small></td>
+                            <td class="text-end pe-3">
+                                <div class="btn-group btn-group-sm shadow-xs" role="group">
+                                    <button type="button" class="btn btn-success px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'update')" title="Ghi đè nội dung mới">
+                                        <i class="fas fa-sync-alt me-1"></i> Ghi đè
+                                    </button>
+                                    <button type="button" class="btn btn-primary px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'merge')" title="Hợp nhất kiến thức AI">
+                                        <i class="fas fa-object-group me-1"></i> Hợp nhất
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'ignore')" title="Bỏ qua cảnh báo">
+                                        <i class="fas fa-times me-1"></i> Bỏ qua
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
                     });
                     tbody.innerHTML = rowsHtml;
                 } else {
                     tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center py-4 text-muted">
-                        <i class="fas fa-check-circle text-success me-2"></i> Không có mâu thuẫn tri thức nào được ghi nhận. Hệ thống đang hoạt động ổn định.
-                    </td>
-                </tr>
-            `;
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fas fa-check-circle text-success fa-lg me-2"></i> Không có mâu thuẫn tri thức nào được ghi nhận trong nhóm này. Hệ thống đang hoạt động đồng bộ ổn định.
+                        </td>
+                    </tr>
+                `;
                 }
             })
             .catch(error => {
                 console.error('Lỗi khi tải danh sách xung đột:', error);
                 document.getElementById('knowledge-chapters-tbody').innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center py-4 text-danger">
-                    <i class="fas fa-exclamation-circle me-1"></i> Không thể tải dữ liệu chương tri thức từ máy chủ.
-                </td>
-            </tr>
-        `;
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-danger">
+                        <i class="fas fa-exclamation-circle me-1"></i> Không thể tải dữ liệu chương tri thức từ máy chủ. Vui lòng kiểm tra kết nối mạng.
+                    </td>
+                </tr>
+            `;
             });
     });
 
-    // Hàm xử lý hành động giải quyết xung đột (Ghi đè / Hợp nhất / Bỏ qua)
+    /**
+     * Hàm thực thi hành động giải quyết xung đột (Ghi đè / Hợp nhất / Bỏ qua)
+     */
     function resolveChapterConflict(groupId, chapterId, actionType) {
-        if (!confirm(`Bạn có chắc chắn muốn thực hiện hành động [${actionType.toUpperCase()}] đối với chương này không?`)) {
+        const actionLabels = {
+            'update': 'GHI ĐÈ NỘI DUNG MỚI',
+            'merge': 'HỢP NHẤT KIẾN THỨC',
+            'ignore': 'BỎ QUA CẢNH BÁO'
+        };
+
+        if (!confirm(`Bạn có chắc chắn muốn thực hiện hành động [${actionLabels[actionType] || actionType}] đối với chương mục tri thức này không?`)) {
             return;
         }
 
@@ -142,20 +156,35 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    alert('Đã xử lý xung đột tri thức thành công!');
+                    // Hiển thị phản hồi trực quan mượt mà
                     const row = document.getElementById(`chapter-row-${chapterId}`);
                     if (row) {
-                        row.style.transition = 'opacity 0.5s ease';
+                        row.style.transition = 'all 0.5s ease';
+                        row.style.transform = 'scale(0.98)';
                         row.style.opacity = '0';
-                        setTimeout(() => row.remove(), 500);
+                        setTimeout(() => {
+                            row.remove();
+                            // Kiểm tra nếu bảng trống thì hiện trạng thái success
+                            const tbody = document.getElementById('knowledge-chapters-tbody');
+                            if (tbody && tbody.children.length === 0) {
+                                tbody.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="fas fa-check-circle text-success fa-lg me-2"></i> Đã xử lý tất cả mâu thuẫn tri thức thành công!
+                                    </td>
+                                </tr>
+                            `;
+                                document.getElementById('conflict-alert-banner').style.display = 'none';
+                            }
+                        }, 500);
                     }
                 } else {
-                    alert('Lỗi xử lý: ' + (data.detail || 'Không xác định'));
+                    alert('Lỗi xử lý từ hệ thống: ' + (data.detail || 'Không xác định'));
                 }
             })
             .catch(error => {
-                console.error('Lỗi kết nối:', error);
-                alert('Đã xảy ra lỗi kết nối đến máy chủ.');
+                console.error('Lỗi kết nối API:', error);
+                alert('Đã xảy ra lỗi kết nối đến máy chủ xử lý.');
             });
     }
 </script>

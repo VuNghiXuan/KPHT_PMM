@@ -83,7 +83,6 @@ class KnowledgeUnit(models.Model):
     def get_entity_name(self):
         return self.entity_name or "Chưa xác định"
 
-
 class KnowledgeChapter(models.Model):
     """
     Model quản lý từng phần/chương tri thức được bóc tách từ tài liệu thô,
@@ -97,9 +96,19 @@ class KnowledgeChapter(models.Model):
         ('approved', 'Đã phê duyệt'),
     ]
 
-    # 🔒 Cô lập tuyệt đối theo group_id (Hard Scoping)
-    group_id = models.UUIDField(db_index=True, verbose_name="ID Nhóm chat")
+    id = models.BigAutoField(primary_key=True)
     
+    # 🔒 Cô lập tuyệt đối theo group_id (Hard Scoping via UUID)
+    group = models.ForeignKey(
+       'group_chat.ChatGroup',
+        on_delete=models.CASCADE,
+        related_name='knowledge_chapters',
+        verbose_name="Nhóm chat",
+        null=True, 
+        blank=True
+    )
+    # Thuộc tính group_id tự động được Django tạo ra dưới dạng UUID
+
     parent = models.ForeignKey(
         'self', 
         null=True, 
@@ -120,7 +129,7 @@ class KnowledgeChapter(models.Model):
     )
     
     status = models.CharField(
-        max_length=20, 
+        max_length=30, 
         choices=STATUS_CHOICES, 
         default='pending',
         verbose_name="Trạng thái vòng đời"
@@ -138,19 +147,17 @@ class KnowledgeChapter(models.Model):
         verbose_name="Metadata & Thông tin xung đột"
     )
     
-    created_at = models.DateTimeField(default=timezone.now, editable=False, null=True, blank=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        indexes = [
-            # 🚀 Tối ưu hóa truy vấn kết hợp group_id và trạng thái
-            models.Index(fields=['group_id', 'status'], name='idx_kchapter_group_status'),
-        ]
-        verbose_name = "Mục lục tri thức"
-        verbose_name_plural = "Mục lục tri thức"
+        db_table = "knowledge_chapters"
+        verbose_name = "Chương tri thức"
+        verbose_name_plural = "Danh sách chương tri thức"
 
     def __str__(self):
-        return f"{self.title} - [{self.get_status_display()}] (v{self.version})"
+        return f"[{self.group_id}] {self.title} ({self.status})"
 
 class KnowledgeTree(models.Model):
     group = models.ForeignKey(

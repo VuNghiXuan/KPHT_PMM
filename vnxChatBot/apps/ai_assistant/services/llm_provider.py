@@ -51,7 +51,8 @@ class LLMService:
     @staticmethod
     def _call_groq(config, prompt: str) -> str:
         api_key = LLMService._get_config_attr(config, ['api_key', 'custom_api_key'], 'GROQ_API_KEY', '')
-        model = LLMService._get_config_attr(config, ['model_name', 'ai_model'], 'GROQ_MODEL', 'llama-3.3-70b-versatile')
+        # Ưu tiên lấy GROQ_MODEL từ config -> Django settings -> fallback 'llama-3.1-8b-instant'
+        model = LLMService._get_config_attr(config, ['model_name', 'ai_model'], 'GROQ_MODEL', 'qwen/qwen3.8-27b')
         
         client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
         response = client.chat.completions.create(
@@ -85,15 +86,38 @@ class LLMService:
     @staticmethod
     def validate_provider_key(provider: str, api_key: str, model_name: str) -> bool:
         """
-        Kiểm tra tính hợp lệ của API Key (Health check).
+        Kiểm tra tính hợp lệ của API Key và Model (Health check).
+        Ghi log cảnh báo chi tiết nếu việc kiểm tra thất bại.
         """
+        provider = provider.lower() if provider else ''
         try:
             if provider == 'gemini':
                 client = genai.Client(api_key=api_key)
                 client.models.generate_content(model=model_name, contents="ping")
             elif provider == 'groq':
                 client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
-                client.chat.completions.create(model=model_name, messages=[{"role": "user", "content": "ping"}], max_tokens=1)
+                client.chat.completions.create(
+                    model=model_name, 
+                    messages=[{"role": "user", "content": "ping"}], 
+                    max_tokens=1
+                )
+            elif provider == 'ollama':
+                base_url = getattr(settings, 'OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
+                url = f"{base_url}/api/generate"
+                payload = {"model": model_name, "prompt": "ping", "stream": False}
+                response = requests.post(url, json=payload, timeout=10)
+                if response.status_code != 200:
+                    raise Exception(f"Ollama HTTP {response.status_code}: {response.text}")
+            else:
+                logger.warning(f"⚠️ [Health Check Failure] Provider '{provider}' không được hỗ trợ.")
+                return False
+                
+            logger.info(f"✅ [Health Check Success] Provider '{provider}' với model '{model_name}' hoạt động tốt.")
             return True
-        except Exception:
+
+        except Exception as e:
+            logger.warning(
+                f"⚠️ [Health Check Failure] Kiểm tra Provider '{provider}' thất bại. "
+                f"Model: '{model_name}' | Chi tiết lỗi: {str(e)}"
+            )
             return False

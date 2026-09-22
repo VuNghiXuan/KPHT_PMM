@@ -28,7 +28,8 @@ from apps.group_chat.views import (
     knowledge_dashboard_view,
     ConflictResolutionAPIView,
     ConflictChapterListAPIView,
-    AIRewriteAPIView
+    KnowledgeChapterApprovalAPIView,
+    AIRewriteAPIView, 
 )
 
 app_name = 'group_chat'
@@ -87,7 +88,11 @@ urlpatterns = [
         ),
 
 
-  
+    path(
+    '<int:group_id>/knowledge/chapters/<int:chapter_id>/approval-api/', 
+    KnowledgeChapterApprovalAPIView.as_view(), 
+    name='knowledge_chapter_approval_api'
+),
 
     # 🛡️ API gọi AI viết lại nội dung sau tìm kiếm  
     # Trong urlpatterns:

@@ -12,7 +12,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from apps.core.models import User
 from apps.group_chat.models import ChatGroup, Membership
-from apps.ai_assistant.models import GroupAIProvider
+from apps.ai_assistant.models.groupAI import GroupAIProvider
 
 class TestAIConfigView(TestCase):
     """

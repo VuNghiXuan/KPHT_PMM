@@ -3,7 +3,7 @@
 """
 File: apps/ai_assistant/vector_store/chromadb_client.py
 Mục đích: Cung cấp lớp giao tiếp với ChromaDB để quản lý Vector Embedding cho hệ thống RAG, 
-         hỗ trợ phân tách dữ liệu theo nhóm (Group-Centric) và Vòng đời tri thức (Knowledge Lifecycle).
+          hỗ trợ phân tách dữ liệu theo nhóm (Group-Centric) và Vòng đời tri thức (Knowledge Lifecycle).
 Tác giả: Kỹ sư kiến trúc vnxChatBot
 Module liên kết: apps.ai_assistant, django.conf
 """
@@ -20,13 +20,19 @@ class ChromaDBClient:
     """
     Class: ChromaDBClient
     Description: Quản lý kết nối và thao tác lưu trữ Vector với ChromaDB. 
-                 Áp dụng thiết kế Singleton để tối ưu hóa tài nguyên kết nối, 
+                 Áp dụng thiết kế Singleton/Classmethod để tối ưu hóa tài nguyên kết nối, 
                  đảm bảo gắn chặt metadata group_id nhằm cô lập dữ liệu tenant.
     """
     
-    def __init__(self):
-        self._client = None
-        self._collection = None
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """Đảm bảo thiết kế Singleton cho ChromaDBClient."""
+        if cls._instance is None:
+            cls._instance = super(ChromaDBClient, cls).__new__(cls)
+            cls._instance._client = None
+            cls._instance._collection = None
+        return cls._instance
 
     @property
     def client(self):
@@ -61,22 +67,20 @@ class ChromaDBClient:
         Tích hợp qua LiteLLM hoặc AI Engine chuẩn hóa của hệ thống.
         """
         try:
-            from apps.ai_assistant.services.ai_engine import AI_Engine
-            # Sử dụng AI Engine để tạo embedding chuẩn xác
-            return AI_Engine.get_embedding(text)
+            from apps.ai_assistant.services.ai_engine import AIEngineService
+            return AIEngineService.get_embedding(text)
         except Exception as e:
-            logger.warning(f"⚠️ [ChromaDB] Không thể dùng AI_Engine để tạo embedding, dùng vector giả lập dự phòng: {str(e)}")
-            # Fallback vector cơ bản nếu chưa cấu hình API Key embedding đầy đủ trong môi trường test
+            logger.warning(f"⚠️ [ChromaDB] Không thể dùng AIEngineService để tạo embedding, dùng vector giả lập dự phòng: {str(e)}")
             return [0.0] * 1536
 
-    @staticmethod
-    def search(embedding, group_id, limit=3, threshold=0.85):
+    @classmethod
+    def search(cls, embedding, group_id, limit=3, threshold=0.85):
         """
         Tìm kiếm vector tương đồng trong phạm vi group_id (Hard Scoping).
         """
         try:
-            client = ChromaDBClient()
-            results = client.collection.query(
+            instance = cls()
+            results = instance.collection.query(
                 query_embeddings=[embedding],
                 n_results=limit,
                 where={"group_id": str(group_id)}
@@ -89,7 +93,6 @@ class ChromaDBClient:
                 distances = results['distances'][0] if 'distances' in results and results['distances'] else [0.0] * len(docs)
                 
                 for doc, meta, dist in zip(docs, metas, distances):
-                    # Chuyển đổi khoảng cách (distance) thành điểm tương đồng (similarity) nếu cần
                     similarity = 1.0 - dist if dist <= 1.0 else 0.0
                     if similarity >= threshold:
                         formatted_results.append({
@@ -103,18 +106,32 @@ class ChromaDBClient:
             logger.error(f"❌ [ChromaDB] Lỗi khi thực hiện search vector: {str(e)}", exc_info=True)
             return []
 
-    @staticmethod
-    def insert(group_id, text, doc_id):
+    # 🔹 PHƯƠNG THỨC TƯƠNG THÍCH CHO UNIT TEST / PIPELINE
+    @classmethod
+    def query_similar(cls, query_text=None, embedding=None, group_id=None, limit=3, threshold=0.85, **kwargs):
         """
-        Thêm hoặc cập nhật tri thức từ tài liệu vào VectorDB.
+        Wrapper tương thích cho phương thức query_similar kỳ vọng bởi Unit Test.
+        Bắt buộc áp dụng filter metadata group_id.
         """
+        if embedding is None and query_text:
+            embedding = cls.compute_embedding(query_text)
+        
+        if embedding is None or group_id is None:
+            logger.warning("⚠️ [ChromaDB] Thiếu embedding hoặc group_id trong truy vấn query_similar.")
+            return []
+            
+        return cls.search(embedding=embedding, group_id=group_id, limit=limit, threshold=threshold)
+
+    @classmethod
+    def insert(cls, group_id, text, doc_id):
+        """Thêm hoặc cập nhật tri thức từ tài liệu vào VectorDB."""
         try:
             if not text or not text.strip():
                 logger.warning(f"⚠️ [ChromaDB] Văn bản trống đối với Document ID: {doc_id}, bỏ qua insert vector.")
                 return
 
-            client = ChromaDBClient()
-            client.collection.upsert(
+            instance = cls()
+            instance.collection.upsert(
                 documents=[text],
                 metadatas=[{"group_id": str(group_id), "doc_id": str(doc_id)}],
                 ids=[f"doc_{doc_id}"]
@@ -124,19 +141,19 @@ class ChromaDBClient:
             logger.error(f"❌ [ChromaDB] Lỗi chi tiết khi insert Document ID {doc_id} vào ChromaDB: {str(e)}", exc_info=True)
             raise e
 
-    def delete_document(self, doc_id):
+    @classmethod
+    def delete_document(cls, doc_id):
         """Xóa vector của tài liệu khỏi VectorDB khi Document bị xóa (Garbage Collection)."""
         try:
-            self.collection.delete(ids=[f"doc_{doc_id}"])
+            instance = cls()
+            instance.collection.delete(ids=[f"doc_{doc_id}"])
             logger.info(f"🗑️ [ChromaDB] Đã xóa vector của Document ID: {doc_id}")
         except Exception as e:
             logger.error(f"❌ [ChromaDB] Lỗi khi xóa vector Document ID {doc_id}: {str(e)}", exc_info=True)
 
-    @staticmethod
-    def upsert_embedding(group_id, text, doc_id=None, unit_id=None):
-        """
-        Thêm hoặc cập nhật tri thức từ tài liệu hoặc KnowledgeUnit vào VectorDB (ChromaDB).
-        """
+    @classmethod
+    def upsert_embedding(cls, group_id, text, doc_id=None, unit_id=None):
+        """Thêm hoặc cập nhật tri thức từ tài liệu hoặc KnowledgeUnit vào VectorDB."""
         try:
             if not text or not text.strip():
                 return
@@ -146,8 +163,8 @@ class ChromaDBClient:
                 logger.warning("⚠️ [ChromaDB] Không tìm thấy identifier (doc_id hoặc unit_id) để insert vector.")
                 return
 
-            client = ChromaDBClient()
-            client.collection.upsert(
+            instance = cls()
+            instance.collection.upsert(
                 documents=[text],
                 metadatas=[{
                     "group_id": str(group_id), 
@@ -160,20 +177,35 @@ class ChromaDBClient:
         except Exception as e:
             logger.error(f"❌ [ChromaDB] Lỗi khi upsert embedding: {str(e)}", exc_info=True)
             raise e
-            
-    def remove_embedding(self, unit_id):
+
+    # 🔹 PHƯƠNG THỨC TƯƠNG THÍCH CHO UNIT TEST (UPSERT VECTORS)
+    @classmethod
+    def upsert_vectors(cls, group_id, items, **kwargs):
+        """
+        Wrapper cho phép upsert danh sách các item vector vào ChromaDB.
+        Dành cho Unit Test kiểm tra Quy tắc Vàng (chỉ sync khi approved).
+        """
+        for item in items:
+            text = item.get("text") or item.get("content", "")
+            doc_id = item.get("doc_id")
+            unit_id = item.get("unit_id")
+            cls.upsert_embedding(group_id=group_id, text=text, doc_id=doc_id, unit_id=unit_id)
+
+    @classmethod
+    def remove_embedding(cls, unit_id):
         """Xóa tri thức khỏi VectorDB khi KnowledgeUnit bị rollback."""
         try:
-            self.collection.delete(ids=[str(unit_id)])
+            instance = cls()
+            instance.collection.delete(ids=[str(unit_id)])
             logger.info(f"🗑️ [ChromaDB] Đã xóa embedding của KnowledgeUnit unit_id: {unit_id}")
         except Exception as e:
             logger.error(f"❌ [ChromaDB] Lỗi khi xóa embedding KnowledgeUnit {unit_id}: {str(e)}", exc_info=True)
 
-    def delete_unit_embeddings(self, unit_id, group_id=None):
-        """
-        Xóa các vector embedding liên quan đến một KnowledgeUnit cụ thể trong ChromaDB.
-        """
+    @classmethod
+    def delete_unit_embeddings(cls, unit_id, group_id=None):
+        """Xóa các vector embedding liên quan đến một KnowledgeUnit cụ thể."""
         try:
+            instance = cls()
             if group_id is not None:
                 where_filter = {
                     "$and": [
@@ -184,20 +216,17 @@ class ChromaDBClient:
             else:
                 where_filter = {"unit_id": str(unit_id)}
 
-            self.collection.delete(where=where_filter)
+            instance.collection.delete(where=where_filter)
             logger.info(f"🗑️ [ChromaDB] Đã xóa embeddings cho Unit ID: {unit_id} (Group ID: {group_id})")
             return True
         except Exception as e:
             logger.error(f"⚠️ [ChromaDB Warning] Không thể xóa embeddings cho Unit ID {unit_id}: {str(e)}")
             return False
 
-    @staticmethod
-    def add_texts(texts, metadatas=None, ids=None, group_id=None, **kwargs):
-        """
-        Phương thức tương thích ngược cho các service gọi hàm add_texts truyền thống.
-        """
+    @classmethod
+    def add_texts(cls, texts, metadatas=None, ids=None, group_id=None, **kwargs):
+        """Phương thức tương thích ngược cho các service gọi hàm add_texts truyền thống."""
         try:
-            client = ChromaDBClient()
             if not texts:
                 return []
             
@@ -208,7 +237,7 @@ class ChromaDBClient:
                 unit_id = meta.get('unit_id')
                 g_id = meta.get('group_id') or group_id
                 
-                client.upsert_embedding(group_id=g_id, text=text, doc_id=doc_id, unit_id=unit_id)
+                cls.upsert_embedding(group_id=g_id, text=text, doc_id=doc_id, unit_id=unit_id)
                 
                 if ids and i < len(ids):
                     results_ids.append(ids[i])
@@ -220,6 +249,7 @@ class ChromaDBClient:
         except Exception as e:
             logger.error(f"❌ [ChromaDB] Lỗi trong add_texts: {str(e)}", exc_info=True)
             raise e
-        
+
+
 # KHỞI TẠO INSTANCE TOÀN CỤC CHUẨN XÁC
 VectorDBManager = ChromaDBClient()

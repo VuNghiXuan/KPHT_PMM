@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import GroupAIProvider
+from .models.groupAI import GroupAIProvider
 
 @admin.register(GroupAIProvider)
 class GroupAIProviderAdmin(admin.ModelAdmin):

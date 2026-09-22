@@ -1,14 +1,15 @@
 from django.db import models
 from django.conf import settings
 from .group import ChatGroup
+from apps.group_chat.validators import validate_file_size
 
 class Document(models.Model):
     UPLOAD_TYPE_CHOICES = [('chat', 'Thảo luận'), ('auto', 'Tự động học')]
     STATUS_CHOICES = [
-        ('PENDING', 'Đang chờ xử lý'),
-        ('STAGING', 'Đang phân tích cấu trúc'),
-        ('APPROVED', 'Đã duyệt & Sync'),
-        ('FAILED', 'Lỗi/Dữ liệu rác')
+        ('pending', 'Đang chờ xử lý'),
+        ('staging', 'Đang phân tích cấu trúc'),
+        ('approved', 'Đã duyệt & Sync'),
+        ('failed', 'Lỗi/Dữ liệu rác')
     ]
     
     group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE, related_name="documents", verbose_name="Nhóm chat")
@@ -23,7 +24,7 @@ class Document(models.Model):
     )
     upload_type = models.CharField(max_length=10, choices=UPLOAD_TYPE_CHOICES, default='chat', verbose_name="Loại tải lên")
     
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING', verbose_name="Trạng thái xử lý")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Trạng thái xử lý")
     metadata = models.JSONField(default=dict, blank=True, help_text="Lưu thông tin layout, mục lục gợi ý từ AI Auditor.")
     
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tải lên")
@@ -40,10 +41,10 @@ class Document(models.Model):
 
 class RawDocument(models.Model):
     STATUS_CHOICES = [
-        ('PENDING', 'Đang chờ xử lý'),
-        ('STAGING', 'Đang phân tích cấu trúc'),
-        ('APPROVED', 'Đã duyệt & Sync'),
-        ('FAILED', 'Lỗi/Dữ liệu rác')
+        ('pending', 'Đang chờ xử lý'),
+        ('staging', 'Đang phân tích cấu trúc'),
+        ('approved', 'Đã duyệt & Sync'),
+        ('failed', 'Lỗi/Dữ liệu rác')
     ]
     
     # 🔗 Sử dụng OneToOneField để khóa chặt tính duy nhất 1-1 với Document
@@ -61,9 +62,9 @@ class RawDocument(models.Model):
         related_name="raw_documents",
         verbose_name="Nhóm chat"
     )
-    file = models.FileField(upload_to='documents/%Y/%m/%d/')
+    file = models.FileField(upload_to='documents/%Y/%m/%d/', validators=[validate_file_size],verbose_name="Tài liệu tải lên")
     file_type = models.CharField(max_length=20, help_text="pdf, xlsx, docx, etc.")
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     raw_content = models.TextField(blank=True, null=True, verbose_name="Nội dung thô")
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     metadata = models.JSONField(default=dict, help_text="Lưu thông tin layout, số trang, hash file.")

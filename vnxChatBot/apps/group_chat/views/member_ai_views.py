@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from apps.group_chat.models import ChatGroup, Membership
-from apps.ai_assistant.models import GroupAIProvider
+from apps.ai_assistant.models.groupAI import GroupAIProvider
 from apps.core.models import User
 from apps.subscriptions.models import Subscription
 from django.contrib.auth import get_user_model

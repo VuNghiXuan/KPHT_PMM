@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.group_chat.models import KnowledgeChapter, ChatGroup
-from apps.ai_assistant.tasks import sync_to_vector_store
+from apps.ai_assistant.tasks import sync_chapter_to_vector_async
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +67,8 @@ class ConflictResolutionAPIView(APIView):
                     chapter.has_conflict = False
                     chapter.save(update_fields=['status', 'has_conflict', 'updated_at'])
                     
-                    # 🚀 Đẩy vào hàng đợi Celery để sync Vector Store (Luồng P1 Background)
-                    sync_to_vector_store.delay(str(chapter.id))
+                    # 🚀 Đẩy vào hàng đợi Celery theo chuẩn Group-Centric (group_id, chapter_id)
+                    sync_chapter_to_vector_async.delay(str(group_id), chapter.pk)
                     message = "Đã ghi đè tri thức thành công và kích hoạt đồng bộ VectorDB."
 
                 elif action in ["ignore", "discard"]:
@@ -96,8 +96,8 @@ class ConflictResolutionAPIView(APIView):
                     chapter.has_conflict = False
                     chapter.save(update_fields=['summary', 'status', 'has_conflict', 'updated_at'])
                     
-                    # 🚀 Đồng bộ vào Vector Store
-                    sync_to_vector_store.delay(str(chapter.id))
+                    # 🚀 Đồng bộ vào Vector Store theo chuẩn Group-Centric (group_id, chapter_id)
+                    sync_chapter_to_vector_async.delay(str(group_id), chapter.pk)
                     message = "Đã biên soạn, hợp nhất và phê duyệt tri thức thành công."
 
                 logger.info(f"✨ [Conflict Resolved]: Nhóm {group_id} đã xử lý Chapter {chapter_id} với hành động '{action}'.")

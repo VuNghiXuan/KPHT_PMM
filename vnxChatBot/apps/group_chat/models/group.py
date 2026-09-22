@@ -8,6 +8,9 @@ from django.conf import settings
 
 User = get_user_model()
 
+from django.db import models
+from apps.ai_assistant.models.text_choices import KnowledgeStatus
+
 class ChatGroup(models.Model):
     name = models.CharField(max_length=255, verbose_name="Tên nhóm")
     plan_type = models.CharField(max_length=50, default="free", verbose_name="Gói dịch vụ")
@@ -24,50 +27,82 @@ class ChatGroup(models.Model):
     def __str__(self):
         return f"{self.name} ({self.plan_type})"
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        # Đồng bộ các thuộc tính AI pending ngay khi đã có PK
+        if is_new:
+            if hasattr(self, '_pending_ai_provider'):
+                self.ai_provider = self._pending_ai_provider
+                delattr(self, '_pending_ai_provider')
+                
+            if hasattr(self, '_pending_ai_model'):
+                self.ai_model = self._pending_ai_model
+                delattr(self, '_pending_ai_model')
+
+            if hasattr(self, '_pending_custom_api_key'):
+                self.custom_api_key = self._pending_custom_api_key
+                delattr(self, '_pending_custom_api_key')
+
     @property
     def ai_provider(self):
+        if hasattr(self, '_pending_ai_provider'):
+            return self._pending_ai_provider
         config = getattr(self, 'ai_config', None)
         return config.provider if config else 'gemini'
 
     @ai_provider.setter
     def ai_provider(self, value):
-        from apps.ai_assistant.models import GroupAIProvider
-        config, created = GroupAIProvider.objects.get_or_create(group=self)
+        if not self.pk:
+            self._pending_ai_provider = value
+            return
+        from apps.ai_assistant.models.groupAI import GroupAIProvider
+        config, _ = GroupAIProvider.objects.get_or_create(group=self)
         config.provider = value
         config.save()
 
     @property
     def ai_model(self):
+        if hasattr(self, '_pending_ai_model'):
+            return self._pending_ai_model
         config = getattr(self, 'ai_config', None)
         return config.model_name if config else 'gemini-2.0-flash'
 
     @ai_model.setter
     def ai_model(self, value):
-        from apps.ai_assistant.models import GroupAIProvider
-        config, created = GroupAIProvider.objects.get_or_create(group=self)
+        if not self.pk:
+            self._pending_ai_model = value
+            return
+        from apps.ai_assistant.models.groupAI import GroupAIProvider
+        config, _ = GroupAIProvider.objects.get_or_create(group=self)
         config.model_name = value
         config.save()
 
     @property
     def custom_api_key(self):
+        if hasattr(self, '_pending_custom_api_key'):
+            return self._pending_custom_api_key
         config = getattr(self, 'ai_config', None)
         return config.api_key if config else ''
 
     @custom_api_key.setter
     def custom_api_key(self, value):
-        from apps.ai_assistant.models import GroupAIProvider
-        config, created = GroupAIProvider.objects.get_or_create(group=self)
+        if not self.pk:
+            self._pending_custom_api_key = value
+            return
+        from apps.ai_assistant.models.groupAI import GroupAIProvider
+        config, _ = GroupAIProvider.objects.get_or_create(group=self)
         config.api_key = value
         config.save()
 
     @property
     def pending_knowledge_count(self):
-        return self.knowledge_units.filter(status='PENDING').count()
+        return self.knowledge_units.filter(status=KnowledgeStatus.PENDING).count()
 
     @property
     def approved_knowledge_count(self):
-        return self.knowledge_units.filter(status='APPROVED').count()
-
+        return self.knowledge_units.filter(status=KnowledgeStatus.APPROVED).count()
 
 class Membership(models.Model):
     ROLE_CHOICES = [('admin', 'Admin'), ('member', 'Member')]

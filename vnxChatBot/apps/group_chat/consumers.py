@@ -139,11 +139,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_ai_message(self, group_id, content):
         group = ChatGroup.objects.get(id=group_id)
-        sender, _ = Membership.objects.get_or_create(
-            group=group, 
-            is_ai=True,
-            defaults={'user': None}
-        )
+        # 🛡️ An toàn hóa truy vấn thành viên AI theo mô hình Group-Centric
+        sender = Membership.objects.filter(group=group, is_ai=True).first()
+        if not sender:
+            sender = Membership.objects.create(group=group, is_ai=True, user=None)
         return Message.objects.create(group=group, sender=sender, content=content)
 
     # --- TÍCH HỢP BỘ NÃO AI (AI INTEGRATION) ---

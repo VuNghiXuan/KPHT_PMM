@@ -1,0 +1,23 @@
+Các bước: Lập phiếu -> Phân loại-> Trình duyệt-> Đề xuất Vật tư
+Phân loại: Tổng hợp theo loại vàng
+
+ghi chú:
+- Vàng đề xuất sau khi lấy 1 phần khối lượng, phần còn lại nhập kho (phần này gọi là dư hư)
+	+ Phần giao thợ: Gộp với cùng loại vàng (lấy tổng giá trị vàng giao + đề xuất)/(TLV giao + TL đề xuất) = Tỷ giá mới
+	+ Phần nhập kho hư dư : nhập kho bằng giá vốn trước khi xuất giao thợ
+
+- Cột TL hao hụt (gia công) là: Tổng TL sau tân trang (hàng nguyên) - Tổng TL giao sau làm sạch.
+-Cột TL hao hụt sau làm sạch (đang thiếu / bị ẩn): Tổng TL giao sau làm sạch - Tổng TL giao
+- TL hao hụt cho phép: Tổng TL sau làm sạch * Tỷ lệ hao hụt.
+	+  Tỷ lệ hao hụt: Lấy theo cấu hệ thống theo Loại vàng và Loại gia công (Hệ thống> Cấu hình> Nhập hàng & giá vốn)> Tỷ lệ hao hụt)
+
+Sau khi nhập các thông tin Phiếu nhận thì:
+ - Section THông tin chung có các thông tin cập nhật như sau:
+	+ Tổng TLV giao: là giá trị Tổng TL vàng giao ở section Tổng hợp giao và nhận
+	+ Tổng TLV sau tân trang: là Tổng TLV sau tân trang ở section Tổng hợp giao và nhận (là tổng Tổng TLV sau tân trang ở section Chi tiết phiếu nhận)
+	+ Tổng TLV dư hư :  là Tổng TLV sau tân trang ở section Tổng hợp giao và nhận (TL lấy từ kho - TL đề xuất, sẽ có chênh lệch do hao hụt cắt đôi)
+	+ Tổng TLV hao hụt: cũng lầy từ tổng section Tổng hợp giao và nhận nhưng chú ý sau:
+		* TLV hao hụt (ở  section Tổng hợp giao và nhận) lúc này chính là phần TLV sau nhận tân trang + TLV dư hư - Tổng TL vàng giao + Đề xuất và đây là mấu chốt tính hao hụt cuối cùng)
+	+ Định mức chi phí/SP: Hiển thị nếu Loại gia công = Nội bộ và LẤY CỘT SỐ TIỀN/SP (LOẠI GIA CÔNG = TÂN TRANG) CỦA BẢNG ĐỊNH MỨC CHI PHÍ GIA CÔNG 
+	+ Tổng chi phí = Chi phí hao hụt gia công + Chi phí tiền công
+	+ Chi phí phân bổ Công vốn / SP = Tổng Chi phí / Tổng số món
