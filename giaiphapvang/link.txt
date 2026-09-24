@@ -29,6 +29,7 @@ Google:
 		
 		Kiểm kê sản phẩm
 		Vu_SanPham@gmail.com
+		Vu_SanPham_CN1@gmail.com
 		Vu_CN2_SanPham@gmail.com 
 
 		Vu_qlcn1@gmail.com 
