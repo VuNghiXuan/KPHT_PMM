@@ -76,7 +76,7 @@ class TestConflictChapterAndApprovalSuite(APITestCase):
     def test_get_conflict_chapters_success_and_data_accuracy(self):
         """🧪 Kiểm tra thành viên trong nhóm lấy danh sách xung đột thành công, đúng cấu trúc dữ liệu và lọc chuẩn xác"""
         self.client.force_authenticate(user=self.user_in_group)
-        response = self.client.get(self.list_url)
+        response = self.client.get(f"{self.list_url}?status=conflict_detected")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()

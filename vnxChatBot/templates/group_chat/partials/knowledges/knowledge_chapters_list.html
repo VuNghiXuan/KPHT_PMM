@@ -35,7 +35,7 @@
                         <th class="py-3">⚡ Trạng thái</th>
                         <th class="py-3">📊 Độ tương đồng</th>
                         <th class="py-3">🕒 Cập nhật cuối</th>
-                        <th class="py-3 text-end pe-3">🛠️ Hành động / Xử lý Xung đột</th>
+                        <th class="py-3 text-end pe-3">🛠️ Hành động / Kiểm duyệt</th>
                     </tr>
                 </thead>
                 <tbody id="knowledge-chapters-tbody">
@@ -52,13 +52,13 @@
     </div>
 </div>
 
-<!-- Script tích hợp gọi API lấy danh sách xung đột và thực thi hành động -->
+<!-- Script tích hợp gọi API lấy danh sách xung đột & pending và thực thi hành động -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const groupId = "{{ chat_group.id }}";
         const conflictApiUrl = `/groups/${groupId}/knowledge/chapters/conflicts/`;
 
-        // Gọi API lấy danh sách chương xung đột theo group_id
+        // Gọi API lấy danh sách chương tri thức theo group_id
         fetch(conflictApiUrl, {
             method: 'GET',
             headers: {
@@ -72,36 +72,37 @@
                 const alertBanner = document.getElementById('conflict-alert-banner');
 
                 if (data.status === 'success' && data.conflicts && data.conflicts.length > 0) {
-                    alertBanner.style.display = 'block';
+
+                    // Kiểm tra xem có chương nào bị xung đột không để hiển thị Banner
+                    const hasConflictItems = data.conflicts.some(item => item.status === 'conflict_detected' || item.has_conflict);
+                    if (hasConflictItems) {
+                        alertBanner.style.display = 'block';
+                    }
+
                     let rowsHtml = '';
 
                     data.conflicts.forEach(item => {
+                        const isConflict = item.status === 'conflict_detected' || item.has_conflict;
+                        const rowBgClass = isConflict ? 'table-danger-subtle' : '';
+
                         rowsHtml += `
-                        <tr id="chapter-row-${item.id}" class="table-warning-subtle">
+                        <tr id="chapter-row-${item.id}" class="${rowBgClass}">
                             <td class="ps-3">
                                 <div class="fw-bold text-dark">${item.title}</div>
-                                <small class="text-muted text-truncate d-block" style="max-width: 300px;" title="${item.summary || ''}">${item.summary || 'Không có tóm tắt ngữ nghĩa'}</small>
+                                <small class="text-muted text-truncate d-block" style="max-width: 320px;" title="${item.summary || ''}">${item.summary || 'Không có tóm tắt ngữ nghĩa'}</small>
                                 ${item.reason ? `<span class="badge bg-danger-subtle text-danger mt-1">🔍 Lý do: ${item.reason}</span>` : ''}
                             </td>
                             <td>
-                                <span class="badge bg-warning text-dark px-2 py-1 shadow-xs">⚠️ Conflict Detected</span>
+                                ${getStatusBadge(item.status, item.has_conflict)}
                             </td>
                             <td>
-                                <span class="badge bg-danger-subtle text-danger fw-bold">${item.similarity_score ? (item.similarity_score * 100).toFixed(1) + '%' : '>85%'}</span>
+                                <span class="badge bg-secondary-subtle text-dark fw-bold">
+                                    ${item.similarity_score ? (item.similarity_score * 100).toFixed(1) + '%' : 'N/A'}
+                                </span>
                             </td>
-                            <td><small class="text-muted">${new Date(item.updated_at).toLocaleString('vi-VN')}</small></td>
+                            <td><small class="text-muted">${item.updated_at ? new Date(item.updated_at).toLocaleString('vi-VN') : 'Mới tạo'}</small></td>
                             <td class="text-end pe-3">
-                                <div class="btn-group btn-group-sm shadow-xs" role="group">
-                                    <button type="button" class="btn btn-success px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'update')" title="Ghi đè nội dung mới">
-                                        <i class="fas fa-sync-alt me-1"></i> Ghi đè
-                                    </button>
-                                    <button type="button" class="btn btn-primary px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'merge')" title="Hợp nhất kiến thức AI">
-                                        <i class="fas fa-object-group me-1"></i> Hợp nhất
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'ignore')" title="Bỏ qua cảnh báo">
-                                        <i class="fas fa-times me-1"></i> Bỏ qua
-                                    </button>
-                                </div>
+                                ${renderActionButtons(groupId, item)}
                             </td>
                         </tr>
                     `;
@@ -111,14 +112,14 @@
                     tbody.innerHTML = `
                     <tr>
                         <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="fas fa-check-circle text-success fa-lg me-2"></i> Không có mâu thuẫn tri thức nào được ghi nhận trong nhóm này. Hệ thống đang hoạt động đồng bộ ổn định.
+                            <i class="fas fa-check-circle text-success fa-lg me-2"></i> Không có chương tri thức nào đang chờ xử lý trong nhóm này.
                         </td>
                     </tr>
                 `;
                 }
             })
             .catch(error => {
-                console.error('Lỗi khi tải danh sách xung đột:', error);
+                console.error('Lỗi khi tải danh sách chương tri thức:', error);
                 document.getElementById('knowledge-chapters-tbody').innerHTML = `
                 <tr>
                     <td colspan="5" class="text-center py-5 text-danger">
@@ -128,6 +129,90 @@
             `;
             });
     });
+
+    /**
+     * Hàm render Badge trạng thái động
+     */
+    function getStatusBadge(status, hasConflict) {
+        if (hasConflict || status === 'conflict_detected') {
+            return '<span class="badge bg-danger text-white px-2 py-1 shadow-xs"><i class="fas fa-exclamation-triangle me-1"></i> Conflict</span>';
+        }
+        switch (status) {
+            case 'pending':
+                return '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1"><i class="fas fa-clock me-1"></i> Chờ duyệt</span>';
+            case 'staging':
+                return '<span class="badge bg-info-subtle text-info border border-info px-2 py-1"><i class="fas fa-vial me-1"></i> Staging</span>';
+            case 'ready_to_approve':
+                return '<span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1"><i class="fas fa-clipboard-check me-1"></i> Sẵn sàng duyệt</span>';
+            case 'approved':
+                return '<span class="badge bg-success px-2 py-1"><i class="fas fa-check me-1"></i> Đã duyệt</span>';
+            default:
+                return `<span class="badge bg-secondary px-2 py-1">${status || 'Chờ xử lý'}</span>`;
+        }
+    }
+
+    /**
+     * Hàm render Nút bấm hành động tùy thuộc vào Trạng thái chương
+     */
+    function renderActionButtons(groupId, item) {
+        if (item.status === 'conflict_detected' || item.has_conflict) {
+            return `
+                <div class="btn-group btn-group-sm shadow-xs" role="group">
+                    <button type="button" class="btn btn-success px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'update')" title="Ghi đè nội dung mới">
+                        <i class="fas fa-sync-alt me-1"></i> Ghi đè
+                    </button>
+                    <button type="button" class="btn btn-primary px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'merge')" title="Hợp nhất kiến thức AI">
+                        <i class="fas fa-object-group me-1"></i> Hợp nhất
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary px-2" onclick="resolveChapterConflict(${groupId}, ${item.id}, 'ignore')" title="Bỏ qua cảnh báo">
+                        <i class="fas fa-times me-1"></i> Bỏ qua
+                    </button>
+                </div>`;
+        } else {
+            return `
+                <div class="btn-group btn-group-sm shadow-xs" role="group">
+                    <button type="button" class="btn btn-success px-2" onclick="handleChapterApproval(${groupId}, ${item.id}, 'approve')" title="Phê duyệt chương này">
+                        <i class="fas fa-check me-1"></i> Phê duyệt
+                    </button>
+                    <button type="button" class="btn btn-outline-danger px-2" onclick="handleChapterApproval(${groupId}, ${item.id}, 'reject')" title="Từ chối chương này">
+                        <i class="fas fa-ban me-1"></i> Từ chối
+                    </button>
+                </div>`;
+        }
+    }
+
+    /**
+     * Hàm thực thi Phê duyệt / Từ chối chương (Dành cho Pending / Staging)
+     */
+    function handleChapterApproval(groupId, chapterId, actionType) {
+        const actionLabel = actionType === 'approve' ? 'PHÊ DUYỆT' : 'TỪ CHỐI';
+        if (!confirm(`Bạn có chắc chắn muốn [${actionLabel}] chương tri thức này không?`)) {
+            return;
+        }
+
+        const approvalUrl = `/groups/${groupId}/knowledge/chapters/${chapterId}/approval-api/`;
+
+        fetch(approvalUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ action: actionType })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success' || data.message) {
+                    removeRowWithAnimation(chapterId);
+                } else {
+                    alert('Lỗi xử lý từ hệ thống: ' + (data.message || data.detail || 'Không xác định'));
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi kết nối API approval:', error);
+                alert('Đã xảy ra lỗi kết nối đến máy chủ xử lý.');
+            });
+    }
 
     /**
      * Hàm thực thi hành động giải quyết xung đột (Ghi đè / Hợp nhất / Bỏ qua)
@@ -156,28 +241,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Hiển thị phản hồi trực quan mượt mà
-                    const row = document.getElementById(`chapter-row-${chapterId}`);
-                    if (row) {
-                        row.style.transition = 'all 0.5s ease';
-                        row.style.transform = 'scale(0.98)';
-                        row.style.opacity = '0';
-                        setTimeout(() => {
-                            row.remove();
-                            // Kiểm tra nếu bảng trống thì hiện trạng thái success
-                            const tbody = document.getElementById('knowledge-chapters-tbody');
-                            if (tbody && tbody.children.length === 0) {
-                                tbody.innerHTML = `
-                                <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">
-                                        <i class="fas fa-check-circle text-success fa-lg me-2"></i> Đã xử lý tất cả mâu thuẫn tri thức thành công!
-                                    </td>
-                                </tr>
-                            `;
-                                document.getElementById('conflict-alert-banner').style.display = 'none';
-                            }
-                        }, 500);
-                    }
+                    removeRowWithAnimation(chapterId);
                 } else {
                     alert('Lỗi xử lý từ hệ thống: ' + (data.detail || 'Không xác định'));
                 }
@@ -186,5 +250,31 @@
                 console.error('Lỗi kết nối API:', error);
                 alert('Đã xảy ra lỗi kết nối đến máy chủ xử lý.');
             });
+    }
+
+    /**
+     * Hàm hỗ trợ xóa hàng khỏi bảng với hiệu ứng làm mờ
+     */
+    function removeRowWithAnimation(chapterId) {
+        const row = document.getElementById(`chapter-row-${chapterId}`);
+        if (row) {
+            row.style.transition = 'all 0.4s ease';
+            row.style.transform = 'scale(0.97)';
+            row.style.opacity = '0';
+            setTimeout(() => {
+                row.remove();
+                const tbody = document.getElementById('knowledge-chapters-tbody');
+                if (tbody && tbody.children.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-check-circle text-success fa-lg me-2"></i> Đã xử lý tất cả các chương tri thức thành công!
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('conflict-alert-banner').style.display = 'none';
+                }
+            }, 400);
+        }
     }
 </script>

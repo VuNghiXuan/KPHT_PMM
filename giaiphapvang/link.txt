@@ -61,3 +61,6 @@ Google:
 	 ------Phần riêng của Vũ-----
 	11. Vũ test lại công thức nghiệp vụ: https://docs.google.com/spreadsheets/d/1aBY6VA_3ssChgo2uG74Sm4ZDtitrQkUwheef0MGWhtk/edit?gid=355568105#gid=355568105
 	15. Anh Vũ tự test: https://docs.google.com/spreadsheets/d/1aBY6VA_3ssChgo2uG74Sm4ZDtitrQkUwheef0MGWhtk/edit?gid=2145845839#gid=2145845839
+
+
+	16 Gem : https://gemini.google.com/gems/view

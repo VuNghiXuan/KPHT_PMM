@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Module: ai_engine.py
 Path: apps/ai_assistant/services/ai_engine.py
@@ -49,7 +50,7 @@ class AIEngineService:
     # --- PHƯƠNG THỨC TẠO EMBEDDING 🛠️ ---
 
     @staticmethod
-    def _generate_dummy_embedding(text: str, dim: int = 768) -> List[float]:
+    def _generate_dummy_embedding(text: str, dim: int = 1024) -> List[float]:
         """Tạo vector giả lập nhất quán (Deterministic Dummy Vector) dựa trên hash chuỗi."""
         seed = sum(ord(c) for c in text)
         vector = [math.sin(seed + i) for i in range(dim)]
@@ -58,18 +59,20 @@ class AIEngineService:
 
     @staticmethod
     def get_embedding(text: str) -> List[float]:
-        """📌 Tạo vector embedding từ văn bản đầu vào tối ưu cho LiteLLM & Gemini."""
+        """📌 Tạo vector embedding từ văn bản đầu vào tối ưu cho LiteLLM (Hỗ trợ Ollama & Gemini)."""
+        raw_model = getattr(settings, "EMBEDDING_MODEL", "ollama/bge-m3")
+
+        # Xác định kích thước vector chuẩn theo mô hình (1024 chiều cho bge-m3, 768 chiều cho Gemini)
+        target_dim = 1024 if "bge-m3" in raw_model else 768
+
         if not text or not text.strip():
             logger.warning("⚠️ [AIEngine] Chuỗi văn bản rỗng, trả về vector 0.")
-            return [0.0] * 768  # 768 chiều theo chuẩn Gemini text-embedding-004
+            return [0.0] * target_dim
 
         try:
             import litellm
 
-            # Tắt bớt các cảnh báo verbose không cần thiết từ LiteLLM
             litellm.suppress_debug_info = True
-
-            raw_model = getattr(settings, "EMBEDDING_MODEL", "text-embedding-004")
 
             # Chuẩn hóa prefix cho LiteLLM nếu dùng Gemini model
             if "text-embedding-004" in raw_model and not raw_model.startswith("gemini/"):
@@ -77,9 +80,19 @@ class AIEngineService:
             else:
                 embedding_model = raw_model
 
+            # 🏠 Trường hợp 1: Sử dụng Ollama Local (Không cần API Key)
+            if embedding_model.startswith("ollama/"):
+                ollama_base_url = getattr(settings, "OLLAMA_BASE_URL", "http://localhost:11434")
+                response = litellm.embedding(
+                    model=embedding_model,
+                    input=[text],
+                    api_base=ollama_base_url
+                )
+                return response["data"][0]["embedding"]
+
+            # ☁️ Trường hợp 2: Sử dụng Cloud API (Gemini / OpenAI)
             google_key = getattr(settings, "GOOGLE_API_KEY", None)
             openai_key = getattr(settings, "OPENAI_API_KEY", None)
-
             api_key = google_key if "gemini" in embedding_model else (openai_key or google_key)
 
             if api_key:
@@ -96,7 +109,7 @@ class AIEngineService:
             logger.warning(
                 f"⚠️ [AIEngine] Không thể tạo Embedding qua Provider ({e}). Sử dụng vector dự phòng cho kiểm thử."
             )
-            return AIEngineService._generate_dummy_embedding(text, dim=768)
+            return AIEngineService._generate_dummy_embedding(text, dim=target_dim)
 
     # --- ĐỒNG BỘ VECTOR STORE 🔄 ---
 

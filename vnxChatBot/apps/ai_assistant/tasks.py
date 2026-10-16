@@ -116,26 +116,26 @@ def process_document_task(self, raw_document_id: int, group_id: int, user_id: in
 
 @shared_task(
     bind=True, 
-    max_retries=5,
-    rate_limit='20/m',  # Giới hạn tốc độ gọi AI kiểm tra trùng lặp
+    max_retries=3,
+    rate_limit='20/m',
     autoretry_for=TRY_RETRY_EXCEPTIONS,
-    retry_backoff=True,  # Exponential Backoff tự động dừng và chờ tăng dần
-    retry_backoff_max=300,
+    retry_backoff=True,
+    retry_backoff_max=120,
     retry_jitter=True
 )
 def detect_semantic_overlap_task(self, chapter_id: int):
     """
     Task P2: Đo độ tương đồng Cosine Similarity (threshold >= 0.85) với kho dữ liệu tri thức 
-    đã được duyệt trong cùng group_id. Nếu phát hiện trùng lặp, dùng AI gợi ý biên soạn.
+    đã được duyệt trong cùng group_id. Sử dụng Local Ollama để gợi ý biên soạn khi phát hiện xung đột.
     """
     try:
         chapter = KnowledgeChapter.objects.get(id=chapter_id)
         chapter_text = f"{chapter.title} {chapter.summary}".strip()
         
-        # Tính toán Embedding dựa trên Semantic Content
+        # 1. Tính toán Embedding dựa trên Semantic Content
         content_embedding = VectorDBManager.compute_embedding(chapter_text)
         
-        # 🛠️ Xử lý an toàn khi tìm kiếm trên VectorDB (Bắt buộc Metadata Filtering theo group_id)
+        # 2. Tìm kiếm các đoạn trùng lặp trong VectorDB
         results = []
         try:
             results = VectorDBManager.search(
@@ -145,24 +145,39 @@ def detect_semantic_overlap_task(self, chapter_id: int):
                 threshold=0.85
             )
         except Exception as search_err:
-            logger.warning(f"⚠️ [Vector Search Warning] Không thể thực hiện truy vấn VectorDB (Collection có thể rỗng): {str(search_err)}")
+            logger.warning(f"⚠️ [Vector Search Warning] Không thể truy vấn VectorDB: {str(search_err)}")
 
         if chapter.metadata is None:
             chapter.metadata = {}
 
+        # 3. Xử lý khi có trùng lặp ngữ nghĩa
         if results:
-            # 🤖 Lấy cấu hình AI riêng biệt của Nhóm (Group-Centric AI Provider)
+            # Lấy cấu hình AI riêng của Nhóm, nếu chưa có thì fallback về Local Ollama (.env)
             ai_config = GroupAIProvider.objects.filter(group_id=chapter.group_id).first()
+            current_content = chapter.suggested_content or chapter.summary
 
-            # Gọi ConflictService truyền kèm cấu hình AI của nhóm
-            conflict_result = ConflictService.resolve_by_ai_rewrite(
-                chapter=chapter,
-                new_content=chapter.summary,
-                ai_config=ai_config
-            )
+            merged_summary = current_content
             
-            merged_summary = conflict_result.get('merged_content') if isinstance(conflict_result, dict) else str(conflict_result)
-            
+            # Gọi ConflictService an toàn với Local Ollama Fallback
+            try:
+                conflict_result = ConflictService.resolve_by_ai_rewrite(
+                    chapter=chapter,
+                    new_content=current_content,
+                    ai_config=ai_config,
+                    # Ép dùng Local Ollama nếu ai_config không hợp lệ
+                    default_provider="ollama",
+                    default_model=getattr(settings, 'OLLAMA_MODEL', 'ollama/qwen2.5:7b'),
+                    api_base=getattr(settings, 'OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
+                )
+                if isinstance(conflict_result, dict):
+                    merged_summary = conflict_result.get('merged_content', current_content)
+                else:
+                    merged_summary = str(conflict_result)
+            except Exception as ai_err:
+                logger.error(f"⚠️ [AI Auditor Local Warning] Lỗi gọi Ollama rewrite: {str(ai_err)}")
+                merged_summary = f"[Cần biên soạn lại] {current_content}"
+
+            # Cập nhật trạng thái thông tin xung đột
             chapter.status = KnowledgeStatus.CONFLICT_DETECTED
             chapter.has_conflict = True
             chapter.suggested_content = merged_summary
@@ -172,9 +187,10 @@ def detect_semantic_overlap_task(self, chapter_id: int):
                 "ai_rewrite_suggestion": merged_summary
             })
             chapter.save()
+            logger.info(f"⚠️ [Conflict Detected]: Chapter {chapter_id} đã ghi nhận xung đột và tạo gợi ý.")
             
-            logger.info(f"⚠️ [Conflict Detected]: Chapter {chapter_id} đã được tạo gợi ý biên soạn.")
         else:
+            # Không phát hiện xung đột -> Đã sẵn sàng duyệt
             chapter.status = KnowledgeStatus.READY_TO_APPROVE
             chapter.has_conflict = False
             chapter.save(update_fields=['status', 'has_conflict', 'updated_at'])
@@ -187,8 +203,8 @@ def detect_semantic_overlap_task(self, chapter_id: int):
         return {"status": "not_found", "chapter_id": chapter_id}
     except Exception as e:
         logger.error(f"❌ [Task System Error] Lỗi kiểm tra trùng lặp cho Chapter {chapter_id}: {str(e)}")
-        raise e
-
+        # Không re-raise ngoại lệ để tránh vòng lặp crash Celery liên tục khi AI offline
+        return {"status": "error", "message": str(e), "chapter_id": chapter_id}
 
 @shared_task(
     bind=True, 

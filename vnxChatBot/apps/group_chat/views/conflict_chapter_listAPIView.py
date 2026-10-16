@@ -16,9 +16,8 @@ from apps.group_chat.services.knowledge_service import KnowledgeService
 
 logger = logging.getLogger(__name__)
 
-
 class ConflictChapterListAPIView(APIView):
-    """API lấy danh sách các chương/tài liệu đang gặp xung đột (conflict_detected) trong nhóm."""
+    """API lấy danh sách các chương tri thức cần kiểm duyệt/xử lý trong nhóm."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request, group_id, format=None):
@@ -31,17 +30,30 @@ class ConflictChapterListAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
             
-        conflicts = KnowledgeChapter.objects.filter(
-            group_id=group.id,
-            status="conflict_detected"
-        ).order_by("-updated_at")
+        # 🚀 Lọc linh hoạt theo Query Parameter ?status= (VD: ?status=conflict_detected)
+        status_param = request.GET.get('status')
         
-        conflict_list = []
-        for item in conflicts:
-            conflict_list.append({
+        if status_param:
+            chapters = KnowledgeChapter.objects.filter(
+                group_id=group.id,
+                status=status_param
+            ).order_by("-updated_at")
+        else:
+            # Mặc định lọc tất cả các trạng thái cần kiểm duyệt/xử lý
+            target_statuses = ['pending', 'staging', 'ready_to_approve', 'conflict_detected']
+            chapters = KnowledgeChapter.objects.filter(
+                group_id=group.id,
+                status__in=target_statuses
+            ).order_by("-updated_at")
+        
+        chapter_list = []
+        for item in chapters:
+            chapter_list.append({
                 "id": item.id,
                 "title": item.title,
                 "summary": item.summary,
+                "status": item.status,  # 📌 Status giúp FE hiển thị badge tương ứng
+                "has_conflict": item.has_conflict,
                 "suggested_content": getattr(item, "suggested_content", ""),
                 "reason": item.metadata.get("reason", "") if item.metadata else "",
                 "conflict_with": item.metadata.get("conflict_with", []) if item.metadata else [],
@@ -50,10 +62,9 @@ class ConflictChapterListAPIView(APIView):
             
         return Response({
             "status": "success",
-            "count": len(conflict_list),
-            "conflicts": conflict_list
+            "count": len(chapter_list),
+            "conflicts": chapter_list  # Key 'conflicts' giữ tương thích với JS frontend
         }, status=status.HTTP_200_OK)
-
 
 class KnowledgeChapterApprovalAPIView(APIView):
     """API View quản lý phê duyệt hoặc từ chối KnowledgeChapter."""

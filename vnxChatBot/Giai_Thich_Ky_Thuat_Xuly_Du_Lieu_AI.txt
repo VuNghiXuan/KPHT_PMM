@@ -1,0 +1,52 @@
+====================================================================
+TÊN FILE: Giai_Thich_Ky_Thuat_Xuly_Du_Lieu_AI.txt
+MỤC ĐÍCH: Hướng dẫn chi tiết & dễ hiểu về Cơ chế Xử lý Dữ liệu AI
+====================================================================
+
+ PHẦN 1: BỘ LÀM SẠCH VÀ ĐẶT TIÊU ĐỀ (PARSER LAI 2 LỚP)
+--------------------------------------------------------------------
+Mục tiêu: Khi quét văn bản từ sách/ảnh (OCR), chữ hay bị lỗi dính/rời rạc hoặc dính ký tự rác. Bộ lọc này giúp đặt lại tiêu đề chuẩn cho từng chương.
+
+1. LỚP 1: BỘ LỌC BẰNG QUY TẮC (REGEX - SIÊU TỐC ⚡)
+   • Cách hoạt động: Dùng các quy tắc lập trình cố định để "tìm và sửa" cực nhanh mà không tốn tiền gọi AI.
+   • Việc cần làm:
+     - Tự gom các chữ bị tách vô lý. 
+       => Ví dụ: "Ki ểm k ê t ài s ản" ➔ Sửa thành: "Kiểm kê tài sản".
+     - Xóa các ký tự trang trí dư thừa. 
+       => Ví dụ: "## · - Bài 1: Quy trình..." ➔ Sửa thành: "Bài 1: Quy trình...".
+   • Kết quả: Nếu dòng đầu tiên sau khi làm sạch đọc lên thấy xuôi tai, hệ thống lấy luôn dòng đó làm tiêu đề!
+
+2. LỚP 2: TRỢ LÝ AI CHỮA CHÁY (LLM FALLBACK - THÔNG MINH 🤖)
+   • Cách hoạt động: Khi Lớp 1 thất bại (dòng đầu tiên quá vô lý hoặc là công thức, ngày tháng), hệ thống sẽ nhờ một Con AI nhỏ đọc đoạn văn và đặt tên giúp.
+   • Khi nào dùng? 
+     => Ví dụ: Dòng đầu bài học là một bảng số liệu hoặc công thức "E = mc^2 ngày 12/05/2023". Lớp 1 bó tay vì không biết đặt tên là gì.
+     => Lớp 2 xuất hiện: AI đọc qua nội dung và tự tóm tắt đặt tên ngắn gọn (3-5 từ): "Công thức Năng lượng An-sơ-tain".
+
+
+ PHẦN 2: CÁC CÁCH CẮT NHỎ VĂN BẢN ĐỂ AI DỄ TRA CỨU (CHUNKING)
+--------------------------------------------------------------------
+Mục tiêu: Tài liệu dài hàng trăm trang, AI không thể đọc hết một lúc. Phải cắt nhỏ ra thành các đoạn ngắn (gọi là "Chunk").
+
+1. TÙY CHỌN 1: TÌM ĐOẠN NHỎ - ĐỌC ĐOẠN LỚN (SMALL-TO-BIG) 🧱
+   • Ý tưởng: "Kính phóng đại tìm kiếm - Kính thiên văn trả lời".
+   • Cách làm: Cắt tài liệu thành các mẩu cực nhỏ (1-2 câu) để khi người dùng hỏi, hệ thống tìm đúng chính xác mẩu tin đó. Nhưng khi gửi cho AI trả lời, hệ thống sẽ đưa cả chương lớn chứa mẩu tin đó để AI có đủ thông tin toàn cảnh.
+   • Ví dụ: 
+     - Câu hỏi: "Phí dịch vụ là bao nhiêu?"
+     - Hệ thống tìm thấy mẩu nhỏ: "Phí 50.000đ".
+     - Sau đó đưa toàn bộ "Chương 3: Quy định Phí & Thuế" cho AI đọc để AI trả lời đầy đủ: "Phí là 50.000đ, miễn phí cho sinh viên".
+
+2. TÙY CHỌN 2: DÁN NHÃN NGỮ CẢNH (CONTEXTUAL RETRIEVAL) 🏷️
+   • Ý tưởng: "Thêm thông tin nền cho từng mảnh ghép".
+   • Cách làm: Nếu cắt một đoạn nhỏ ra khỏi bài viết, đoạn đó có thể mất đi ý nghĩa. Cần dùng AI viết thêm 1 câu ngắn giải thích đoạn đó nằm ở đâu rồi mới lưu vào bộ nhớ.
+   • Ví dụ:
+     - Đoạn gốc sau khi cắt: "Bước 3: Nhấn nút màu xanh." (Rất mơ hồ, không biết nút xanh ở ứng dụng nào).
+     - Đoạn sau khi dán nhãn: "[Thuộc bài Hướng dẫn Hoàn thuế] Bước 3: Nhấn nút màu xanh." ➔ AI tìm phát trúng ngay!
+
+3. TÙY CHỌN 3: XÂU CHUỖI CÁC ĐOẠN (LINKED CHUNKING) 🕸️
+   • Ý tưởng: "Xích các bước lại với nhau như một chuỗi dây chuyền".
+   • Cách làm: Mối đoạn nhỏ sẽ giữ liên kết (ID) với đoạn ngay trước và đoạn ngay sau nó.
+   • Ví dụ:
+     - Bạn hỏi: "Sau bước chuyển tiền là làm gì?"
+     - Hệ thống tìm tới "Đoạn Bước 2: Chuyển tiền", nhờ có mắt xích nối sẵn, hệ thống tự động kéo luôn "Đoạn Bước 3: Xóa biên nhận" và "Đoạn Bước 1: Khai báo" đi kèm để trả lời trơn tru.
+
+====================================================================

@@ -1,0 +1,84 @@
+================================================================================
+      CẨM NANG NGHIỆP VỤ: CƠ CHẾ QUY ĐỔI ĐIỂM & BẪY LỖI HỆ THỐNG (SYSTEM GUIDE)
+================================================================================
+
+PHẦN 1: ĐỊNH NGHĨA & PHÂN BIỆT RÕ CÁC TRƯỜNG DỮ LIỆU
+--------------------------------------------------------------------------------
+1. "Hình thức tính điểm" / "Loại áp dụng":
+   - Tiêu chí cốt lõi làm căn cứ tặng điểm cho khách hàng/nhân viên (Ví dụ: Tính 
+     theo Món, Thành tiền, Trọng lượng vàng, hoặc Tiền công).
+
+2. "Giá trị quy đổi" / "Giá trị":
+   - Định mức đầu vào (Mốc điều kiện) cần đạt được để được cộng điểm. 
+     (Ví dụ: Đạt mốc 100,000 VNĐ hoặc mốc 10 món).
+
+3. "Số điểm quy đổi (mặc định)" / "Số điểm quy đổi":
+   - Số điểm đầu ra nhận được tương ứng khi khách/nhân viên chạm mốc "Giá trị quy đổi".
+     (Ví dụ: Đạt mốc 100,000 VNĐ thì nhận được 2 điểm).
+
+4. "Giá trị quy đổi/1 điểm *" (Trường bắt buộc - Cực kỳ quan trọng):
+   - Định giá trị bằng tiền mặt (VNĐ) của 01 điểm tích lũy khi mang ra sử dụng.
+   - Dùng để quy điểm ra tiền mặt/tiền giảm giá (Ví dụ: Cấu hình 1 điểm = 5,000 VNĐ, 
+     thì 2 điểm có giá trị khấu trừ là 10,000 VNĐ).
+
+
+================================================================================
+PHẦN 2: KỊCH BẢN THỰC TẾ LIỀN MẠCH QUA NHIỀU LẦN GIAO DỊCH
+================================================================================
+* GIẢ ĐỊNH CẤU HÌNH HỆ THỐNG:
+  - Tích điểm theo "Thành tiền": Cứ đạt mốc 100,000 VNĐ = tích lũy 2 điểm.
+  - Giá trị quy đổi tiền: "Giá trị quy đổi/1 điểm *" = 5,000 VNĐ/điểm 
+    (Nghĩa là: 2 điểm tương đương 10,000 VNĐ tiền khấu trừ).
+
+---
+LẦN 1: GIAO DỊCH MUA HÀNG ĐẦU TIÊN (TÍCH LŨY ĐIỂM)
+---
+- Khách hàng mua đơn hàng trang sức trị giá 500,000 VNĐ.
+- Hệ thống tính toán tích điểm:
+  + Số mốc đạt được = 500,000 VNĐ / 100,000 VNĐ ("Giá trị") = 5 mốc.
+  + Số điểm nhận được = 5 mốc x 2 ("Số điểm quy đổi") = 10 điểm.
+- Kết quả: Ví của khách ghi nhận +10 điểm (Tương đương giá trị tiền quy đổi 
+  trong ví là: 10 điểm x 5,000 VNĐ = 50,000 VNĐ).
+
+---
+LẦN 2: GIAO DỊCH VỪA QUY ĐỔI ĐIỂM CŨ, VỪA TÍCH LŨY ĐIỂM MỚI (MÓN & TRỌNG LƯỢNG)
+---
+- Lần này, khách hàng quay lại mua một đơn hàng mới phức tạp hơn gồm:
+  + Mua sản phẩm tính theo Món & Trọng lượng vàng mới.
+  + Tổng giá trị hóa đơn lần này là 400,000 VNĐ.
+- Đồng thời, khách hàng yêu cầu sử dụng toàn bộ 10 điểm tích lũy từ lần 1 để trừ tiền.
+- Hệ thống thực hiện xử lý kép:
+  1. Chiều Tiêu Điểm (Khấu trừ): 
+     - Số tiền giảm trừ = 10 điểm x 5,000 VNĐ ("Giá trị quy đổi/1 điểm") = 50,000 VNĐ.
+     - Khách chỉ phải thanh toán thực tế: 400,000 - 50,000 = 350,000 VNĐ.
+  2. Chiều Tích Lũy Mới (Tính tiếp theo mốc Thành tiền/Món mới):
+     - Dựa trên giá trị thực trả hoặc tổng giá trị đơn (tùy cấu hình chính sách), 
+       hệ thống tiếp tục cộng bù số điểm mới cho các món hàng khách vừa mua.
+
+---
+LẦN 3: GIAO DỊCH TỔNG QUÁT KẾT HỢP ĐỔI TRẢ HOẶC CHẠM NHIỀU TIÊU CHÍ KHÁC NHAU
+---
+- Khách hàng tiến hành mua sắm kết hợp nhiều loại hình (Vừa đổi vàng cũ, vừa mua 
+  vàng mới, vừa tính tiền công, vừa tính thành tiền món).
+- Hệ thống phải bóc tách rõ ràng trên lưới chi tiết:
+  + Loại vàng nào áp dụng theo hình thức "Số lượng" (món).
+  + Loại vàng nào áp dụng theo "Trọng lượng vàng" (chỉ/lượng).
+  + Loại nào áp dụng theo "Tiền công" hoặc "Thành tiền".
+- Mỗi dòng chi tiết trên lưới phải tự động đồng bộ "Giá trị quy đổi/1 điểm" từ 
+  thông tin chung xuống để đảm bảo tính đồng nhất khi quy ra tiền mặt.
+
+
+================================================================================
+PHẦN 3: CÁC TRƯỜNG HỢP DỄ PHÁT SINH LỖI (BUG WARNING) TRONG VẬN HÀNH
+================================================================================
+1. Lỗi lệch hệ số quy đổi giữa Thông tin chung và Lưới chi tiết:
+   - Người dùng đổi "Giá trị quy đổi/1 điểm" ở phần Thông tin chung nhưng lưới 
+     chi tiết bên dưới không tự động cập nhật, dẫn đến tính sai tiền khấu trừ.
+2. Lỗi làm tròn số thập phân điểm số:
+   - Khi tính toán theo "Trọng lượng vàng" (VD: 1.5 chỉ) nhân với số điểm lẻ, hệ thống 
+     không cho phép nhập hoặc hiển thị 2 số thập phân (VD: 1.5 điểm hoặc 0.25 điểm), 
+     gây thiệt hại cho khách hàng hoặc lệch số liệu kế toán.
+3. Lỗi trừ điểm âm hoặc lạm dụng điểm:
+   - Khi đổi trả hàng hóa, hệ thống thiếu cơ chế hoàn trả hoặc thu hồi lại số điểm 
+   đã tích lũy/đã sử dụng tương ứng của đơn hàng trước đó.
+================================================================================

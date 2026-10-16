@@ -7,18 +7,19 @@ logger = logging.getLogger(__name__)
 
 def clean_json_markdown(raw_response: str) -> str:
     """
-    🧹 Loại bỏ các thẻ markdown code block (```json ... ``` hoặc ``` ... ```) 
+    🧹 Loại bỏ các thẻ markdown code block (```json ... ```, ```JSON ... ``` hoặc ``` ... ```) 
     từ phản hồi của LLM để trả về chuỗi JSON thuần túy.
     """
     if not isinstance(raw_response, str):
         return raw_response
     
-    # Biểu thức chính quy bắt khối mã markdown linh hoạt
+    # Biểu thức chính quy khớp không phân biệt chữ hoa/thường (re.IGNORECASE)
     pattern = r"```(?:json)?\s*([\s\S]*?)\s*```"
-    match = re.search(pattern, raw_response)
+    match = re.search(pattern, raw_response, re.IGNORECASE)
     
     if match:
         return match.group(1).strip()
+    
     return raw_response.strip()
 
 def check_redis_status(host='127.0.0.1', port=6379, timeout=2):

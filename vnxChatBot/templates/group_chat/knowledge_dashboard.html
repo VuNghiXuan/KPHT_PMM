@@ -1,13 +1,76 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Quản lý Kho Tri thức - {{ chat_group.name }}{% endblock %}
+{% block title %}Kho Tri thức & Kiểm duyệt - {{ chat_group.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styling cho giao diện Master-Detail & Tab Nav */
+    .nav-tabs-custom .nav-link {
+        color: #6c757d;
+        font-weight: 600;
+        border: none;
+        border-bottom: 3px solid transparent;
+        padding: 0.75rem 1.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .nav-tabs-custom .nav-link:hover {
+        color: #0d6efd;
+        border-color: rgba(13, 110, 253, 0.3);
+    }
+
+    .nav-tabs-custom .nav-link.active {
+        color: #0d6efd;
+        background-color: transparent;
+        border-bottom: 3px solid #0d6efd;
+    }
+
+    .master-detail-container {
+        min-height: 550px;
+    }
+
+    .master-list-panel {
+        max-height: 580px;
+        overflow-y: auto;
+    }
+
+    .chapter-item-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border-left: 4px solid transparent !important;
+    }
+
+    .chapter-item-card:hover {
+        background-color: #f8f9fa;
+        transform: translateX(2px);
+    }
+
+    .chapter-item-card.active {
+        background-color: #eef2ff !important;
+        border-left-color: #0d6efd !important;
+        box-shadow: inset 0 0 0 1px rgba(13, 110, 253, 0.2);
+    }
+
+    .detail-panel-sticky {
+        position: sticky;
+        top: 20px;
+        max-height: 580px;
+        overflow-y: auto;
+    }
+
+    .batch-toolbar {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4" id="knowledge-dashboard-container" data-group-id="{{ chat_group.id }}">
+<div class="container-fluid py-3" id="knowledge-dashboard-container" data-group-id="{{ chat_group.id }}">
 
     <!-- Header & Navigation -->
-    <div class="row mb-4 align-items-center">
+    <div class="row mb-3 align-items-center">
         <div class="col-md-8">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1 small">
@@ -18,13 +81,13 @@
                     <li class="breadcrumb-item active" aria-current="page">Kho Tri thức & Kiểm duyệt</li>
                 </ol>
             </nav>
-            <h2 class="fw-bold text-dark mb-0 fs-3">
-                <i class="fas fa-brain text-primary me-2"></i> Kho Tri thức & Kiểm toán AI
+            <h2 class="fw-bold text-dark mb-0 fs-4">
+                <i class="fas fa-brain text-primary me-2"></i> Quản lý & Kiểm duyệt Tri thức AI
             </h2>
         </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <div class="col-md-4 text-md-end mt-2 mt-md-0">
             <a href="{% url 'group_chat:group_detail' chat_group.id %}"
-                class="btn btn-outline-secondary rounded-pill px-4 shadow-xs">
+                class="btn btn-outline-secondary rounded-pill btn-sm px-3 shadow-xs">
                 <i class="fas fa-arrow-left me-1"></i> Quay lại phòng chat
             </a>
         </div>
@@ -36,13 +99,13 @@
         <div class="col-12">
             {% for message in messages %}
             {% if message.tags %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 shadow-xs border-0"
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3 shadow-xs border-0 mb-2 py-2"
                 role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-info-circle fa-lg me-2"></i>
+                <div class="d-flex align-items-center small">
+                    <i class="fas fa-info-circle me-2"></i>
                     <div>{{ message }}</div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             {% endif %}
             {% endfor %}
@@ -50,96 +113,340 @@
     </div>
     {% endif %}
 
-    <!-- Conflict Alert Banner (Dynamic) -->
-    <div id="conflict-alert-banner"
-        class="alert alert-warning alert-dismissible fade show rounded-4 mb-4 shadow-xs border-0" style="display: none;"
-        role="alert">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
-            <div>
-                <h6 class="fw-bold mb-1">⚠️ Phát hiện mâu thuẫn tri thức trong nhóm!</h6>
-                <p class="mb-0 small">Hệ thống ghi nhận các chương mục có độ tương đồng cao (<code
-                        class="fw-bold text-danger">&gt;=85%</code>). Vui lòng kiểm tra và thực hiện quy trình hợp nhất
-                    hoặc ghi đè.</p>
-            </div>
+    <!-- ĐIỀU HƯỚNG TAB (TAB NAVIGATION) -->
+    <div class="card border-0 shadow-sm rounded-3 mb-3">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs nav-tabs-custom px-3 border-bottom-0" id="knowledgeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-pane"
+                        type="button" role="tab" aria-controls="pending-pane" aria-selected="true">
+                        <i class="fas fa-hourglass-half text-warning me-2"></i>Chờ kiểm duyệt
+                        <span class="badge bg-warning text-dark rounded-pill ms-1">{{ pending_chapters|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved-pane"
+                        type="button" role="tab" aria-controls="approved-pane" aria-selected="false">
+                        <i class="fas fa-check-circle text-success me-2"></i>Tri thức đã duyệt
+                        <span class="badge bg-success rounded-pill ms-1">{{ approved_chapters|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents-pane"
+                        type="button" role="tab" aria-controls="documents-pane" aria-selected="false">
+                        <i class="fas fa-file-alt text-primary me-2"></i>Tài liệu nguồn (Raw Documents)
+                    </button>
+                </li>
+            </ul>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="row g-4">
-        <!-- Raw Documents Panel -->
-        <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold text-secondary mb-0 fs-6">
-                        <i class="fas fa-file-alt text-primary me-2"></i> Tài liệu nguồn (Raw Documents)
-                    </h5>
-                    <span class="badge bg-light text-secondary rounded-pill px-3 py-2">Nhóm:
-                        {{ chat_group.name}}</span>
+    <!-- NỘI DUNG CÁC TAB (TAB CONTENT) -->
+    <div class="tab-content" id="knowledgeTabsContent">
+
+        <!-- TAB 1 & TAB 2 CHUNG KHU VỰC MASTER-DETAIL -->
+        <div class="tab-pane fade show active" id="pending-pane" role="tabpanel" aria-labelledby="pending-tab">
+
+            <!-- THANH TÁC VỤ HÀNG LOẠT (BATCH TOOLBAR) -->
+            <div
+                class="batch-toolbar rounded-3 p-2 px-3 mb-3 d-flex flex-wrap align-items-center justify-content-between shadow-xs">
+                <div class="d-flex align-items-center me-3 my-1">
+                    <div class="form-check me-3 mb-0">
+                        <input class="form-check-input" type="checkbox" id="selectAllChapters">
+                        <label class="form-check-label fw-bold small text-dark" for="selectAllChapters">
+                            Chọn tất cả (<span id="selectedCount">0</span>/<span id="totalChapterCount">0</span>)
+                        </label>
+                    </div>
+                    <div class="btn-group btn-group-sm ms-2" id="bulkActionButtons" style="display: none;">
+                        <button type="button" class="btn btn-success fw-semibold" id="bulkApproveBtn">
+                            <i class="fas fa-check-circle me-1"></i> Phê duyệt các mục đã chọn
+                        </button>
+                        <button type="button" class="btn btn-outline-danger fw-semibold" id="bulkRejectBtn">
+                            <i class="fas fa-times-circle me-1"></i> Từ chối
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center my-1">
+                    <label class="small text-secondary me-2 fw-semibold mb-0" for="statusFilterSelect">Lọc trạng
+                        thái:</label>
+                    <select class="form-select form-select-sm rounded-2" id="statusFilterSelect" style="width: 180px;">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="pending" selected>🟡 Chờ duyệt (Pending)</option>
+                        <option value="conflict_detected">🔴 Có xung đột (Conflict)</option>
+                        <option value="approved">🟢 Đã duyệt (Approved)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- KHUNG CHIA 2 CỘT (MASTER-DETAIL) -->
+            <div class="row g-3 master-detail-container">
+
+                <!-- CỘT BÊN TRÁI: DANH SÁCH MỤC LỤC -->
+                <div class="col-lg-4 col-md-5">
+                    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                        <div
+                            class="card-header bg-white border-bottom py-2 px-3 d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark small">
+                                <i class="fas fa-list-ul me-1 text-primary"></i> Danh sách chương
+                            </span>
+                            <span class="badge bg-primary rounded-pill" id="chapterListBadge">0</span>
+                        </div>
+
+                        <div class="card-body p-2 master-list-panel" id="masterChapterList">
+                            {% if pending_chapters or approved_chapters %}
+
+                            <!-- DANH SÁCH CHƯƠNG CHỜ DUYỆT -->
+                            {% for chapter in pending_chapters %}
+                            <div class="card border mb-2 chapter-item-card rounded-3" id="chapter-card-{{ chapter.id }}"
+                                data-chapter-id="{{ chapter.id }}">
+                                <script type="application/json" id="chapter-data-{{ chapter.id }}">
+                                    {
+                                        "id": "{{ chapter.id }}",
+                                        "title": "{{ chapter.title|escapejs }}",
+                                        "summary": "{{ chapter.summary|default:''|escapejs }}",
+                                        "content": "{{ chapter.content|default:''|escapejs }}",
+                                        "status": "{{ chapter.status }}",
+                                        "updated_at": "{{ chapter.updated_at|date:'d/m/Y H:i' }}",
+                                        "has_conflict": {{ chapter.has_conflict|yesno:'true,false' }},
+                                        "conflict_reason": "{{ chapter.conflict_reason|default:''|escapejs }}"
+                                    }
+                                </script>
+
+                                <div class="card-body p-2 position-relative">
+                                    <div class="d-flex align-items-start">
+                                        <div class="form-check me-2 pt-1" onclick="event.stopPropagation();">
+                                            <input class="form-check-input chapter-select-checkbox" type="checkbox"
+                                                id="select-chapter-{{ chapter.id }}" value="{{ chapter.id }}"
+                                                aria-label="Chọn chương {{ chapter.title }}">
+                                        </div>
+                                        <div class="flex-grow-1 overflow-hidden"
+                                            onclick="selectChapter('{{ chapter.id }}')">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span
+                                                    class="badge {% if chapter.status == 'pending' %}bg-warning text-dark{% elif chapter.status == 'conflict_detected' %}bg-danger{% else %}bg-success{% endif %} rounded-2 px-2"
+                                                    style="font-size: 0.7rem;">
+                                                    {{ chapter.status|upper }}
+                                                </span>
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    <i class="far fa-clock me-1"></i>{{ chapter.updated_at|date:"H:i" }}
+                                                </small>
+                                            </div>
+                                            <h6 class="fw-bold text-dark mb-1 text-truncate fs-6"
+                                                title="{{ chapter.title }}">
+                                                {{ chapter.title }}
+                                            </h6>
+                                            <p class="text-muted small mb-0 text-truncate" style="font-size: 0.8rem;">
+                                                {{ chapter.summary|default:"Không có tóm tắt..." }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <!-- DANH SÁCH CHƯƠNG ĐÃ DUYỆT -->
+                            {% for chapter in approved_chapters %}
+                            <div class="card border mb-2 chapter-item-card rounded-3" id="chapter-card-{{ chapter.id }}"
+                                data-chapter-id="{{ chapter.id }}" data-status="{{ chapter.status }}"
+                                data-has-conflict="{{ chapter.has_conflict|yesno:'true,false' }}">
+                                <script type="application/json" id="chapter-data-{{ chapter.id }}">
+                                    {
+                                        "id": "{{ chapter.id }}",
+                                        "title": "{{ chapter.title|escapejs }}",
+                                        "summary": "{{ chapter.summary|default:''|escapejs }}",
+                                        "content": "{{ chapter.content|default:''|escapejs }}",
+                                        "status": "{{ chapter.status }}",
+                                        "updated_at": "{{ chapter.updated_at|date:'d/m/Y H:i' }}",
+                                        "has_conflict": {{ chapter.has_conflict|yesno:'true,false' }},
+                                        "conflict_reason": "{{ chapter.conflict_reason|default:''|escapejs }}"
+                                    }
+                                </script>
+
+                                <div class="card-body p-2 position-relative">
+                                    <div class="d-flex align-items-start">
+                                        <div class="form-check me-2 pt-1" onclick="event.stopPropagation();">
+                                            <input class="form-check-input chapter-select-checkbox" type="checkbox"
+                                                id="select-approved-chapter-{{ chapter.id }}" value="{{ chapter.id }}"
+                                                aria-label="Chọn chương {{ chapter.title }}">
+                                        </div>
+                                        <div class="flex-grow-1 overflow-hidden"
+                                            onclick="selectChapter('{{ chapter.id }}')">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="badge bg-success rounded-2 px-2"
+                                                    style="font-size: 0.7rem;">APPROVED</span>
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    <i class="far fa-clock me-1"></i>{{ chapter.updated_at|date:"H:i" }}
+                                                </small>
+                                            </div>
+                                            <h6 class="fw-bold text-dark mb-1 text-truncate fs-6"
+                                                title="{{ chapter.title }}">
+                                                {{ chapter.title }}
+                                            </h6>
+                                            <p class="text-muted small mb-0 text-truncate" style="font-size: 0.8rem;">
+                                                {{ chapter.summary|default:"Không có tóm tắt..." }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-2 text-light-emphasis"></i>
+                                <p class="small mb-0">Không có chương tri thức nào cần hiển thị.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CỘT BÊN PHẢI: CHI TIẾT NỘI DUNG & THAO TÁC DUYỆT -->
+                <div class="col-lg-8 col-md-7">
+                    <div class="card border-0 shadow-sm rounded-3 detail-panel-sticky">
+
+                        <!-- TRẠNG THÁI CHƯA CHỌN MỤC NÀO -->
+                        <div id="detailEmptyState"
+                            class="card-body text-center py-5 d-flex flex-column align-items-center justify-content-center"
+                            style="min-height: 450px;">
+                            <i class="fas fa-hand-pointer fa-3x text-primary opacity-50 mb-3"></i>
+                            <h6 class="fw-bold text-secondary">Chọn một chương từ danh sách bên trái</h6>
+                            <p class="text-muted small">Bạn có thể xem toàn bộ nội dung trích xuất, chi tiết mâu thuẫn
+                                và thực hiện phê duyệt trực tiếp tại đây.</p>
+                        </div>
+
+                        <!-- KHUNG NỘI DUNG CHI TIẾT CHƯƠNG ĐƯỢC CHỌN -->
+                        <div id="detailContentPane" class="card-body p-4 d-none">
+
+                            <!-- HEADER CỦA PANE CHI TIẾT -->
+                            <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                                <div>
+                                    <span class="badge bg-warning text-dark mb-2" id="detailStatusBadge">PENDING</span>
+                                    <h5 class="fw-bold text-dark mb-1" id="detailTitle">Tiêu đề chương</h5>
+                                    <small class="text-muted"><i class="far fa-calendar-alt me-1"></i>Cập nhật: <span
+                                            id="detailUpdatedAt">---</span></small>
+                                </div>
+
+                                <!-- NÚT TÁC VỤ ĐƠN LẺ -->
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill"
+                                        onclick="openEditModal()">
+                                        <i class="fas fa-edit me-1"></i> Chỉnh sửa
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm rounded-pill"
+                                        id="singleRejectBtn">
+                                        <i class="fas fa-times me-1"></i> Từ chối
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold"
+                                        id="singleApproveBtn">
+                                        <i class="fas fa-check me-1"></i> Phê duyệt
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- THÔNG BÁO XUNG ĐỘT (NẾU CÓ) -->
+                            <div id="detailConflictBanner" class="alert alert-danger border-0 rounded-3 mb-3 p-3"
+                                style="display: none;">
+                                <h6 class="fw-bold mb-1"><i class="fas fa-exclamation-triangle me-1"></i> Cảnh báo mâu
+                                    thuẫn tri thức!</h6>
+                                <p class="small mb-1" id="detailConflictReason">Chương này có nội dung mâu thuẫn với dữ
+                                    liệu hiện có trong hệ thống.</p>
+                            </div>
+
+                            <!-- TÓM TẮT -->
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-secondary small text-uppercase">Tóm tắt nội dung:</h6>
+                                <div class="bg-light p-3 rounded-3 border text-dark fs-6" id="detailSummary">
+                                    ---
+                                </div>
+                            </div>
+
+                            <!-- NỘI DUNG CHI TIẾT MARKDOWN -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold text-secondary small text-uppercase mb-0">Nội dung trích xuất chi
+                                        tiết:</h6>
+                                    <button class="btn btn-sm btn-link text-decoration-none p-0"
+                                        onclick="openAIRewriteModal()">
+                                        <i class="fas fa-magic text-warning me-1"></i> Nhờ AI viết lại
+                                    </button>
+                                </div>
+                                <div class="p-3 bg-white border rounded-3 font-monospace text-dark"
+                                    id="detailBodyContent"
+                                    style="white-space: pre-wrap; word-break: break-word; min-height: 200px; max-height: 350px; overflow-y: auto; background-color: #fafafa !important;">
+                                    ---
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB 2: TRI THỨC ĐÃ DUYỆT (Hiển thị tab chia sẻ cùng cấu trúc) -->
+        <div class="tab-pane fade" id="approved-pane" role="tabpanel" aria-labelledby="approved-tab">
+            <div class="alert alert-info border-0 rounded-3 small">
+                <i class="fas fa-info-circle me-1"></i> Đây là danh sách các chương tri thức đã phê duyệt chính thức.
+                Bạn có thể xem hoặc chỉnh sửa lại nếu cần.
+            </div>
+            <!-- Tab này kết nối linh hoạt cùng giao diện kiểm duyệt -->
+        </div>
+
+        <!-- TAB 3: TÀI LIỆU NGUỒN (RAW DOCUMENTS) -->
+        <div class="tab-pane fade" id="documents-pane" role="tabpanel" aria-labelledby="documents-tab">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div
+                    class="card-header bg-white border-bottom py-3 px-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-secondary mb-0">
+                        <i class="fas fa-file-alt text-primary me-2"></i> Danh sách Tài liệu gốc
+                    </h6>
+                    <span class="badge bg-light text-dark me-2">Nhóm: {{ chat_group.name }}</span>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
                         {% include 'group_chat/partials/documents/document_list.html' %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Knowledge Chapters Panel -->
-        <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold text-secondary mb-0 fs-6">
-                        <i class="fas fa-sitemap text-success me-2"></i> Mục lục Tri thức & Kiểm duyệt xung đột
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                        {% include 'group_chat/partials/knowledges/knowledge_chapters_list.html' %}
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
-<!-- Modal: Knowledge Detail & Human-in-the-Loop Editing -->
-<div class="modal fade" id="knowledgeDetailModal" tabindex="-1" aria-labelledby="knowledgeDetailModalLabel"
-    aria-hidden="true">
+<!-- MODAL: HIỆU CHỈNH CHƯƠNG -->
+<div class="modal fade" id="knowledgeDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow-lg">
             <div class="modal-header bg-light border-0 py-3 px-4">
-                <h5 class="modal-title fw-bold text-dark fs-6" id="knowledgeDetailModalLabel">
-                    <i class="fas fa-book-open text-primary me-2"></i> Chi tiết Chương Tri thức & Kiểm toán
+                <h5 class="modal-title fw-bold text-dark fs-6">
+                    <i class="fas fa-edit text-primary me-2"></i> Hiệu chỉnh Chương Tri thức
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <div id="modalContentLoading" class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Đang tải...</span>
-                    </div>
-                    <p class="text-muted small mt-2">Đang truy xuất dữ liệu chương từ máy chủ...</p>
+                <input type="hidden" id="activeChapterId">
+                <div class="mb-3">
+                    <label for="detailChapterTitle" class="form-label fw-semibold text-secondary small">Tiêu đề
+                        chương:</label>
+                    <input type="text" id="detailChapterTitle" class="form-control rounded-3" />
                 </div>
-                <div id="modalContentBody" style="display: none;">
-                    <input type="hidden" id="activeChapterId">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary small">Tiêu đề chương:</label>
-                        <input type="text" id="detailChapterTitle" class="form-control rounded-3" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary small">Tóm tắt nội dung (Summary):</label>
-                        <textarea id="detailChapterSummary" class="form-control rounded-3" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary small">Nội dung chi tiết Markdown:</label>
-                        <textarea id="detailChapterContent" class="form-control font-monospace rounded-3" rows="6"
-                            style="font-size: 0.9rem;"></textarea>
-                    </div>
+                <div class="mb-3">
+                    <label for="detailChapterSummary" class="form-label fw-semibold text-secondary small">Tóm tắt nội
+                        dung (Summary):</label>
+                    <textarea id="detailChapterSummary" class="form-control rounded-3" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="detailChapterContent" class="form-label fw-semibold text-secondary small">Nội dung chi
+                        tiết (Markdown):</label>
+                    <textarea id="detailChapterContent" class="form-control font-monospace rounded-3" rows="8"
+                        style="font-size: 0.9rem;"></textarea>
                 </div>
             </div>
-            <div class="modal-header bg-light border-0 py-3 px-4 justify-content-end">
+            <div class="modal-footer bg-light border-0 py-3 px-4">
                 <button type="button" class="btn btn-light rounded-pill px-4 me-2" data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-primary rounded-pill px-4" id="saveChapterChangesBtn">
                     <i class="fas fa-save me-1"></i> Lưu thay đổi
@@ -149,12 +456,12 @@
     </div>
 </div>
 
-<!-- Modal: AI Rewrite Assistance -->
-<div class="modal fade" id="aiRewriteModal" tabindex="-1" aria-labelledby="aiRewriteModalLabel" aria-hidden="true">
+<!-- MODAL: BỔ TRỢ AI REWRITE -->
+<div class="modal fade" id="aiRewriteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow-lg">
             <div class="modal-header border-0 py-3 px-4">
-                <h5 class="modal-title fw-bold fs-6" id="aiRewriteModalLabel">
+                <h5 class="modal-title fw-bold fs-6">
                     <i class="fas fa-magic text-warning me-2"></i> Nhờ AI biên soạn lại
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -162,12 +469,13 @@
             <div class="modal-body px-4">
                 <input type="hidden" id="rewriteChapterId">
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold text-secondary">Yêu cầu biên soạn (Prompt):</label>
+                    <label for="aiPromptInput" class="form-label small fw-semibold text-secondary">Yêu cầu biên soạn
+                        (Prompt):</label>
                     <textarea id="aiPromptInput" class="form-control rounded-3" rows="4"
-                        placeholder="Ví dụ: Làm ngắn gọn lại, chuyển sang dạng danh sách, hoặc làm giọng văn chuyên nghiệp hơn..."></textarea>
+                        placeholder="Ví dụ: Làm ngắn gọn lại, chuyển sang dạng danh sách, hoặc chuẩn hóa câu từ..."></textarea>
                 </div>
             </div>
-            <div class="modal-header border-0 py-3 px-4 justify-content-end">
+            <div class="modal-footer border-0 py-3 px-4">
                 <button type="button" class="btn btn-light rounded-pill px-4 me-2" data-bs-dismiss="modal">Hủy</button>
                 <button type="button" class="btn btn-warning rounded-pill px-4 text-dark fw-bold shadow-xs"
                     onclick="submitAIRewrite()">

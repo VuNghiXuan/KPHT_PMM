@@ -227,24 +227,31 @@ def knowledge_dashboard_view(request, group_id):
             except Exception as e:
                 return JsonResponse({"status": "error", "message": f"❌ Lỗi: {str(e)}"}, status=500)
 
-    # 🚀 TỐI ƯU HÓA TRUY VẤN: Sử dụng to_attr để cô lập namespace cache
+    # 🚀 TỐI ƯU HÓA TRUY VẤN
     
     # 1. Messages: Prefetch sender profile riêng biệt
-    # profile_queryset = Profile.objects.all()
     messages_query = chat_group.messages.select_related('sender').order_by('-created_at')[:50]
     messages_list = list(messages_query)
     messages_list.reverse()
 
-    # 2. Documents & Knowledge Units
+    # 2. Documents & Knowledge Chapters
     documents = list(Document.objects.filter(group=chat_group).select_related('uploaded_by').order_by('-uploaded_at'))
-    pending_knowledge_units = list(KnowledgeUnit.objects.filter(document__group=chat_group, status='pending').select_related('document').order_by('-id'))
-    approved_knowledge_units = list(KnowledgeUnit.objects.filter(document__group=chat_group, status='approved').select_related('document').order_by('-id'))
-    
-    # 3. Memberships: Prefetch user profile riêng biệt
-    # 3. Memberships: Chỉ dùng select_related, loại bỏ Prefetch để tránh xung đột Registry
+
+    # 📌 Lọc KnowledgeChapter theo trực tiếp field 'group', loại bỏ select_related('document')
+    pending_chapters = list(
+        KnowledgeChapter.objects.filter(group=chat_group, status='pending')
+        .order_by('-id')
+    )
+
+    approved_chapters = list(
+        KnowledgeChapter.objects.filter(group=chat_group, status='approved')
+        .order_by('-id')
+    )
+
+    # 3. Memberships
     memberships = list(
         Membership.objects.filter(group=chat_group)
-        .select_related('user', 'user__profile') # Dùng select_related trực tiếp cho OneToOne
+        .select_related('user', 'user__profile')
     )
     
     context = {
@@ -254,8 +261,8 @@ def knowledge_dashboard_view(request, group_id):
         'messages': messages_list,
         'memberships': memberships,
         'documents': documents,
-        'pending_knowledge_units': pending_knowledge_units,
-        'approved_knowledge_units': approved_knowledge_units,
+        'pending_chapters': pending_chapters,
+        'approved_chapters': approved_chapters,
         'subscription': Subscription.objects.filter(group=chat_group).first(),
         'ai_config': GroupAIProvider.objects.filter(group=chat_group).first(),
     }

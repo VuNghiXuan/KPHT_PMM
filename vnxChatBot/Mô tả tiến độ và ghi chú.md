@@ -93,4 +93,111 @@ Giai đoạn 3 (AI Power): Tích hợp Modal chỉnh sửa, nút "Nhờ AI biên
 🟢 NHÓM 1: Tối ưu Backend & Khắc phục Cảnh báo (Low-level Optimization)1.1 Tối ưu hóa Parser JSON trong AI_EngineHiện trạng: Logs cảnh báo ⚠️ [AI_Engine] Không thể parse JSON trực tiếp....Cần làm: Bổ sung hàm tiền xử lý clean_json_markdown() trong AI_Engine để tự động loại bỏ các thẻ ```json ... ``` trước khi parse. Giúp loại bỏ hoàn toàn cảnh báo này trong log.1.2 Khắc phục Cảnh báo Đồng bộ VectorDB trong Unit TestHiện trạng: Unit test báo ⚠️ [Signals] Đồng bộ VectorDB không thành công... do test case sử dụng Dummy/Mock UUID chưa khởi tạo Collection thực tế.Cần làm: Cập nhật fixture/mocking trong apps/ai_assistant/tests/ để giả lập ChromaDB Collection chuẩn xác khi test signal post_save.1.3 Nâng cấp Chunking & Điều phối Celery TaskCần làm:Tích hợp kỹ thuật Token Budgeting & Semantic Chunking vào DocumentProcessorService (gom nhóm đoạn nhỏ, cắt nhỏ đoạn lớn theo ranh giới tự nhiên).Cấu hình bổ sung exponential_backoff và rate_limit trong apps/ai_assistant/tasks.py để đề phòng quá tải khi nạp file lớn trong tương lai.🟡 NHÓM 2: Hoàn thiện Vòng đời Tri thức & Xử lý Mâu thuẫn (Knowledge Lifecycle)2.1 Chuẩn hóa Luồng P1 & P2 Background PipelineCần làm: Rà soát và kết nối liền mạch chuỗi tác vụ:$$\text{Upload File} \xrightarrow{\text{STAGING}} \text{process\_document\_task} \xrightarrow{\text{PENDING}} \text{detect\_semantic\_overlap\_task} \xrightarrow{\text{Sim} \ge 0.85} \text{ConflictService}$$2.2 Rà soát Cơ chế Phát hiện Trùng lặp (ConflictService)Cần làm: Đảm bảo khi Cosine Similarity $\ge 0.85$, hệ thống tự động gán nhãn conflict_detected và lưu cấu trúc gợi ý biên soạn ai_rewrite_suggestion vào cơ sở dữ liệu.🔵 NHÓM 3: Hoàn thiện Giao diện Quản trị & Human-in-the-Loop (Frontend UI/UX)3.1 Cập nhật Models & DB Schema (nếu chưa đồng bộ)Cần làm: Kiểm tra và bổ sung các trường: ConfidenceScore, Status (Enum: PENDING, STAGING, APPROVED), HasConflict, và raw_structure_json vào model Document/KnowledgeChapter.3.2 Nâng cấp Bảng Dashboard Tri thức (knowledge_dashboard.html & document_list.html)Cần làm:Bổ sung cột Meta-data tệp (Dung lượng, Định dạng, Thời gian tải lên).Thêm Badge trực quan hiển thị Trạng thái (Pending, Staging, Approved) và Cảnh báo mâu thuẫn (Has Conflict).Thêm thanh Search tri thức toàn cục theo nhóm ngay trên Dashboard.3.3 Tích hợp Modal "Nhờ AI Biên Soạn" & Realtime Progress BarCần làm:Thêm Textarea nhận prompt chỉnh sửa của Admin trong Modal chi tiết chương.Kết nối JS handleAIRewrite() gọi API /api/knowledge/rewrite/.Thêm JS Polling/WebSocket cập nhật Tiến độ xử lý (Progress Bar) khi Celery Task đang chạy.🎯 KẾ HOẠCH BẮT ĐẦU CHO NGÀY MAISáng mai khi bắt đầu, chúng ta sẽ thực hiện theo thứ tự ưu tiên từng bước (Step-by-Step Protocol):Bước 1: Xử lý triệt để lớp AI_Engine (loại bỏ cảnh báo JSON parse) và chỉnh sửa mock test cho signals.py.Bước 2: Cập nhật DocumentProcessorService (Semantic Chunking & Token Budgeting).Bước 3: Cập nhật UI (knowledge_dashboard.html, document_list.html) để hiển thị đúng Badge Trạng thái và Mâu thuẫn.
 
 ---
-📊 1. Tóm tắt những phần đã HOÀN THÀNHChúng ta đã hoàn thiện thành công nền tảng backend của hệ thống VnxChatBot theo đúng các nguyên tắc kiến trúc:🏢 Cô lập dữ liệu theo Nhóm (Group-Centric Tenant Isolation): Tất cả từ Vector DB (ChromaDB), Redis Semantic Cache, cho đến các truy vấn dữ liệu đều đã được thiết lập bộ lọc theo group_id.📜 Vòng đời Tri thức & Quy tắc Vàng (Knowledge Lifecycle):Luồng bóc tách tài liệu từ trạng thái staging $\rightarrow$ tạo KnowledgeChapter nháp (pending).Phát hiện trùng lặp ngữ cảnh (detect_semantic_overlap_task) với ngưỡng Cosine Similarity $\ge 0.85$.Thực hiện Quy tắc Vàng: Dữ liệu pending/staging hoàn toàn không bị rò rỉ vào Vector DB; chỉ khi quản trị viên phê duyệt (approved), tín hiệu signals.py mới kích hoạt đẩy vector vào ChromaDB.⚡ Hiệu năng & Bất đồng bộ (Async & Caching):Tích hợp Celery + Redis để xử lý các tác vụ nặng (embedding, chunking, kiểm tra trùng lặp).Redis Semantic Cache hoạt động mượt mà cho luồng truy vấn RAG.🛡️ Hệ thống Kiểm thử (Unit Tests & Diagnostics): Pass toàn bộ các suite test thuộc core, group_chat, ai_assistant, subscriptions, arch_manager và kịch bản chẩn đoán test_flow.🚀 2. Các bước TIẾP THEO nên làmBây giờ hệ thống lõi đã vững chắc, chúng ta có thể chuyển sang giai đoạn vận hành & kết nối thực tế:Chuyển đổi cấu hình Embedding thực tế (Tối ưu Waring LiteLLM):Trong .env, bạn đã có GOOGLE_API_KEY. Chúng ta có thể chuyển mô hình Embedding mặc định sang Gemini (text-embedding-004) để vừa sử dụng API thực vừa xóa sạch các thông báo warning của LiteLLM.Kiểm thử giao diện WebSocket Realtime (ChatConsumer):Tiến hành chạy server thực tế (python manage.py runserver) và mở giao diện Web/Chat Client để test gửi tin nhắn hỏi-đáp RAG thực tế trong nhóm.Hoàn thiện API Phê duyệt Tri thức (Knowledge Approval UI/API):Kiểm tra giao diện người dùng (hoặc API Endpoint) dành cho Admin nhóm để thực hiện thao tác xem các đoạn tri thức bị trùng lặp, duyệt (approved), hoặc dùng tính năng gợi ý viết lại (ai_rewrite_suggestion).
+📊 Tổng kết tiến độ hệ thống
+✅ Những việc đã hoàn thành
+🛠️ Sửa lỗi lệch Data Model:
+
+Điều chỉnh chuẩn xác các tham số khởi tạo trong KnowledgeUnit (entity_name).
+
+Khớp hoàn toàn các thuộc tính trong DocumentProcessorService với Model KnowledgeChapter thực tế (title, summary, suggested_content, has_conflict, status).
+
+📄 Trích xuất & Chunking tài liệu (Phase 1):
+
+Thư viện Docling + RapidOCR trích xuất file PDF (QTrinh_MuaBanDoi_de.pdf) sang Markdown cực kỳ trôi chảy (~15–19 giây).
+
+Thuật toán Semantic Chunking phân rã nội dung thô thành 14 chương nháp (chunks) an toàn dựa trên Token Budget.
+
+🚀 Celery Task thành công 100%:
+
+Celery Worker thực thi task process_document_task thành công, lưu 14 bản ghi KnowledgeChapter (trạng thái PENDING) vào CSDL mà không phát sinh lỗi.
+
+⏳ Những việc cần làm tiếp (Buổi sau làm tiếp)
+🎨 Sửa lỗi Hiển thị UI & Parser dữ liệu (Mới bổ sung):
+
+Sửa lỗi chữ bị xén/vỡ nét: Điều chỉnh CSS (line-height, overflow: hidden) ở tiêu đề chi tiết chương góc trên bên phải.
+
+Render bảng Markdown: Chuyển đổi dữ liệu bảng thô dạng | Bước | TL |... sang giao diện bảng HTML chuẩn để người dùng dễ quan sát.
+
+Làm sạch tiêu đề chương: Tối ưu bộ Parser để lọc bỏ các ký tự Markdown thừa dính trong tiêu đề (ví dụ: ## GIAI ĐOẠN 2...).
+
+🧠 Tối ưu Ngữ cảnh Chunking cho AI Chat (Mới bổ sung):
+
+Khắc phục tình trạng đứt gãy ngữ cảnh giữa các bước quy trình nối tiếp nhau (Phần 7, 8, 9, 10...).
+
+Giải pháp: Cấu hình Overlap (đoạn gối đầu) hoặc bổ sung Metadata/Tiêu đề cha vào từng chunk để AI không bị mất thông tin khi truy vấn (RAG).
+
+🔍 Kiểm tra View & Hiển thị Cây Mục lục:
+
+Kiểm tra QuerySet trong View của route /groups/<id>/knowledge/ xem vì sao 14 chương đã có trong CSDL nhưng chưa đổ ra bảng "Cây Mục lục Tri thức".
+
+Cập nhật trạng thái giao diện của RawDocument từ PENDING sang STAGING / PROCESSED sau khi Celery hoàn thành.
+
+🟢 Thử nghiệm Luồng Phê duyệt (Approve) & Embed Vector DB:
+
+Thực hiện thao tác Phê duyệt chương trên giao diện (Human-in-the-Loop).
+
+Kiểm tra xem Signal/Task commit_to_vector_db có tự động đẩy các vector embedding vào Vector Store (ChromaDB/FAISS) hay không.
+
+🤖 Kiểm tra AI Auditor (Phát hiện xung đột):
+
+Chạy và kiểm tra task detect_semantic_overlap_task để phát hiện mâu thuẫn ngữ nghĩa giữa các chương mới và tri thức cũ.
+
+
+----Ngày 16.10.2026------------
+⏳ Những việc cần làm tiếp
+🎨 Sửa lỗi Hiển thị UI & Parser dữ liệu:
+
+📐 Sửa lỗi CSS: Điều chỉnh line-height và overflow ở tiêu đề chi tiết chương góc trên bên phải để tránh bị xén/vỡ nét.
+
+📊 Render Bảng: Chuyển đổi dữ liệu bảng Markdown thô sang giao diện bảng HTML chuẩn.
+
+🧹 Bộ Parser & Làm sạch Tiêu đề (Mô hình Lai 2 Lớp):
+
+Lớp 1 (Regex - Ưu tiên Local ⚡): Sửa lỗi thưa chữ do OCR (Ki ểm k ê ➔ Kiểm kê), xóa ký tự thừa (##, ·, -). Nếu dòng đầu là tiêu đề chuẩn, lấy ngay làm title.
+
+Lớp 2 (LLM Fallback 🤖): Nếu Lớp 1 phát hiện tiêu đề không có ý nghĩa (chứa công thức toán, ngày tháng...), gọi model nhẹ tóm tắt tự động đặt tiêu đề ngắn (3–5 từ).
+
+🧠 Tối ưu Ngữ cảnh Chunking cho AI Chat:
+
+🧱 Option 1 (Small-to-Big): Cắt chunk nhỏ để tìm kiếm chính xác, trả về nguyên KnowledgeChapter lớn cho LLM.
+
+🏷️ Option 2 (Contextual Retrieval): Dùng model nhẹ sinh ngữ cảnh ngắn đính kèm vào từng chunk trước khi lưu Vector DB.
+
+🕸️ Option 3 (Linked Chunking): Thêm trường prev_chapter_id / next_chapter_id vào CSDL để kéo theo các bước quy trình liền kề.
+
+🔍 Kiểm tra View & Hiển thị Cây Mục lục:
+
+🌳 Debug QuerySet trong View /groups/<id>/knowledge/ để hiển thị 14 chương lên Cây Mục lục.
+
+🔄 Cập nhật trạng thái RawDocument từ PENDING sang PROCESSED.
+
+🟢 Thử nghiệm Luồng Phê duyệt (Approve) & Embed Vector DB:
+
+👤 Thực hiện phê duyệt chương trên giao diện (Human-in-the-Loop).
+
+⚡ Kiểm tra Task commit_to_vector_db tự động đẩy embedding vào Vector Store (ChromaDB/FAISS).
+
+🤖 Kiểm tra AI Auditor:
+
+⚔️ Chạy task detect_semantic_overlap_task phát hiện mâu thuẫn ngữ nghĩa.
+
+
+📂 Các file code cần làm việc (Bạn chuẩn bị/mở sẵn các file này)
+Để triển khai bộ Parser Lai 2 Lớp (Regex + LLM) và làm sạch dữ liệu, chúng ta sẽ làm việc với các file sau:
+
+services/document_processor_service.py (hoặc nơi định nghĩa hàm xử lý chunking/extract text):
+
+Nhiệm vụ: Thêm hàm Regex sửa lỗi OCR (Ki ểm k ê ➔ Kiểm kê), làm sạch ##, và kiểm tra tiêu đề hợp lệ.
+
+tasks/document_tasks.py (nơi chứa Celery Task process_document_task):
+
+Nhiệm vụ: Tích hợp logic Lớp 2 (LLM Fallback) để tự động gọi AI đặt tiêu đề khi Regex Lớp 1 thất bại (tiêu đề chứa bảng/công thức).
+
+templates/... hoặc File CSS/JS Frontend (Làm ở bước UI tiếp theo):
+
+Nhiệm vụ: Thêm class CSS chỉnh line-height, overflow và thư viện render bảng HTML từ Markdown (như marked.js hoặc markdown-it).
+-------------------------
+16.10.2023
+
+🟢 Các mục đã hoàn thành (Done)🧹 Bộ Parser Lai 2 Lớp (Regex + LLM Fallback):Hàm Regex làm sạch chữ bị thưa do lỗi OCR (Ki ểm k ê ➔ Kiểm kê), loại bỏ ký tự thừa (##, ·) trong document_processor_service.py.Tích hợp LLM Fallback trong Celery task process_document_task (tasks/document_tasks.py) để tự động đặt tiêu đề khi Regex thất bại.🎨 Giao diện & CSS Base:Bố cục Master-Detail và khung Danh sách chương.Cấu hình CSS (line-height, overflow) cho phần hiển thị tiêu đề chi tiết chương góc trên bên phải.
+⏳ Các việc còn lại cần triển khai tiếpHạng mụcChi tiếtTệp / Thành phần liên quan1. Render Bảng Markdown 📊Chuyển đổi dữ liệu bảng Markdown thô sang bảng HTML chuẩn trên giao diện.Thư viện marked.js hoặc custom parser frontend2. Tối ưu Chunking & Vector DB 🧠Lựa chọn & kiểm thử chiến lược Chunking (Option 1: Small-to-Big, Option 2: Contextual Retrieval, Option 3: Linked Chunking).tasks/document_tasks.py & Vector Store (ChromaDB/FAISS)3. Cây Mục lục & Trạng thái 🔍Debug QuerySet để hiển thị đủ 14 chương lên Cây Mục lục và chuyển trạng thái RawDocument từ PENDING ➔ PROCESSED.Views & DB Query4. AI Auditor & Phê duyệt 🤖Thử nghiệm luồng Phê duyệt thủ công và chạy task detect_semantic_overlap_task kiểm tra mâu thuẫn ngữ nghĩa.

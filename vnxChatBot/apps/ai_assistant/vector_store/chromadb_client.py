@@ -70,8 +70,12 @@ class ChromaDBClient:
             from apps.ai_assistant.services.ai_engine import AIEngineService
             return AIEngineService.get_embedding(text)
         except Exception as e:
-            logger.warning(f"⚠️ [ChromaDB] Không thể dùng AIEngineService để tạo embedding, dùng vector giả lập dự phòng: {str(e)}")
-            return [0.0] * 1536
+            logger.warning(
+                f"⚠️️ [ChromaDB] Không thể dùng AIEngineService để tạo embedding, dùng vector giả lập dự phòng: {str(e)}"
+            )
+            raw_model = getattr(settings, "EMBEDDING_MODEL", "ollama/bge-m3")
+            target_dim = 1024 if "bge-m3" in raw_model else 768
+            return [0.0] * target_dim
 
     @classmethod
     def search(cls, embedding, group_id, limit=3, threshold=0.85):
