@@ -1,0 +1,283 @@
+{
+    "target_columns": [
+        "STT",
+        "Ngày nhập kho",
+        "Ngày hóa đơn",
+        "Ký hiệu hóa đơn/Chứng từ",
+        "Số hóa đơn",
+        "Mã SP",
+        "Tên Sản Phẩm",
+        "ĐVT",
+        "Tuổi vàng",
+        "Số lượng",
+        "Tổng cân",
+        "TL Hột",
+        "TL vàng nhận về",
+        "TL Vàng gia công",
+        "Quy 999",
+        "Tỷ giá",
+        "Thành tiền",
+        "Đơn giá công/món",
+        "Tổng tiền Công",
+        "Tổng Công có VAT",
+        "Tổng tiền hàng",
+        "Thuế suất VAT",
+        "Tiền thuế",
+        "TỔNG GIÁ THÀNH",
+        "Tỷ lệ hao hụt",
+        "Công vốn",
+        "Công bán",
+        "Số lô",
+        "Loại vàng",
+        "Quầy lớn",
+        "Quầy nhỏ",
+        "Nhóm hàng",
+        "Nhà cung cấp",
+        "MST người bán",
+        "Địa chỉ người bán",
+        "Tên người mua",
+        "MST người mua",
+        "Địa chỉ người mua",
+        "Hình thức thanh toán",
+        "Số tiền bằng chữ"
+    ],
+    "column_synonyms": {
+        "STT": [
+            "Số thứ tự",
+            "tt",
+            "STT"
+        ],
+        "Ngày nhập kho": [
+            "ngày nhập",
+            "ngày nhận kho"
+        ],
+        "Ngày hóa đơn": [
+            "ngày",
+            "ngày hóa đơn",
+            "ngày chứng từ",
+            "date",
+            "ngày lập",
+            "ngày xuất"
+        ],
+        "Ký hiệu hóa đơn/Chứng từ": [
+            "ký hiệu",
+            "serial",
+            "mẫu số ký hiệu"
+        ],
+        "Số hóa đơn": [
+            "số HĐ",
+            "số hóa đơn",
+            "invoice number",
+            "HDDT",
+            "HĐĐT"
+        ],
+        "Mã SP": [
+            "mã hàng",
+            "mã sản phẩm",
+            "item code",
+            "product code",
+            "mã sp",
+            "mã vạch",
+            "sku"
+        ],
+        "Tên Sản Phẩm": [
+            "tên hàng hóa",
+            "nội dung",
+            "diễn giải",
+            "mô tả",
+            "tên sản phẩm",
+            "description",
+            "item name"
+        ],
+        "ĐVT": [
+            "dvt",
+            "đơn vị tính",
+            "unit"
+        ],
+        "Tuổi vàng": [
+            "tuổi",
+            "hàm lượng",
+            "loại vàng",
+            "mác vàng",
+            "karat",
+            "gold content",
+            "610",
+            "750",
+            "999",
+            "18k",
+            "24k"
+        ],
+        "Số lượng": [
+            "sl",
+            "số lượng",
+            "qty",
+            "quantity",
+            "số món",
+            "số cái"
+        ],
+        "Tổng cân": [
+            "trọng lượng",
+            "tl tổng",
+            "tổng tl",
+            "tl",
+            "khối lượng",
+            "gross weight",
+            "cân tổng"
+        ],
+        "TL Hột": [
+            "hột",
+            "tl đá",
+            "đá",
+            "trọng lượng đá",
+            "tl hột",
+            "stone weight",
+            "đá/hột"
+        ],
+        "TL vàng nhận về": [
+            "tl vàng",
+            "vàng thực",
+            "tl nhận",
+            "vàng thuần",
+            "net gold weight"
+        ],
+        "TL Vàng gia công": [
+            "vàng gc",
+            "vàng gia công",
+            "nguồn vàng",
+            "tl vàng xuất"
+        ],
+        "Quy 999": [
+            "quy đổi 999",
+            "quy 999",
+            "vàng 100%",
+            "pure gold"
+        ],
+        "Tỷ giá": [
+            "tỷ giá",
+            "giá vàng",
+            "đơn giá vàng",
+            "tỷ giá quy đổi"
+        ],
+        "Thành tiền": [
+            "tiền vàng",
+            "thành tiền vàng",
+            "giá trị vàng",
+            "tiền nguyên liệu",
+            "vàng amount",
+            "thành tiền"
+        ],
+        "Đơn giá công/món": [
+            "đơn giá công",
+            "giá công",
+            "công/món",
+            "đơn giá gc"
+        ],
+        "Tổng tiền Công": [
+            "tiền công",
+            "tổng công",
+            "công thợ",
+            "phí gia công",
+            "tiền dịch vụ",
+            "phí chế tác",
+            "phí ship",
+            "cước vận chuyển"
+        ],
+        "Tổng Công có VAT": [
+            "công có thuế",
+            "tổng công (vat)",
+            "tiền công bao gồm vat",
+            "tổng tiền công vat"
+        ],
+        "Tổng tiền hàng": [
+            "cộng tiền hàng",
+            "total amount",
+            "tiền hàng chưa thuế"
+        ],
+        "Thuế suất VAT": [
+            "thuế suất",
+            "vat rate",
+            "thuế suất gtgt"
+        ],
+        "Tiền thuế": [
+            "tiền thuế gtgt",
+            "tiền thuế",
+            "vat",
+            "tax amount"
+        ],
+        "TỔNG GIÁ THÀNH": [
+            "tổng tiền",
+            "cộng tiền hàng",
+            "tổng thanh toán",
+            "total amount",
+            "tổng giá thành",
+            "tổng cộng tiền thanh toán"
+        ],
+        "Tỷ lệ hao hụt": [
+            "hao hụt",
+            "tl hao hụt",
+            "hao hụt (%)"
+        ],
+        "Công vốn": [
+            "công vốn"
+        ],
+        "Công bán": [
+            "công bán"
+        ],
+        "Số lô": [
+            "số lô",
+            "số lô hàng"
+        ],
+        "Loại vàng": [
+            "lv",
+            "loại vàng",
+            "loai vang"
+        ],
+        "Quầy lớn": [
+            "quầy vàng",
+            "quầy lớn"
+        ],
+        "Quầy nhỏ": [
+            "quầy hàng",
+            "quầy nhỏ"
+        ],
+        "Nhóm hàng": [
+            "nhóm hàng hoá"
+        ],
+        "Nhà cung cấp": [
+            "nhà ccap",
+            "nhà cung cấp",
+            "nhà sản xuất",
+            "tên đơn vị bán"
+        ],
+        "MST người bán": [
+            "mã số thuế",
+            "tax code",
+            "mst người bán"
+        ],
+        "Địa chỉ người bán": [
+            "địa chỉ đơn vị bán",
+            "địa chỉ công ty bán"
+        ],
+        "Tên người mua": [
+            "họ tên người mua hàng",
+            "buyer name",
+            "người mua"
+        ],
+        "MST người mua": [
+            "mã số thuế người mua"
+        ],
+        "Địa chỉ người mua": [
+            "địa chỉ",
+            "địa chỉ người mua"
+        ],
+        "Hình thức thanh toán": [
+            "hình thức thanh toán",
+            "payment method",
+            "tm/ck"
+        ],
+        "Số tiền bằng chữ": [
+            "số tiền bằng chữ",
+            "amount in words"
+        ]
+    }
+}

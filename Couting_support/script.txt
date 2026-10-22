@@ -1,0 +1,12 @@
+invoice_processor/
+│
+├── input_files/          # Chứa hóa đơn đầu vào (PDF, XML, ảnh chụp JPG/PNG)
+├── output_excel/         # Chứa file kết quả trích xuất và bảng đối chiếu
+├── src/
+│   ├── __init__.py
+│   ├── extractor.py      # Module đọc và trích xuất dữ liệu từ hóa đơn (PDF/XML/Ảnh)
+│   ├── reconciler.py     # Module đối chiếu số liệu với file Excel của kế toán
+│   └── main.py           # File trung tâm chạy ứng dụng
+│
+├── requirements.txt      # Các thư viện cần thiết (pandas, openpyxl, pdfplumber, pytesseract...)
+└── README.md
