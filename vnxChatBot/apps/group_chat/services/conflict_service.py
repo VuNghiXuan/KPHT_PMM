@@ -60,7 +60,8 @@ class ConflictService:
     def resolve_by_ai_rewrite(
         chapter: KnowledgeChapter, 
         new_content: str, 
-        ai_config: GroupAIProvider = None
+        ai_config: GroupAIProvider = None,
+        **kwargs
     ) -> KnowledgeChapter:
         """
         🤖 Hợp nhất thông minh (AI Rewrite/Merge): Gọi AIFactory/LLM Service để tổng hợp, 

@@ -15,6 +15,7 @@ from apps.ai_assistant.services.document_processor import DocumentProcessorServi
 from apps.ai_assistant.vector_store import VectorDBManager
 from apps.ai_assistant.models.text_choices import KnowledgeStatus
 from apps.ai_assistant.models.groupAI import GroupAIProvider
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 

@@ -16,23 +16,34 @@ logger = logging.getLogger(__name__)
 
 class DefaultConfig:
     """
-    Cấu hình mặc định với cơ chế tự động chuyển tầng (Fallback Chain):
-    Gemini ➔ Groq ➔ Ollama.
+    Cấu hình mặc định với cơ chế tự động chuyển tầng (Fallback Chain).
+    Ưu tiên theo biến DEFAULT_PROVIDER trong .env.
     """
-    FALLBACK_ORDER = ['gemini', 'groq', 'ollama']
-
     def __init__(self):
+        # 🛡️ 1. Lấy provider ưu tiên từ settings (.env), mặc định rơi về 'ollama'
+        default_p = getattr(settings, 'DEFAULT_PROVIDER', 'ollama').lower()
+        
+        # Sắp xếp chuỗi Fallback đưa default_provider lên đầu
+        all_providers = ['ollama', 'groq', 'gemini']
+        if default_p in all_providers:
+            all_providers.remove(default_p)
+            self.FALLBACK_ORDER = [default_p] + all_providers
+        else:
+            self.FALLBACK_ORDER = ['ollama', 'groq', 'gemini']
+
         self.provider = self._select_available_provider()
 
     def _check_provider_health(self, provider: str) -> bool:
-        """🔍 Kiểm tra điều kiện cấu hình cơ bản (API Key hoặc Host)."""
+        """🔍 Kiểm tra điều kiện cấu hình cơ bản (API Key hoặc URL)."""
         try:
             if provider == 'gemini':
-                return bool(getattr(settings, 'GEMINI_API_KEY', None))
+                # Đọc cả GOOGLE_API_KEY hoặc GEMINI_API_KEY
+                return bool(getattr(settings, 'GOOGLE_API_KEY', None) or getattr(settings, 'GEMINI_API_KEY', None))
             elif provider == 'groq':
                 return bool(getattr(settings, 'GROQ_API_KEY', None))
             elif provider == 'ollama':
-                return bool(getattr(settings, 'OLLAMA_HOST', None))
+                # Đọc OLLAMA_BASE_URL hoặc OLLAMA_HOST
+                return bool(getattr(settings, 'OLLAMA_BASE_URL', None) or getattr(settings, 'OLLAMA_HOST', None) or True)
         except Exception as e:
             logger.warning(f"⚠️ Health-check cho {provider} thất bại: {str(e)}")
         return False
@@ -41,23 +52,32 @@ class DefaultConfig:
         """⚙️ Chọn provider đầu tiên vượt qua kiểm tra health-check."""
         for provider in self.FALLBACK_ORDER:
             if self._check_provider_health(provider):
-                logger.info(f"✅ [DefaultConfig] Khởi tạo với provider: {provider}")
+                logger.info(f"✅ [DefaultConfig] Khởi tạo thành công với provider: {provider}")
                 return provider
         logger.error("❌ [DefaultConfig] Không có AI Provider nào khả dụng!")
-        return 'none'
+        return 'ollama'
 
     @property
     def api_key(self) -> str:
+        if self.provider == 'gemini':
+            return getattr(settings, 'GOOGLE_API_KEY', None) or getattr(settings, 'GEMINI_API_KEY', '')
+        elif self.provider == 'ollama':
+            return 'ollama'  # 🛡️ Giúp LiteLLM không bao giờ đòi OPENAI_API_KEY
         return getattr(settings, f'{self.provider.upper()}_API_KEY', '')
 
     @property
     def model_name(self) -> str:
+        raw_model = getattr(settings, 'OLLAMA_MODEL', 'qwen2.5:7b')
+        
+        # 🛡️ Đảm bảo Ollama model luôn có tiền tố 'ollama/' để LiteLLM định hướng chính xác
+        if self.provider == 'ollama':
+            return raw_model if raw_model.startswith('ollama/') else f"ollama/{raw_model}"
+
         models = {
             'gemini': getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash'),
             'groq': getattr(settings, 'GROQ_MODEL', 'qwen/qwen3.8-27b'),
-            'ollama': getattr(settings, 'OLLAMA_MODEL', 'qwen2.5:7b'),
         }
-        return models.get(self.provider, 'qwen/qwen3.8-27b')
+        return models.get(self.provider, raw_model)
 
     def is_gemini(self) -> bool: return self.provider == 'gemini'
     def is_groq(self) -> bool: return self.provider == 'groq'
@@ -71,7 +91,7 @@ class DefaultConfig:
         for provider in self.FALLBACK_ORDER[start_index:]:
             self.provider = provider
             try:
-                logger.info(f"🤖 [DefaultConfig.generate] Đang thử provider: {provider}")
+                logger.info(f"🤖 [DefaultConfig.generate] Đang thử provider: {provider} (Model: {self.model_name})")
                 response = LLMService.get_response(self, prompt)
                 if response and response.strip():
                     return response

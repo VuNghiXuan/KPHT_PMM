@@ -5,13 +5,19 @@
 import logging
 from django.conf import settings
 from django.db import transaction
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from apps.ai_assistant.tasks import sync_chapter_to_vector_async
 from apps.group_chat.models import ChatGroup, Document, KnowledgeChapter, Membership
 from apps.ai_assistant.models.text_choices import KnowledgeStatus
 from apps.ai_assistant.vector_store import VectorDBManager
+
+from .models.domain import DomainCategory
+from .services.ai_engine import AIEngineService
+
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,28 +38,28 @@ def handle_document_cleanup(sender, instance, **kwargs):
 @receiver(post_save, sender=KnowledgeChapter)
 def handle_knowledge_chapter_lifecycle(sender, instance, created, **kwargs):
     """
-    Quản lý vòng đời KnowledgeChapter:
-    - Khi tạo mới (created=True): Ghi log trạng thái và KHÔNG kích hoạt Celery Task.
-    - Khi cập nhật:
-      + Nếu status == 'approved': Gọi task bất đồng bộ đẩy vào VectorDB.
-      + Nếu status != 'approved': Bỏ qua hoặc chỉ gỡ nếu cần thiết.
+    Quản lý đồng bộ VectorDB theo Vòng đời KnowledgeChapter:
+    - Nếu APPROVED: Đẩy/Cập nhật vào Vector Store qua Celery Async (sau khi commit DB).
+    - Nếu ARCHIVED / REJECTED / PENDING: Gỡ bỏ khỏi Vector Store.
     """
-    if created:
-        logger.info(
-            f"⏳ [Knowledge Lifecycle] Chương tri thức mới #{instance.id} "
-            f"được khởi tạo ở trạng thái '{instance.status}' (Group: {instance.group_id})"
-        )
-        return
-
-    # Quy tắc Vàng: Chỉ trạng thái 'approved' mới kích hoạt đồng bộ vào Vector Store
     if instance.status == KnowledgeStatus.APPROVED:
-        logger.info(f"🚀 [Vector Sync Triggered]: Chapter ID {instance.id} đã được phê duyệt. Đang gửi task đồng bộ...")
-        sync_chapter_to_vector_async.delay(
-            str(instance.group_id),
-            instance.id
+        logger.info(f"🚀 [Vector Sync]: Chapter ID #{instance.id} (Status: APPROVED). Đã đăng ký đồng bộ vào Celery Task...")
+        
+        # 🛡️ Dùng transaction.on_commit để đảm bảo DB đã lưu xong mới cho Worker đọc
+        group_id = str(instance.group_id)
+        chapter_id = instance.id
+        transaction.on_commit(
+            lambda: sync_chapter_to_vector_async.delay(group_id, chapter_id)
         )
     else:
-        logger.info(f"🛡️ [Vector Store Guarded]: Chapter ID {instance.id} ở trạng thái '{instance.status}'. Bỏ qua đồng bộ Vector Store.")
+        logger.info(f"🧹 [Vector Cleanup]: Chapter ID #{instance.id} ở trạng thái '{instance.status}'. Đang gỡ khỏi Vector Store...")
+        try:
+            VectorDBManager.delete_unit_embeddings(
+                unit_id=instance.id, 
+                group_id=instance.group_id
+            )
+        except Exception as e:
+            logger.error(f"❌ [Vector Cleanup Error]: Lỗi gỡ vector Chapter #{instance.id}: {str(e)}")
 
 
 @receiver(post_delete, sender=KnowledgeChapter)
@@ -97,3 +103,22 @@ def create_default_chat_group_for_new_user(sender, instance, created, **kwargs):
             )
 
     transaction.on_commit(_create_group_and_membership)
+
+
+@receiver(pre_save, sender=DomainCategory)
+def auto_generate_domain_embedding(sender, instance, **kwargs):
+    """Tự động tính toán và lưu Vector khi tạo mới hoặc sửa nội dung Domain."""
+    if not instance.pk:
+        # Trường hợp tạo mới
+        full_text = instance.get_full_text()
+        instance.embedding = AIEngineService.get_embedding(full_text)
+    else:
+        # Trường hợp chỉnh sửa: Chỉ tính lại nếu tên hoặc mô tả thay đổi
+        old_instance = DomainCategory.objects.get(pk=instance.pk)
+        if (
+            old_instance.name != instance.name
+            or old_instance.description != instance.description
+        ):
+            full_text = instance.get_full_text()
+            instance.embedding = AIEngineService.get_embedding(full_text)
+

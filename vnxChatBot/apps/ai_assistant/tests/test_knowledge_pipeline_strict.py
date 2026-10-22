@@ -152,6 +152,7 @@ class StrictKnowledgePipelineTestCase(TestCase):
     def test_embedding_api_failure_recovery(self, mock_compute_embedding):
         """
         [Chống nghẽn & Khôi phục] Giả lập lỗi API Key hoặc mất kết nối Embedding.
+        Task xử lý ngoại lệ an toàn, giữ nguyên status 'pending' và trả về status 'error'.
         """
         mock_compute_embedding.side_effect = RuntimeError("LiteLLM / OpenAI API Key Invalid or Expired")
 
@@ -162,8 +163,10 @@ class StrictKnowledgePipelineTestCase(TestCase):
             status="pending",
         )
 
-        with self.assertRaises(RuntimeError):
-            detect_semantic_overlap_task(chapter_id=chapter.id)
+        # Gọi task trực tiếp (task đã bắt lỗi an toàn và trả về dict)
+        result = detect_semantic_overlap_task(chapter_id=chapter.id)
 
+        # Kiểm tra trạng thái chương không bị biến đổi khi xảy ra sự cố API
         chapter.refresh_from_db()
         self.assertEqual(chapter.status, "pending")
+        self.assertEqual(result.get("status"), "error")

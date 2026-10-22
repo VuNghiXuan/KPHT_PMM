@@ -37,8 +37,17 @@
         document.getElementById('sidebarToggle').addEventListener('click', function () {
             document.getElementById('sidebar').classList.toggle('collapsed');
         });
+
     </script>
-    {% block extra_js %}{% endblock %}
+
+
+    {% block extra_js %}
+    <!-- Thư viện parse Markdown và Sanitize HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <script src="{% static 'group_chat/js/knowledge_dashboard.js' %}"></script>
+    {% endblock %}
 </body>
 
 </html>

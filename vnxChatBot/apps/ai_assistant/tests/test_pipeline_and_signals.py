@@ -12,7 +12,10 @@ from apps.ai_assistant.tasks import (
 )
 
 
+# 🛡️ Mock LLMService ở cấp Class để bảo vệ toàn bộ tiến trình khỏi kết nối AI thật
+@patch('apps.ai_assistant.services.llm_provider.LLMService.get_response', return_value="[Mocked AI Response]")
 class KnowledgePipelineAndSignalsTestCase(TestCase):
+
     def setUp(self):
         """Khởi tạo môi trường test cô lập cho 2 Group riêng biệt."""
         # 🟢 Khởi tạo ChatGroup (Django tự động sinh UUID cho ID)
@@ -29,7 +32,7 @@ class KnowledgePipelineAndSignalsTestCase(TestCase):
 
     @patch("apps.ai_assistant.tasks.DocumentProcessorService")
     @patch("apps.ai_assistant.tasks.detect_semantic_overlap_task.s")
-    def test_p1_process_document_task_flow(self, mock_p2_task_s, mock_doc_service):
+    def test_p1_process_document_task_flow(self, mock_p2_task_s, mock_doc_service, mock_llm):
         """Test P1: Phân rã tài liệu thành Chapter nháp & kiểm tra trùng lặp nội bộ/tiêu đề."""
         mock_chapter = KnowledgeChapter.objects.create(
             group=self.group_a,
@@ -50,13 +53,13 @@ class KnowledgePipelineAndSignalsTestCase(TestCase):
         self.assertEqual(result["status"], "success")
         self.raw_doc_a.refresh_from_db()
         
-        # Kiểm tra trạng thái tài liệu chuyển sang COMPLETED (hoặc completed tùy logic task)
+        # Kiểm tra trạng thái tài liệu chuyển sang COMPLETED
         self.assertIn(self.raw_doc_a.status.upper(), ["COMPLETED", "SUCCESS"])
         mock_p2_task_s.assert_called_with(mock_chapter.id)
 
     @patch("apps.ai_assistant.tasks.VectorDBManager")
     @patch("apps.ai_assistant.tasks.ConflictService")
-    def test_p2_detect_semantic_overlap_isolation(self, mock_conflict_service, mock_vector_db):
+    def test_p2_detect_semantic_overlap_isolation(self, mock_conflict_service, mock_vector_db, mock_llm):
         """Test P2: Kiểm tra độ tương đồng Cosine & đảm bảo cô lập theo group_id."""
         chapter = KnowledgeChapter.objects.create(
             group=self.group_a,
@@ -89,7 +92,7 @@ class KnowledgePipelineAndSignalsTestCase(TestCase):
 
     @patch("apps.ai_assistant.tasks.DocumentProcessorService")
     @patch("apps.ai_assistant.tasks.VectorDBManager")
-    def test_golden_rule_vector_store_sync(self, mock_vector_db, mock_doc_service):
+    def test_golden_rule_vector_store_sync(self, mock_vector_db, mock_doc_service, mock_llm):
         """Test P3 & Signals: Quy tắc vàng - Chặn dữ liệu chưa duyệt vào VectorDB."""
         chapter = KnowledgeChapter.objects.create(
             group=self.group_a,
@@ -98,7 +101,7 @@ class KnowledgePipelineAndSignalsTestCase(TestCase):
             status=KnowledgeStatus.PENDING
         )
 
-        # Kịch bản 1: Chapter ở trạng thái PENDING -> Chặn đồng bộ & xóa embedding cũ nếu có
+        # Kịch bản 1: Chapter ở trạng thái PENDING -> Chặn đồng bộ
         res = sync_chapter_to_vector_async(group_id_str=str(self.group_a.id), chapter_id=chapter.id)
         self.assertIn("skipped: Not approved", res)
         

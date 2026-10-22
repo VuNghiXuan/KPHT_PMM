@@ -1,0 +1,1 @@
+Hien thuc kien truc Modular Monolith va Group-Centric cho vnxChatBot.

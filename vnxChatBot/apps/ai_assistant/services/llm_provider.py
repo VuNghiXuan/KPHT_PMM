@@ -1,7 +1,7 @@
 """
 Mục đích: Cung cấp Service trung tâm (LLMService) để kết nối với các LLM Provider.
 Đặc điểm: Hỗ trợ Backward Compatibility (ai_model <-> model_name), 
-         Safety Fallback (Settings), và cấu trúc lỗi rõ ràng.
+          Safety Fallback (Settings), và cấu trúc lỗi rõ ràng.
 Tác giả: Kiến trúc sư VnxChatBot (Phiên bản 2.0)
 """
 import openai
@@ -20,12 +20,6 @@ class LLMService:
 
     @staticmethod
     def _get_config_attr(config, keys: list, default_setting: str, default_val: str) -> str:
-        """
-        Helper method: Tìm kiếm giá trị theo thứ tự ưu tiên:
-        1. Các khóa trong config object (đã check hasattr).
-        2. Biến môi trường/settings mặc định.
-        3. Giá trị fallback cứng.
-        """
         for key in keys:
             val = getattr(config, key, None)
             if val:
@@ -51,7 +45,6 @@ class LLMService:
     @staticmethod
     def _call_groq(config, prompt: str) -> str:
         api_key = LLMService._get_config_attr(config, ['api_key', 'custom_api_key'], 'GROQ_API_KEY', '')
-        # Ưu tiên lấy GROQ_MODEL từ config -> Django settings -> fallback 'llama-3.1-8b-instant'
         model = LLMService._get_config_attr(config, ['model_name', 'ai_model'], 'GROQ_MODEL', 'qwen/qwen3.8-27b')
         
         client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
@@ -74,21 +67,20 @@ class LLMService:
     def _call_ollama(config, prompt: str) -> str:
         base_url = getattr(settings, 'OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
         url = f"{base_url}/api/generate"
-        model = LLMService._get_config_attr(config, ['model_name', 'ai_model'], 'OLLAMA_MODEL', 'qwen2.5:7b')
+        raw_model = LLMService._get_config_attr(config, ['model_name', 'ai_model'], 'OLLAMA_MODEL', 'qwen2.5:7b')
         
-        payload = {"model": model, "prompt": prompt, "stream": False}
+        # 🛡️ Loại bỏ tiền tố 'ollama/' nếu có để phù hợp với REST API của Ollama
+        clean_model = raw_model.replace('ollama/', '', 1) if raw_model.startswith('ollama/') else raw_model
+
+        payload = {"model": clean_model, "prompt": prompt, "stream": False}
         response = requests.post(url, json=payload, timeout=30)
         
         if response.status_code == 200:
             return response.json().get('response', '')
-        raise Exception(f"Ollama trả về status {response.status_code}")
+        raise Exception(f"Ollama trả về status {response.status_code}: {response.text}")
 
     @staticmethod
     def validate_provider_key(provider: str, api_key: str, model_name: str) -> bool:
-        """
-        Kiểm tra tính hợp lệ của API Key và Model (Health check).
-        Ghi log cảnh báo chi tiết nếu việc kiểm tra thất bại.
-        """
         provider = provider.lower() if provider else ''
         try:
             if provider == 'gemini':
@@ -104,7 +96,8 @@ class LLMService:
             elif provider == 'ollama':
                 base_url = getattr(settings, 'OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
                 url = f"{base_url}/api/generate"
-                payload = {"model": model_name, "prompt": "ping", "stream": False}
+                clean_model = model_name.replace('ollama/', '', 1) if model_name.startswith('ollama/') else model_name
+                payload = {"model": clean_model, "prompt": "ping", "stream": False}
                 response = requests.post(url, json=payload, timeout=10)
                 if response.status_code != 200:
                     raise Exception(f"Ollama HTTP {response.status_code}: {response.text}")

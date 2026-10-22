@@ -7,9 +7,11 @@ from apps.group_chat.models import KnowledgeChapter, RawDocument, ChatGroup
 from apps.ai_assistant.tasks import process_document_task, detect_semantic_overlap_task
 
 
+# 🛡️ Mock đúng phương thức LLMService.get_response để chặn toàn bộ cuộc gọi API thực tế
+@patch('apps.ai_assistant.services.llm_provider.LLMService.get_response', return_value="[Mocked AI Response]: Không phát hiện xung đột.")
 class TestP1PipelineAndDeduplication(TransactionTestCase):
     """
-    Tệp kiểm thử toàn diện cho Pipeline P1:
+    Tệp kiểm thử toàn diện cho Pipeline P1 & P2:
     - Lớp 1: Hash Check (Lọc trùng nội bộ trong cùng file upload)
     - Lớp 2: SQL Check (Lọc trùng tiêu đề với DB hiện tại)
     - Lớp 3: VectorDB Check (Phát hiện trùng ngữ nghĩa - Cosine Similarity)
@@ -46,7 +48,7 @@ class TestP1PipelineAndDeduplication(TransactionTestCase):
 
     @patch('apps.ai_assistant.tasks.chain')
     @patch('apps.ai_assistant.tasks.DocumentProcessorService')
-    def test_process_document_layer1_hash_deduplication(self, mock_processor, mock_chain):
+    def test_process_document_layer1_hash_deduplication(self, mock_processor, mock_chain, mock_llm):
         """
         [Lớp 1] Kiểm tra lọc trùng nội bộ: Nếu 1 file có 2 chương nội dung trùng hệt nhau,
         chương thứ 2 phải chuyển ngay thành 'conflict_detected' mà không đưa vào Task Chain Lớp 3.
@@ -83,7 +85,7 @@ class TestP1PipelineAndDeduplication(TransactionTestCase):
 
     @patch('apps.ai_assistant.tasks.chain')
     @patch('apps.ai_assistant.tasks.DocumentProcessorService')
-    def test_process_document_layer2_sql_check(self, mock_processor, mock_chain):
+    def test_process_document_layer2_sql_check(self, mock_processor, mock_chain, mock_llm):
         """
         [Lớp 2] Thu thập ngữ cảnh trùng tiêu đề: Chương có tiêu đề trùng với chương cũ
         sẽ được ghi nhận thông tin vào metadata và VẪN tiếp tục chuyển sang Lớp 3 (AI).
@@ -121,7 +123,7 @@ class TestP1PipelineAndDeduplication(TransactionTestCase):
     # ==========================================
 
     @patch('apps.ai_assistant.tasks.VectorDBManager')
-    def test_detect_no_overlap(self, mock_vector_db):
+    def test_detect_no_overlap(self, mock_vector_db, mock_llm):
         """Kiểm tra trường hợp không trùng lặp -> status ready_to_approve"""
         mock_vector_db.search.return_value = []
         detect_semantic_overlap_task.run(self.chapter.id)
@@ -131,28 +133,25 @@ class TestP1PipelineAndDeduplication(TransactionTestCase):
 
     @patch('apps.ai_assistant.tasks.ConflictService')
     @patch('apps.ai_assistant.tasks.VectorDBManager')
-    def test_detect_semantic_overlap(self, mock_vector_db, mock_conflict_service):
-        """Kiểm tra trường hợp có xung đột -> status conflict_detected"""
+    def test_detect_semantic_overlap(self, mock_vector_db, mock_conflict_service, mock_llm):
+        """Kiểm tra trường hợp có xung đột -> status conflict_detected và tạo suggested_content"""
         mock_vector_db.search.return_value = [{'id': 999}]
         
-        # 🟢 Cập nhật: Thêm *args, **kwargs để nhận thêm các keyword argument như ai_config
+        # Hàm mock trả về kết quả gợi ý hợp nhất từ AI
         def mock_resolve(chapter, new_content, *args, **kwargs):
-            chapter.summary = "Nội dung đã được hợp nhất an toàn"
-            chapter.status = 'conflict_detected'
-            chapter.has_conflict = True
-            chapter.save()
-            return chapter
+            return "Nội dung đã được hợp nhất an toàn"
 
         mock_conflict_service.resolve_by_ai_rewrite.side_effect = mock_resolve
         
         detect_semantic_overlap_task.run(self.chapter.id)
         self.chapter.refresh_from_db()
+        
         self.assertEqual(self.chapter.status, 'conflict_detected')
         self.assertTrue(self.chapter.has_conflict)
-        self.assertEqual(self.chapter.summary, "Nội dung đã được hợp nhất an toàn")
+        self.assertEqual(self.chapter.suggested_content, "Nội dung đã được hợp nhất an toàn")
 
     @patch('apps.ai_assistant.tasks.VectorDBManager')
-    def test_detect_overlap_with_uuid_id(self, mock_vector_db):
+    def test_detect_overlap_with_uuid_id(self, mock_vector_db, mock_llm):
         """Kiểm tra việc xử lý an toàn khi VectorDB trả về ID dạng chuỗi/UUID"""
         mock_vector_db.search.return_value = [{'id': 'abc-123-uuid'}]
         detect_semantic_overlap_task.run(self.chapter.id)

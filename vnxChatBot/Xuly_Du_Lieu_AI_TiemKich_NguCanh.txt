@@ -1,0 +1,25 @@
+🏛️ Tổng quan Kiến trúc Giải pháp                                 [FILE ĐẦU VÀO]
+                                       │
+                ┌──────────────────────┴──────────────────────┐
+                ▼                                             ▼
+       [LỚP 1: CẤP DOCUMENT]                       [BÓC TÁCH LAYOUT-AWARE]
+   Đọc 1.000 ký tự đầu file bằng LLM/Regex           Trích xuất Markdown Table chuẩn
+   xác định Ngành, Phân hệ & Loại văn bản            từ Docling/Marker
+                │                                             │
+                └──────────────────────┬──────────────────────┘
+                                       │
+                                       ▼
+                             [LỚP 2: CẤP CHUNK]
+                Gom nhóm 800 - 1.200 Tokens + Cắt thông minh:
+                • Bảng ngắn: Giữ nguyên khối.
+                • Bảng dài: Cắt theo hàng + Tiêm lại Header Bảng.
+                • Văn bản Pháp luật: Tách theo Điều / Khoản.
+                                       │
+                                       ▼
+                          [TIÊM CONTEXT HEADER]
+            Tự động chèn Nhãn Ngữ cảnh Động vào đầu mỗi Chunk
+                                       │
+                                       ▼
+                           [LƯU CHROMADB & METADATA]
+            Lưu Vector Embedding kèm Metadata Filtering đa tầng
+📑 1. Nhận diện Đa tầng Linh hoạt (Two-Tier Framework)Hệ thống nhận diện tự động mọi văn bản mới từ bất kỳ ngành nghề nào thông qua 2 lớp phân tích:🔹 Lớp 1: Phân loại Cấp Document (Đọc 1.000 ký tự đầu)Cơ chế: Dùng LLM prompt nhẹ / Regex quét phần mở đầu file.Kết quả: Trích xuất các thuộc tính tĩnh:🏢 Ngành (Industry): Tài chính, Y tế, Ngân hàng, Bất động sản...💼 Phân hệ (Domain Scope): Đổi vàng cấn trừ, Thẩm định tài sản, Quản lý dược...📜 Loại văn bản (Doc Type): Văn bản pháp luật (VBPL), Quy trình Nghiệp vụ, Hướng dẫn sử dụng (HDSD).🔹 Lớp 2: Trích xuất Cấp Chunk (Trích xuất động theo đoạn)Cơ chế: Dùng Regex bóc tách cấu trúc tiêu đề (#, ##, Điều, Khoản) và phát hiện khối Bảng Markdown (| ... |).🛡️ 2. Phương án Xử lý Bảng biểu & Văn bản Pháp lý📊 Bảng biểu Markdown (Tables)Dưới 1.200 tokens: Giữ nguyên toàn bộ Bảng trong cùng 1 Chunk, không cắt xẻo.Trường hợp Bảng quá dài ($> 1.200$ tokens):Tách bảng thành các nhóm hàng ($10 - 15$ hàng/chunk).Tiêm lại Header Bảng: Tự động chèn dòng Tiêu đề cột (| STT | Tên | Giá |) vào đầu Chunk tiếp theo để không mất nghĩa.🏛️ Văn bản Pháp luật (VBPL: Luật, Nghị định, Thông tư)Chỉ ngắt Chunk tại ranh giới Điều hoặc Khoản.Mọi Chunk thuộc văn bản luật đều bắt buộc mang thông tin định danh đầy đủ của Điều/Khoản đó.🏷️ 3. Định dạng Context Header theo từng Loại Văn bảnTrước khi chuyển Chunk thành Vector Embedding để đưa vào ChromaDB, hệ thống tiêm 1 dòng chữ ngữ cảnh ở ngay đầu Chunk:Loại Văn bảnCấu trúc Context Header Tiêm vào ChunkVăn bản Pháp lý 🏛️[NGÀNH: <Ngành> | LOẠI: VBPL | TÊN: <Tên luật> | CHƯƠNG: <X> | ĐIỀU: <Y>]Quy trình Nghiệp vụ 💼[NGÀNH: <Ngành> | PHÂN HỆ: <Phân hệ> | CHƯƠNG: <Tên chương> | BẢNG: <Có/Không>]Hướng dẫn / Sổ tay 📖[NGÀNH: <Ngành> | LOẠI: HDSD | TÊN: <Tên sổ tay> | MỤC: <Tiêu mục>]🎯 4. Chống Xung đột Vector Đa ngành (Vector Collision)Khi mở rộng ra nhiều ngành khác nhau, ChromaDB sẽ áp dụng 2 cơ chế tìm kiếm kết hợp:Lọc cứng (Metadata Filter): Lọc theo industry, domain_scope, group_id trước.Lọc mềm (Semantic Vector Search): Tìm kiếm vector chính xác trong phạm vi đã lọc.

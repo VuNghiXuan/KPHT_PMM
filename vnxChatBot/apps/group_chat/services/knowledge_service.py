@@ -14,6 +14,7 @@ from apps.ai_assistant.engine import AI_Engine
 import logging
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -164,32 +165,54 @@ class KnowledgeService:
             status__in=['pending', 'staging']
         ).order_by('-created_at')
 
+    
+
     @staticmethod
-    def update_chapter_status(chapter_id, new_status, user):
+    def update_chapter_status(chapter_id, new_status, user, custom_content=None, custom_title=None):
         """
-        Cập nhật trạng thái phê duyệt cho KnowledgeChapter với cơ chế bắt lỗi chi tiết.
+        Cập nhật trạng thái phê duyệt KnowledgeChapter, xử lý gộp nội dung
+        và dọn dẹp các chương bị trùng lặp.
         """
         from apps.group_chat.models import KnowledgeChapter
         
         try:
-            chapter = KnowledgeChapter.objects.get(id=chapter_id)
-            
-            chapter.status = new_status
-            # Dùng try-except bao quanh save để bắt lỗi từ Signals (VectorDB, Celery, v.v.)
-            chapter.save() 
-            
-            return {
-                "status": "success",
-                "message": f"Đã cập nhật trạng thái chương mục [{chapter.title}] thành '{new_status}' thành công.",
-                "chapter_id": chapter.id
-            }
-            
+            with transaction.atomic():
+                chapter = KnowledgeChapter.objects.select_for_update().get(id=chapter_id)
+                chapter.status = new_status
+                
+                if new_status == 'approved':
+                    # 1. Ưu tiên nội dung: Custom Edit > Suggested Content > Current Content
+                    if custom_content:
+                        chapter.content = custom_content
+                    elif getattr(chapter, 'suggested_content', None):
+                        chapter.content = chapter.suggested_content
+                    
+                    if custom_title:
+                        chapter.title = custom_title
+                    
+                    # 2. Giải phóng cờ xung đột
+                    chapter.has_conflict = False
+                    
+                    # 3. Dọn dẹp các chương cũ bị trùng (tránh rác dữ liệu trong VectorDB)
+                    conflict_ids = chapter.metadata.get('conflict_with', []) if chapter.metadata else []
+                    if conflict_ids:
+                        # Chuyển các chương bị gộp sang trạng thái 'archived'
+                        KnowledgeChapter.objects.filter(
+                            id__in=conflict_ids, 
+                            group_id=chapter.group_id
+                        ).update(status='archived', has_conflict=False)
+                
+                chapter.save()
+                
+                return {
+                    "status": "success",
+                    "message": f"Đã phê duyệt và lưu chương tri thức [{chapter.title}] thành công.",
+                    "chapter_id": chapter.id
+                }
+                
         except ObjectDoesNotExist:
-            logger.error(f"❌ [KnowledgeService] Không tìm thấy chapter với ID: {chapter_id}")
+            logger.error(f"❌ [KnowledgeService] Không tìm thấy chapter ID: {chapter_id}")
             raise Http404("Không tìm thấy chương tri thức yêu cầu.")
-            
         except Exception as e:
-            # GHI LOG CỰC KỲ QUAN TRỌNG ĐỂ BIẾT NGUYÊN NHÂN LỖI 500
-            logger.exception(f"💥 [KnowledgeService] Lỗi khi save chapter {chapter_id}: {str(e)}")
-            # Ném lại ngoại lệ để test case nhận diện được lỗi
+            logger.exception(f"💥 [KnowledgeService] Lỗi khi cập nhật chapter {chapter_id}: {str(e)}")
             raise e

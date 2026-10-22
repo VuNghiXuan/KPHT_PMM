@@ -4,10 +4,8 @@ from apps.group_chat.models import ChatGroup
 class GroupAIProvider(models.Model):
     """
     Mục đích: Quản lý cấu hình AI riêng biệt cho từng nhóm làm việc (Group-Centric).
-    Tại sao: Cho phép mỗi nhóm linh hoạt lựa chọn nhà cung cấp LLM và cấu hình API Key riêng.
     Tác giả: Kiến trúc sư VnxChatBot
     """
-    
     PROVIDER_CHOICES = [
         ('gemini', 'Google Gemini'),
         ('groq', 'Groq'), 
@@ -27,7 +25,7 @@ class GroupAIProvider(models.Model):
         choices=PROVIDER_CHOICES, 
         default='gemini', 
         verbose_name="Nhà cung cấp",
-        help_text="Nhà cung cấp LLM mặc định là Google Gemini."
+        help_text="Nhà cung cấp LLM mặc định."
     )
     api_key = models.CharField(
         max_length=255, 
@@ -59,7 +57,6 @@ class GroupAIProvider(models.Model):
     def is_ollama(self) -> bool:
         return self.provider.lower() == 'ollama'
 
-    # 💡 Tạo Alias property để tương thích ngược nếu code cũ gọi ai_model
     @property
     def ai_model(self) -> str:
         return self.model_name

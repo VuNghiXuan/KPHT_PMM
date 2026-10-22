@@ -80,13 +80,14 @@ class AIEngineService:
             else:
                 embedding_model = raw_model
 
-            # 🏠 Trường hợp 1: Sử dụng Ollama Local (Không cần API Key)
+            # 🏠 Trường hợp 1: Sử dụng Ollama Local (Truyền api_key="ollama" để chặn LiteLLM rơi về OpenAI)
             if embedding_model.startswith("ollama/"):
                 ollama_base_url = getattr(settings, "OLLAMA_BASE_URL", "http://localhost:11434")
                 response = litellm.embedding(
                     model=embedding_model,
                     input=[text],
-                    api_base=ollama_base_url
+                    api_base=ollama_base_url,
+                    api_key="ollama"  # 🛡️ Giúp LiteLLM không đòi hỏi OPENAI_API_KEY
                 )
                 return response["data"][0]["embedding"]
 
@@ -119,12 +120,12 @@ class AIEngineService:
             "group_id": str(chapter.group_id),
             "chapter_id": chapter.id,
             "title": chapter.title,
-            **(chapter.source_metadata or {}),
+            **(chapter.metadata or {}),  # 👈 Dùng trường metadata chuẩn của Model
         }
 
-        document_text = f"{chapter.title}\n{chapter.summary}"
+        # Nội dung dùng để tạo Vector và truy vấn RAG
+        document_text = f"{chapter.title}\n{chapter.summary}\n{chapter.suggested_content or ''}"
 
-        # Lấy embedding thông qua hàm static
         vector_embeddings = self.get_embedding(document_text)
 
         self.collection.upsert(
@@ -133,10 +134,7 @@ class AIEngineService:
             embeddings=[vector_embeddings],
             metadatas=[metadata],
         )
-        logger.info(
-            f"💾 [AIEngine] Đã đồng bộ thành công KnowledgeChapter ID: {chapter.id} vào {self.engine_type.upper()}"
-        )
-
+        
     @classmethod
     def sync_chapter_embeddings(cls, chapter):
         """Phương thức gọi chính từ Celery Task để đồng bộ chapter."""

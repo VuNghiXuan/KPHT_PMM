@@ -5,6 +5,30 @@
 
 {% block extra_css %}
 <style>
+    /* CSS định dạng Bảng HTML sau khi parse từ Markdown */
+    #detailBodyContent table,
+    #detailSummary table {
+        width: 100%;
+        margin-bottom: 1rem;
+        color: #212529;
+        border-collapse: collapse;
+    }
+
+    #detailBodyContent th,
+    #detailBodyContent td,
+    #detailSummary th,
+    #detailSummary td {
+        padding: 0.5rem 0.75rem;
+        vertical-align: top;
+        border: 1px solid #dee2e6;
+    }
+
+    #detailBodyContent th,
+    #detailSummary th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+
     /* Styling cho giao diện Master-Detail & Tab Nav */
     .nav-tabs-custom .nav-link {
         color: #6c757d;
@@ -205,7 +229,7 @@
                                         "id": "{{ chapter.id }}",
                                         "title": "{{ chapter.title|escapejs }}",
                                         "summary": "{{ chapter.summary|default:''|escapejs }}",
-                                        "content": "{{ chapter.content|default:''|escapejs }}",
+                                        "content": "{{ chapter.suggested_content|default:''|escapejs }}",
                                         "status": "{{ chapter.status }}",
                                         "updated_at": "{{ chapter.updated_at|date:'d/m/Y H:i' }}",
                                         "has_conflict": {{ chapter.has_conflict|yesno:'true,false' }},
@@ -255,7 +279,7 @@
                                         "id": "{{ chapter.id }}",
                                         "title": "{{ chapter.title|escapejs }}",
                                         "summary": "{{ chapter.summary|default:''|escapejs }}",
-                                        "content": "{{ chapter.content|default:''|escapejs }}",
+                                        "content": "{{ chapter.suggested_content|default:''|escapejs }}",
                                         "status": "{{ chapter.status }}",
                                         "updated_at": "{{ chapter.updated_at|date:'d/m/Y H:i' }}",
                                         "has_conflict": {{ chapter.has_conflict|yesno:'true,false' }},
@@ -372,9 +396,9 @@
                                         <i class="fas fa-magic text-warning me-1"></i> Nhờ AI viết lại
                                     </button>
                                 </div>
-                                <div class="p-3 bg-white border rounded-3 font-monospace text-dark"
-                                    id="detailBodyContent"
-                                    style="white-space: pre-wrap; word-break: break-word; min-height: 200px; max-height: 350px; overflow-y: auto; background-color: #fafafa !important;">
+                                <!-- NỘI DUNG CHI TIẾT MARKDOWN -->
+                                <div class="p-3 bg-white border rounded-3 text-dark" id="detailBodyContent"
+                                    style="word-break: break-word; min-height: 200px; max-height: 400px; overflow-y: auto;">
                                     ---
                                 </div>
                             </div>

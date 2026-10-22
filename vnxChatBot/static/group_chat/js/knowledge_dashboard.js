@@ -138,14 +138,29 @@ function selectChapter(chapterId) {
     const updatedAtEl = document.getElementById('detailUpdatedAt');
 
     if (titleEl) titleEl.innerText = chapterData.title || 'Không có tiêu đề';
-    if (summaryEl) summaryEl.innerText = chapterData.summary || 'Không có tóm tắt';
     if (updatedAtEl) updatedAtEl.innerText = chapterData.updated_at || '';
 
-    // 💡 Hiển thị nội dung trực tiếp (Đã loại bỏ việc gọi API phụ)
+    // 💡 Render Markdown ➔ HTML cho Tóm tắt & Nội dung chi tiết (Dùng marked.js + DOMPurify)
+    const renderMarkdown = (rawText) => {
+        if (!rawText || rawText.trim() === '') return '';
+        if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+            return DOMPurify.sanitize(marked.parse(rawText));
+        }
+        return rawText; // Fallback nếu chưa tải xong thư viện
+    };
+
+    // Render Tóm tắt
+    if (summaryEl) {
+        const rawSummary = chapterData.summary || 'Không có tóm tắt';
+        summaryEl.innerHTML = renderMarkdown(rawSummary);
+    }
+
+    // Render Nội dung chi tiết (Bao gồm Bảng Markdown) 📊
     if (bodyContentEl) {
-        bodyContentEl.innerText = (chapterData.content && chapterData.content.trim() !== '')
+        const rawContent = (chapterData.content && chapterData.content.trim() !== '')
             ? chapterData.content
             : (chapterData.summary || 'Chưa có nội dung chi tiết.');
+        bodyContentEl.innerHTML = renderMarkdown(rawContent);
     }
 
     // Cập nhật Badge Trạng thái
