@@ -1,0 +1,3 @@
+Trường hợp chuyển quầy:
+Ví dụ có 4 Bông là 2 bộ, nghĩa là nó đang ở Quầy Bộ Bông 610, bán 3 chiếc còn lại 1 chiếc thì lức này chuyển qua Quầy món, hoặc chiếc
+Trường hợp nữa do nhập sai quầy thì chuyển về quầy cho đúng

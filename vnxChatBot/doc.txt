@@ -1,0 +1,4 @@
+1.Đọc tài liệu hướng dẫn:
+https://docs.google.com/document/d/1GkGm5Kn-6kxuIOh-tTeRFYtdhBm8PfmgY7Fm6Csd2DQ/edit?tab=t.dg2skyi20tt8
+
+2.file cài dự án trên Server: D:\ThanhVu\kpht\KPHT_PMM\vnxChatBot\Makefile

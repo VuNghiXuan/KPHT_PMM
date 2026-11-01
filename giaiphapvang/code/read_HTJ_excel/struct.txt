@@ -1,0 +1,85 @@
+1. Cấu trúc thư mục (Folder Structure)
+Plaintext
+read_HTJ_excel/
+├── core/                       # Chứa logic xử lý chính (Bộ não trích xuất)
+│   ├── __init__.py
+│   ├── excel_miner.py          # Code xlwings: Quét Border, Color, Formula, Shape
+│   ├── visual_capturer.py      # Code chụp ảnh vùng Range và lưu file ảnh
+│   └── data_processor.py       # Code chuẩn hóa Dictionary và suy luận logic ngầm
+│
+├── database/                   # Quản lý lưu trữ
+│   ├── __init__.py
+│   ├── db_handler.py           # Kết nối SQLite/PostgreSQL để lưu JSON Metadata
+│   └── schema.sql              # File tạo bảng Feature_Baseline
+│
+├── ai_engine/                  # Giao tiếp với AI
+│   ├── __init__.py
+│   ├── prompt_templates.py     # Chứa các mẫu câu lệnh mồi cho AI (Prompt)
+│   └── process_writer.py       # Gửi Data + Image cho AI và nhận về file quy trình
+│
+├── storage/                    # Kho chứa dữ liệu thô và kết quả
+│   ├── raw_excel/              # Để các file Excel thiết kế vào đây
+│   ├── screenshots/            # Nơi lưu ảnh chụp các Form từ Excel
+│   ├── json_metadata/          # Lưu các file Dictionary (.json) để kiểm tra
+│   └── outputs/                # Nơi xuất ra các file quy trình (.txt, .md)
+│
+├── config.py                   # Cấu hình đường dẫn, API Key, mã màu quy ước
+├── requirements.txt            # Danh sách thư viện (xlwings, pillow, openai...)
+└── main_run.py                 # File chạy chính để quét một file Excel cụ thể
+2. Chi tiết các file quan trọng (Dành cho người code)
+File core/excel_miner.py:
+Đây là nơi ông viết các hàm "đào bới" Excel:
+
+find_groups(): Dùng Border để xác định tọa độ vùng (ví dụ: "A1:G15").
+
+get_element_details(): Quét từng ô trong vùng để lấy Label, Value, ColorIndex và Formula.
+
+get_buttons(): Duyệt qua sheet.shapes để bốc Text và vị trí nút.
+
+File core/visual_capturer.py:
+Sử dụng range.api.CopyPicture() và PIL.ImageGrab để lưu ảnh vùng Form. AI Vision sẽ cần ảnh này để hiểu bố cục trái/phải/trên/dưới.
+
+File ai_engine/prompt_templates.py:
+Lưu các câu lệnh như: "Dựa trên Dictionary và ảnh đính kèm, hãy mô tả quy trình nhập liệu cho Form [Tên Form]. Lưu ý các ô màu vàng là bắt buộc..."
+
+File config.py:
+Định nghĩa bảng màu: COLOR_REQUIRED = 6 (Vàng), COLOR_READONLY = 15 (Xám).
+
+Định nghĩa đường dẫn lưu trữ để các module gọi dùng chung.
+
+3. Nội dung file requirements.txt (Để ông cài thư viện)
+Ông tạo file này và chạy pip install -r requirements.txt:
+
+Plaintext
+xlwings==0.30.0
+Pillow==10.0.0
+python-dotenv==1.0.0
+openai==1.3.0
+pandas==2.1.0
+sqlalchemy==2.0.0
+4. Nội dung file .txt (Hệ thống lại để ông lưu trữ)
+Ông copy đoạn này vào file readme_project.txt trong thư mục gốc:
+
+DỰ ÁN: HTJ_EXCEL_TO_PROCESS (CORE MODULE)
+
+1. Chức năng: > Tự động trích xuất Metadata (JSON) và Visual (Image) từ Excel thiết kế để AI biên soạn quy trình hướng dẫn sử dụng.
+
+2. Quy trình thực thi:
+
+B1: excel_miner quét cấu trúc vật lý và tọa độ.
+
+B2: visual_capturer chụp ảnh minh họa cho từng Form.
+
+B3: data_processor đóng gói thành JSON Metadata.
+
+B4: process_writer gửi dữ liệu cho AI để xuất file quy trình (.txt) tại thư mục outputs/.
+
+3. Quy ước nhận diện:
+
+Cụm dữ liệu: Nhận diện qua Borders.
+
+Trường nhập liệu: Nhận diện qua mã màu ColorIndex (Quy định trong config.py).
+
+Logic nghiệp vụ: Trích xuất từ Formula hoặc AI suy luận từ số liệu mẫu.
+
+4. Mục tiêu đầu ra: > File JSON chuẩn để đối soát với Dev và File TXT hướng dẫn chuẩn cho khách hàng.

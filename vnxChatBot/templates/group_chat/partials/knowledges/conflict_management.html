@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>🛡️ Quản lý Xung đột Tri thức (Group #{{ group.id }})</h2>
+    <p class="text-muted">Hệ thống phát hiện các điểm chồng chéo hoặc mâu thuẫn ngữ nghĩa cần sự can thiệp của quản trị
+        viên.</p>
+
+    <div id="conflict-list-container" class="row">
+        <!-- Dữ liệu sẽ được render tự động qua JavaScript từ ConflictChapterListAPIView -->
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const groupId = "{{ group.id }}";
+        const apiUrl = `/groups/${groupId}/knowledge/chapters/conflicts/`;
+
+        fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('conflict-list-container');
+                if (data.status === 'success' && data.conflicts.length > 0) {
+                    let html = '';
+                    data.conflicts.forEach(item => {
+                        html += `
+                    <div class="col-md-12 mb-3" id="conflict-card-${item.id}">
+                        <div class="card border-warning">
+                            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                                <strong>⚠️ Chương: ${item.title}</strong>
+                                <span class="badge bg-dark">Cập nhật: ${new Date(item.updated_at).toLocaleString()}</span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Lý do xung đột:</strong> <span class="text-danger">${item.reason || 'Chưa rõ nguyên nhân'}</span></p>
+                                <p><strong>Tóm tắt nội dung:</strong> ${item.summary || 'Không có tóm tắt'}</p>
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-success btn-sm" onclick="resolveConflict(${groupId}, ${item.id}, 'update')">Ghi đè (Update)</button>
+                                    <button class="btn btn-primary btn-sm" onclick="resolveConflict(${groupId}, ${item.id}, 'merge')">Hợp nhất (Merge)</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="resolveConflict(${groupId}, ${item.id}, 'ignore')">Bỏ qua (Ignore)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `<div class="col-12 text-center py-5"><p class="text-success">🎉 Tuyệt vời! Không có xung đột tri thức nào cần giải quyết trong nhóm này.</p></div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi tải danh sách xung đột:', error);
+                document.getElementById('conflict-list-container').innerHTML = `<div class="col-12 text-center text-danger">Không thể tải dữ liệu xung đột.</div>`;
+            });
+    });
+
+    function resolveConflict(groupId, chapterId, actionType) {
+        if (!confirm(`Bạn có chắc chắn muốn thực hiện hành động [${actionType}] đối với chương này không?`)) return;
+
+        fetch(`/groups/${groupId}/knowledge/chapters/${chapterId}/resolve/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ action: actionType })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Đã xử lý xung đột thành công!');
+                    document.getElementById(`conflict-card-${chapterId}`).remove();
+                } else {
+                    alert('Lỗi: ' + (data.detail || 'Không thể xử lý.'));
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Đã xảy ra lỗi kết nối.');
+            });
+    }
+</script>
+{% endblock %}

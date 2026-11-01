@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  celery_worker:
+    build: .
+    command: celery -A config worker -Q documents_p1_processing --concurrency=2 -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - web

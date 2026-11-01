@@ -1,0 +1,15 @@
+19.06.2026
+
+D610-Vàng 610: Là ghi chú (Mã-Tên loại vàng)
+Loại vàng cũ hoặc Nguyên liệu: Có chữ Vàng, ví dụ Vàng 610 hoặc mã vàng cha là V610
+Loại vàng mới: Không có tiền tố, chỉ có 610, 999
+Loại vàng giao dịch với nhà cung cấp có 9 số, ví dụ : 9999
+Loại vàng buôn bán theo hệ thống chỉ có 3 số là : 99.9
+Loại vàng quy là loiaj vàng để tính toán quy về, ví dụ công nợ, dùng để chia. Ví dụ vàng 610 có hàm lượng 62.2, quy về vàng 95 thì: TL*62.2/95
+
+Vàng thảo dùng cho chốt giá, mua bán NL. sau nấu, trc xuất làm nhẫn trơn: Cần làm sao lấy phân nhóm tromg hệ thống
+Tại sao dùng vàng thảo mà không phải là vàng 9999, vì vàng thỏi NCC nguyên liệu cũng nấu từ mnhiều laoij vàng khác tuổi nên không biết hàm lượng thực tế
+
+Khi phân laoij chỉ dùng loại vàng cha:
+Vàng cha: Laoij vàng Có chữ Vàng: Vàng 9999, vàng 24k-980
+Vàng con: Vàng 416#

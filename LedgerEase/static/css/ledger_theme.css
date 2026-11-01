@@ -1,0 +1,38 @@
+body {
+    min-height: 100vh;
+    background: #f4f6f9;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: #2c3e50;
+    transition: margin-left 0.3s ease;
+    position: sticky;
+    top: 0;
+}
+
+.sidebar.collapsed {
+    margin-left: -260px;
+}
+
+/* Nav Links */
+.nav-link {
+    transition: 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.nav-link:hover {
+    background: #34495e;
+    border-left: 4px solid #3498db;
+}
+
+/* Main Content */
+.main-content {
+    min-width: 0;
+}
+
+.navbar {
+    height: 60px;
+}

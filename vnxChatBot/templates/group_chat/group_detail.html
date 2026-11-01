@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ group.name }} | vnxChatBot Workstation</title>
+
+    {% load static %}
+
+    <!-- Bootstrap 5 & FontAwesome Local CSS -->
+    <link href="{% static 'bootstrap-5.3.8-dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/fontawesome/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/ledger_theme.css' %}" rel="stylesheet">
+
+    <!-- 🌐 [WORKSPACE CONTEXT]: Khởi tạo ngữ cảnh toàn cục cho Group-Centric -->
+    <script>
+        window.VNXWorkspaceContext = {
+            group: {
+                id: "{{ group.id }}",
+                name: "{{ group.name }}",
+                aiProvider: "{{ group.ai_provider|default:'gemini' }}",
+                aiModel: "{{ group.ai_model|default:'gemini-2.0-flash' }}",
+                isConfigured: "{% if group.is_ai_configured %}true{% else %}false{% endif %}" === "true"
+            },
+            user: {
+                username: "{{ request.user.username }}"
+            },
+            // Phương thức cập nhật cấu hình AI động không cần reload trang
+            updateAIConfig(newProvider, newModel) {
+                this.group.aiProvider = newProvider;
+                this.group.aiModel = newModel;
+                console.log("🔄 [VNXContext] Đã cập nhật cấu hình AI mới cho nhóm:", this.group);
+
+                // Phát sự kiện toàn hệ thống để các module lắng nghe và thích ứng
+                window.dispatchEvent(new CustomEvent('vnx:aiConfigChanged', {
+                    detail: { provider: newProvider, model: newModel }
+                }));
+            }
+        };
+    </script>
+
+    <!-- 🔗 Nhúng các tệp JavaScript xử lý độc lập -->
+    <script src="{% static 'group_chat/js/documents/knowledge_status_poller.js' %}"></script>
+    <script src="{% static 'group_chat/js/group_workspace.js' %}"></script>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-light overflow-hidden" style="height: 100vh; margin: 0; padding: 0;">
+
+    <!-- 
+      File: templates/group_chat/chat_detail.html
+      Mục đích: Workspace độc lập toàn màn hình (Group-Centric Workspace) của vnxChatBot,
+                tích hợp giao diện tin nhắn chuẩn xác, phân luồng User (phải) - AI/Others (trái)
+                dựa trên định danh tenant ChatGroup.
+    -->
+    <div class="container-fluid p-0 m-0 h-100 overflow-hidden">
+        <div class="d-flex h-100 w-100 bg-white workspace-shadow">
+
+            <!-- ================= CỘT 1: Icon Navigation Sidebar (Tích hợp nút Home) ================= -->
+            <div class="flex-shrink-0 d-flex flex-column align-items-center py-3 border-end bg-dark text-white"
+                style="width: 75px;">
+                <!-- Nút Home / Quay về tổng quan hệ thống -->
+                <a href="{% url 'dashboard' %}"
+                    class="btn btn-outline-light mb-4 rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                    style="width: 48px; height: 48px; transition: all 0.2s;" title="Quay về trang Tổng quan hệ thống">
+                    <i class="fas fa-home fa-lg"></i>
+                </a>
+
+                <hr class="w-75 text-secondary my-2">
+
+                <!-- Các icon điều hướng nội bộ của nhóm -->
+                <div class="flex-grow-1 w-100">
+                    {% include "group_chat/partials/chat_ui/_sidebar_nav.html" %}
+                </div>
+
+                <!-- User Profile / Trạng thái dưới cùng -->
+                <div class="mt-auto text-center text-secondary small py-2">
+                    <i class="fas fa-user-shield fa-lg" title="Logged in as {{ request.user.username }}"></i>
+                </div>
+            </div>
+
+            <!-- ================= CỘT 2: Danh sách nhóm & Kênh chat (Rộng vừa phải) ================= -->
+            <div class="flex-shrink-0 border-end bg-white" style="width: 290px;">
+                {% include "group_chat/partials/chat_ui/_sidebar_groups.html" %}
+            </div>
+
+            <!-- ================= CỘT 3: Main Workspace (Khu vực chat chính co giãn linh hoạt) ================= -->
+            <div class="flex-grow-1 d-flex flex-column h-100 bg-white overflow-hidden">
+                {% include "group_chat/partials/chat_ui/_workspace_header.html" %}
+
+                <!-- Khung chứa tin nhắn cuộn độc lập -->
+                <div class="flex-grow-1 overflow-y-auto p-4 bg-light" id="message-list-container"
+                    data-group-id="{{ group.id }}" data-user-id="{{ request.user.id }}"
+                    data-current-username="{{ request.user.username }}" data-csrf-token="{{ csrf_token }}"
+                    style="min-height: 0;">
+
+                    {% include "group_chat/partials/chat_ui/message_list.html" %}
+                </div>
+
+                <!-- Khung nhập nội dung chat ở đáy -->
+                <div class="flex-shrink-0 bg-white border-top p-3 shadow-sm">
+                    {% include "group_chat/partials/chat_ui/_chat_input.html" %}
+                </div>
+            </div>
+
+            <!-- Modal hiển thị chi tiết danh sách cảm xúc kiểu Zalo -->
+            <div class="modal fade" id="reactionsDetailModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                        <div class="modal-header border-bottom px-4 py-3">
+                            <h6 class="modal-title fw-bold text-dark mb-0">Biểu cảm 💬</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-3" id="reactionsModalBody"
+                            style="max-height: 300px; overflow-y: auto;">
+                            <!-- Dữ liệu danh sách người dùng sẽ được load động bằng JavaScript -->
+                            <p class="text-muted text-center small mb-0">Đang tải...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= PANEL PHẢI: Thông tin & Quản trị nhóm ================= -->
+            <div class="flex-shrink-0 border-start bg-white overflow-auto" style="width: 380px;">
+                {% include "group_chat/partials/chat_ui/_settings_offcanvas.html" %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Local JS Bundle -->
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
+
+
+    <!-- 1. Các module tiện ích và xử lý nền tảng -->
+    <script src="{% static 'group_chat/js/documents/uploader.js' %}"></script>
+    <script src="{% static 'group_chat/js/documents/knowledge_learner.js' %}"></script>
+    <script src="{% static 'group_chat/js/chat/reply.js' %}"></script>
+    <script src="{% static 'group_chat/js/chat/reactions.js' %}"></script>
+    <script src="{% static 'group_chat/js/chat/input.js' %}"></script>
+    <script src="{% static 'group_chat/js/chat/websocket.js' %}"></script>
+
+    <!-- 2. Tệp điều phối chính (Main) nạp sau cùng -->
+    <script src="{% static 'group_chat/js/main.js' %}"></script>
+
+
+</body>
+
+</html>

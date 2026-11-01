@@ -1,0 +1,12 @@
+NHỮNG NỘI DUNG CUỘC HỌP
+I. Lô hàng Nhà cung cấp
+- Nhiều lô hàng trên hóa đơn chỉ ghi 2 món (do làm chung tem), nhưng thực tế có rất nhiều món lẻ (không khớp thực tế).
+Do đó, cần để cho phép chỉnh sửa SL tại form này.
+- Chi phí phân bổ nên tự động tính toán để thao tác nhanh hơn
+II. Kho hàng giao thợ tân trang
+Hiện nay giao vàng cho thợ đi tân trang, lấy từ khi vàng NL KV quản lý
+Vậy khi nhân về nhập vào kho nào, luồng quản lý ra sao:
+ - Vinh: nhập Kho kinh doanh, có Kho hàng nguyên liệu (vàng cũ), kho tân trang, kho thành phẩm (theo Quầy vàng, Quầy hàng)
+   + Nhập kho có phiếu nhập, có số series
+   + Khi nhập thành phẩm, thì xuất ra rồi nhập từng món riêng biệt
+Ngày mai, xem xét tạo kho riêng để nhập hàng từ thợ không. Ví dụ như kho: Kho chờ nhập, Kho nhận hàng từ thợ, kho (trước) nhập hàng và xem có sai số khi nhập vào các kho này không?

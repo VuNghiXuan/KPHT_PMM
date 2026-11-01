@@ -1,0 +1,118 @@
+<!-- File: templates/group_chat/partials/tabs/_members_tab.html -->
+{% load static %}
+<div class="p-1">
+    <!-- Tiêu đề kèm bộ đếm tổng số thành viên thực tế -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold mb-0">
+            <i class="fas fa-users text-primary"></i> Thành viên trong nhóm
+        </h6>
+        <span class="badge bg-primary rounded-pill" style="font-size: 0.75rem;" id="total-members-badge">
+            {{group.memberships.count }} thành viên
+        </span>
+    </div>
+
+    <!-- Form Thêm thành viên -->
+    <form id="add-member-form" class="mb-3 p-2 bg-white rounded border" data-group-id="{{ group.id }}">
+        <div class="mb-2">
+            <input type="text" id="new-member-username" class="form-control form-control-sm"
+                placeholder="Nhập username hoặc email..." required>
+        </div>
+        <div class="mb-2">
+            <select id="new-member-role" class="form-select form-select-sm">
+                <option value="member">Thành viên (Member)</option>
+                <option value="admin">Quản trị viên (Admin)</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm w-100 py-1" style="font-size: 0.8rem;">
+            <i class="fas fa-user-plus"></i> Thêm thành viên ➕
+        </button>
+    </form>
+
+    <!-- Danh sách thành viên hiện tại -->
+    <div class="list-group list-group-flush bg-white rounded border" style="max-height: 250px; overflow-y: auto;">
+        {% for membership in group.memberships.all %}
+        <div class="list-group-item d-flex align-items-center justify-content-between py-2 px-2 border-0 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <!-- Avatar & Trạng thái Online/Offline -->
+                <div class="position-relative">
+                    {% if membership.is_ai %}
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm"
+                        style="width: 36px; height: 36px; font-size: 1rem;">
+                        🤖
+                    </div>
+                    <span
+                        class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"
+                        title="AI luôn sẵn sàng">
+                        <span class="visually-hidden">Online</span>
+                    </span>
+                    {% elif membership.user %}
+                    {% if membership.user.profile and membership.user.profile.avatar %}
+                    <img src="{{ membership.user.profile.avatar.url }}" class="rounded-circle shadow-sm"
+                        style="width: 36px; height: 36px; object-fit: cover;" alt="Avatar">
+                    {% else %}
+                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                        style="width: 36px; height: 36px; font-size: 0.85rem;">
+                        {{ membership.user.username|slice:":2"|upper }}
+                    </div>
+                    {% endif %}
+
+                    {% if membership.user.is_active %}
+                    <span
+                        class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle"
+                        title="Online">
+                        <span class="visually-hidden">Online</span>
+                    </span>
+                    {% else %}
+                    <span
+                        class="position-absolute bottom-0 end-0 translate-middle p-1 bg-secondary border border-light rounded-circle"
+                        title="Offline">
+                        <span class="visually-hidden">Offline</span>
+                    </span>
+                    {% endif %}
+                    {% else %}
+                    <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center"
+                        style="width: 36px; height: 36px;">
+                        ❓
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tên thành viên -->
+                <div>
+                    <h6 class="mb-0 text-dark fw-semibold" style="font-size: 0.9rem;">
+                        {% if membership.is_ai %}
+                        AI Assistant
+                        {% elif membership.user %}
+                        {{ membership.user.username }}
+                        {% else %}
+                        Thành viên ẩn danh
+                        {% endif %}
+                    </h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">
+                        {% if membership.is_ai %}
+                        Trợ lý 24/7
+                        {% elif membership.user.is_active %}
+                        <span class="text-success">● Đang hoạt động</span>
+                        {% else %}
+                        <span class="text-muted">○ Ngoại tuyến</span>
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Huy hiệu vai trò -->
+            <span class="badge {% if membership.role == 'admin' %}bg-danger{% else %}bg-secondary{% endif %} text-white"
+                style="font-size: 0.7rem;">
+                {% if membership.is_ai %}
+                AI Member
+                {% else %}
+                {{ membership.get_role_display }}
+                {% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Nạp tệp JavaScript riêng biệt theo đúng chuẩn Modular -->
+<script src="{% static 'group_chat/js/tab/members_tab.js' %}"></script>

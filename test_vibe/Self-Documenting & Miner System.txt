@@ -1,0 +1,76 @@
+1. Cấu trúc các App (Ứng dụng) cần có
+app_miner (Bóc tách): Chuyên đọc file Excel, PDF, Hình ảnh.
+
+app_knowledge (Tri thức - GraphRAG): Lưu trữ mối quan hệ giữa các con số và văn bản nghiệp vụ. Kết nối trực tiếp với Neo4j.
+
+app_coach (Huấn luyện & Học tăng cường): Giao diện để AI hỏi anh khi nó "mông lung" và lưu nhật ký sửa lỗi.
+
+app_chat_agent (Điều phối): Tiếp nhận câu hỏi, nhận định nghiệp vụ và phản hồi.
+
+2. Các Model và Trường dữ liệu (Đọc kỹ từng ý)
+A. Nhóm Quản lý Tài liệu (App Miner)
+Model DataSource: Quản lý file tổng.
+
+Model DataEntry: Quản lý từng sheet. (Trong hình của anh, đây là sheet "Phân loại trả NCC").
+
+Model ExcelTableRegion:
+
+Trường: name (Bảng TAB1, TAB2...), coordinates (Vùng tọa độ), region_type (Header, List, Popup).
+
+Công dụng: Giúp AI hiểu giao diện có 3 khu vực chính: Thông tin chung, Chi tiết giao, và Phân loại chi tiết.
+
+B. Nhóm Định nghĩa Nghiệp vụ (App Knowledge - Neo4j)
+Đây là phần để chatbot "hiểu" chứ không chỉ "đọc".
+
+Model BusinessTerm (Từ điển):
+
+Trường: term (TLV giao, TLV sau phân loại, Tỷ giá...), definition (Định nghĩa), formula_logic (Cách tính).
+
+Công dụng: Khi AI thấy "TLV", nó biết đây là "Trọng lượng vàng". Nếu nó không biết, nó sẽ kích hoạt trạng thái "Mông lung" để hỏi anh Vũ.
+
+Model BusinessProcess (Quy trình):
+
+Trường: process_name, steps (JSON: B1 nhập kho, B2 phân loại...), required_fields (Các trường bắt buộc).
+
+Công dụng: AI nhìn vào hình thấy nút "NHẬP KHO", nó biết đây là bước cuối. Nó sẽ hướng dẫn người dùng: "Anh/Chị chưa chọn Nhà cung cấp ở TAB2 nên chưa thể Nhập kho".
+
+C. Nhóm Học tăng cường (App Coach)
+Model CorrectionLedger:
+
+Trường: user_query, ai_response, admin_correction (Anh Vũ sửa lại), status (Đã học/Chưa học).
+
+Công dụng: Tự học tăng cường. Khi anh sửa một ý, AI sẽ cập nhật vào learning_notes của nghiệp vụ đó.
+
+Model ConflictDetector:
+
+Trường: source_a, source_b, discrepancy (Điểm mâu thuẫn).
+
+Công dụng: Ví dụ Sheet 1 ghi "Vàng 610 là 15k", Sheet 2 ghi "Vàng 610 là 16k", nó sẽ báo: "Anh Vũ ơi, hai chỗ này đang đá nhau, em nên nghe theo cái nào?".
+
+3. Quy trình để Chatbot trở thành "Chuyên gia tư vấn"
+Bước 1: Nhận diện nghiệp vụ (Intent Detection)
+Khi người dùng mở màn hình như trong ảnh, hoặc hỏi "Làm sao trả hàng NCC?", AI sẽ truy vấn Neo4j. Neo4j sẽ trả về: "Đây là nghiệp vụ PLTNCCN (Phân loại trả NCC)".
+
+Bước 2: Hướng dẫn người dùng nhập liệu
+AI sẽ đối chiếu giữa Dữ liệu thực tế (ô trống) và Quy trình chuẩn (BusinessProcess):
+
+AI nói: "Anh đang ở TAB2, anh cần chọn 'Loại hàng NCC' (Đúc, Bông...) trước khi nhấn 'Nhập kho' nhé."
+
+Bước 3: Xử lý khi "Mông lung" (Hỏi lại Admin)
+Nếu người dùng nhập một thuật ngữ mới (ví dụ: "Vàng bộng loại 2") mà trong 300 sheet chưa có định nghĩa:
+
+AI nói: "Em chưa rõ 'Vàng bộng loại 2' tính phí hao hụt thế nào. Anh Vũ có thể giải thích giúp em không?"
+
+Anh trả lời xong, AI lưu vào BusinessTerm. Từ đó về sau nó tự biết trả lời khách.
+
+Bước 4: Phát hiện mâu thuẫn và gợi ý hỏi thêm
+Sau khi người dùng nhập xong TAB1, AI tự tính toán lại:
+
+AI báo cáo: "Tiền hao hụt em tính ra là -2,799,265, khớp với Excel. Anh có muốn hỏi thêm về cách hệ thống tự tính 'Tỷ giá sau phân loại' không?"
+
+4. Anh Vũ nên làm gì ngay bây giờ?
+Dùng Neo4j làm "Xương sống": Đừng chỉ lưu vào SQL. Mỗi khi bóc 1 sheet, hãy tạo các Node: (Nghiệp vụ) -> (Thuật ngữ) -> (Công thức).
+
+Tạo luồng "Hỏi - Đáp - Lưu": Xây dựng một bảng UncertaintyLog. Cái gì AI không chắc, nó ghi vào đó. Anh chỉ cần vào Admin "duyệt" một lần, tri thức đó thành vĩnh viễn.
+
+Xây dựng Agentic RAG: Cho phép AI tự chạy các hàm kiểm tra chéo (Cross-check) giữa 300 sheet để tìm mâu thuẫn trước khi anh kịp nhận ra.

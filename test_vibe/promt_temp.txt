@@ -1,0 +1,14 @@
+Prompt: Nâng cấp App Miner thành "Máy hút dữ liệu" đa năng
+"Roo, hãy tập trung vào folder apps/app_miner. Nhiệm vụ của chú là nâng cấp script hiện tại thành một hệ thống Data Ingestion (thu nạp dữ liệu) mạnh mẽ. Hãy thực hiện:
+
+Mở rộng định dạng: Bổ sung code để không chỉ đọc Excel mà còn tự động bóc tách nội dung từ:
+
+File .txt, .csv: Đọc text thô và đưa về định dạng chuẩn.
+
+File Word (.docx): Trích xuất các văn bản, hợp đồng hoặc quy định tiệm.
+
+File Ảnh (.jpg, .png): Tích hợp thư viện OCR (như Tesseract hoặc dùng luôn năng lượng của Vision AI) để đọc chữ trên các ảnh chụp toa hàng hoặc biên lai.
+
+Cấu trúc hóa dữ liệu: Tất cả dữ liệu bóc tách được (từ ảnh, text, word) phải được đưa về một cấu trúc JSON thống nhất bao gồm: source_file, content_raw, metadata (ngày tạo, loại tài liệu).
+
+Chuẩn bị cho RAG: Chia nhỏ văn bản (Chunking) để sau này anh nạp vào Vector Database hoặc Neo4j làm kiến thức nền cho Chatbot.

@@ -1,0 +1,32 @@
+<!-- 
+  File: templates/group_chat/partials/_sidebar_nav.html
+  Mục đích: Cột 1 - Điều hướng icon hệ thống tối giản.
+-->
+<div class="d-flex flex-column align-items-center justify-content-between py-3 bg-dark text-white border-end"
+    style="width: 70px; min-width: 70px; z-index: 10;">
+    <div class="d-flex flex-column align-items-center gap-4">
+        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
+            style="width: 42px; height: 42px; font-size: 1.1rem;">
+            vX
+        </div>
+        <a href="{% url 'core:dashboard' %}"
+            class="text-white text-opacity-75 text-opacity-100-hover p-2 rounded active"
+            title="Danh sách nhóm & Chat chung">
+            <i class="fas fa-comment-alt fs-5"></i>
+        </a>
+        <a href="#" class="text-white text-opacity-75 text-opacity-100-hover p-2 rounded"
+            title="Kho tài liệu chung (Cloud)">
+            <i class="fas fa-cloud fs-5"></i>
+        </a>
+    </div>
+
+    <div class="d-flex flex-column align-items-center gap-3">
+        <button class="btn btn-link text-white text-opacity-75 p-0" type="button" title="Cài đặt tài khoản">
+            <i class="fas fa-cog fs-5"></i>
+        </button>
+        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+            style="width: 36px; height: 36px; font-size: 0.9rem;">
+            {{ request.user.username|slice:":2"|upper }}
+        </div>
+    </div>
+</div>

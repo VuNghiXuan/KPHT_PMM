@@ -1,0 +1,80 @@
+MÔ TẢ TÍNH NĂNG: FORM CẤU HÌNH GIAO DỊCH MUA BÁN
+1. Tiêu đề và Điều hướng (Breadcrumb)
+Tiêu đề màn hình: "Xem/Sửa cấu hình giao dịch mua bán"
+
+Breadcrumb (Đường dẫn): Cấu hình giao dịch mua bán > Xem/Sửa
+
+2. Các Tab Chức Năng
+Giao diện được chia thành 5 tab linh hoạt, đảm bảo chuyển đổi mượt mà, không giật lag hay lệch UI. Các tab được phân quyền áp dụng theo Công ty hoặc Chi nhánh:
+
+[Tab 1] Cấu hình chung (Áp dụng theo Công ty)
+
+Làm tròn số tiền (*): Bắt buộc chọn. Dropdown gồm: Không làm tròn (Mặc định), Nghìn đồng, Chục nghìn, Trăm nghìn.
+
+Loại làm tròn (*): Bắt buộc chọn. Dropdown gồm: Giữ nguyên, Làm tròn lên, Làm tròn xuống.
+
+Quy định số tiền chuyển khoản (Chi tiền / Thu tiền) (*): Bắt buộc, định dạng số nguyên >= 0.
+
+Số tiền chuyển khoản tối đa/lần (*): Bắt buộc, định dạng số nguyên >= 0.
+
+Số ngày cho phép hủy giao dịch (*): Bắt buộc, định dạng số nguyên >= 0.
+
+Quét mã nhân viên khi giao dịch: Checkbox, mặc định = true.
+
+Phương pháp tính doanh thu đổi vàng (*): Dropdown gồm: Cấn trừ, Độc lập.
+
+[Tab 2] Quy tắc đổi trả (Áp dụng theo Chi nhánh)
+
+Quản lý danh sách quy tắc đổi trả dạng bảng (Grid) với các thao tác Sửa inline (sửa trực tiếp trên dòng) và Xóa (có popup xác nhận).
+
+Các trường chính: Chi nhánh (*), Số ngày đổi trả (> 0), Quy tắc hồi công (Tiền công sau chiết khấu hoặc Không hồi), Thu hồi điểm đã đổi (Sản phẩm hoặc Hóa đơn), Loại vàng không đổi trả, và Quầy hàng không đổi trả.
+
+[Tab 3] Quầy thu ngân (Áp dụng theo Chi nhánh)
+
+Loại áp dụng (*): Dropdown (Nhiều quầy thu ngân hoặc Một quầy thu ngân).
+
+Khi chọn Một quầy thu ngân, hiển thị bảng chi tiết cho phép thêm/sửa dòng trực tiếp (inline) với các thông tin: Chi nhánh, Khu vực, Quầy thu ngân, và Loại giao dịch. Hệ thống tự động kiểm tra trùng lặp để cảnh báo.
+
+[Tab 4] Mẫu HĐĐT (Hóa đơn điện tử) (Áp dụng theo Công ty)
+
+Cho phép cấu hình danh sách mẫu hóa đơn điện tử theo từng loại giao dịch dưới dạng bảng chỉnh sửa inline.
+
+Hỗ trợ các loại giao dịch (bao gồm cả Điều chỉnh hóa đơn), chọn Mẫu HĐĐT, cách xuất chi tiết sản phẩm (3 cách), cấu hình tự động xuất hóa đơn kèm thời gian (phút), quầy hàng không áp dụng (dành cho HTJ), và trạng thái kích hoạt.
+
+[Tab 5] Chuyển khoản (Áp dụng theo Chi nhánh)
+
+Cấu hình tài khoản ngân hàng và phương thức chuyển khoản/nhận tiền theo từng Chi nhánh và Khu vực.
+
+Hỗ trợ cấu hình Tích hợp QR thanh toán (QR tĩnh hoặc QR động kết hợp API sinh QR tối đa 500 ký tự với cơ chế validate chặt chẽ).
+
+Cho phép thêm, sửa inline, xóa và tự động điền thông tin Chủ tài khoản, Ngân hàng, Loại tài khoản khi chọn Số tài khoản (STK).
+
+3. Khu vực Footer & Phân quyền
+Nút thao tác (Footer)
+Chỉnh sửa: Chuyển màn hình từ chế độ chỉ xem sang chế độ chỉnh sửa (dành cho người có quyền).
+
+Lưu: Chỉ hiển thị ở chế độ sửa, cho phép lưu dữ liệu khi các thông tin bắt buộc đã hợp lệ và có sự thay đổi.
+
+Phân quyền truy cập
+Người có quyền “Sửa”: Được phép xem và chỉnh sửa toàn bộ cấu hình giao dịch mua bán.
+
+Người có quyền “Xem”: Chỉ được xem thông tin, các trường ở trạng thái chỉ đọc (readonly), ẩn các nút thao tác Thêm/Sửa/Lưu.
+
+Người không có quyền: Không nhìn thấy menu cấu hình; nếu cố tình truy cập qua đường dẫn URL trực tiếp, hệ thống sẽ trả về màn hình 403 (Forbidden).
+
+4. Tính năng Audit Log (Nhật ký hệ thống)
+Mô tả chức năng
+Audit Log là tính năng tự động ghi lại toàn bộ dấu vết hoạt động của người dùng trên màn hình Cấu hình giao dịch mua bán. Hệ thống sẽ ghi nhận "Ai đã làm gì, vào lúc nào, thay đổi từ giá trị cũ thành giá trị mới ra sao" để phục vụ cho việc kiểm tra, đối soát và bảo mật.
+
+Cách sử dụng sao cho dễ hiểu
+Theo dõi tự động: Người quản trị không cần thao tác kích hoạt gì thêm. Mỗi khi một nhân sự có quyền thực hiện hành động Thêm mới, Chỉnh sửa thông tin (như đổi số ngày đổi trả, bật/tắt QR thanh toán, thêm dòng cấu hình HĐĐT) hoặc Xóa dữ liệu, hệ thống tự động lưu lại lịch sử ngầm.
+
+Xem lại lịch sử (khi cần tra cứu): Khi xảy ra sự cố cấu hình bị thay đổi sai lệch hoặc cần biết ai đã thực hiện một thiết lập nào đó, quản trị viên có thể truy cập vào mục Nhật ký hệ thống (Audit Log) của phần mềm để lọc theo:
+
+Tên người dùng thực hiện thao tác.
+
+Thời gian diễn ra hành động.
+
+Hành động cụ thể (Thêm, Sửa, Xóa) trên tab nào của cấu hình giao dịch mua bán.
+
+Lợi ích: Giúp minh bạch hóa trách nhiệm của từng cá nhân khi cấu hình hệ thống tài chính - bán hàng và dễ dàng khôi phục hoặc truy vết nguyên nhân khi có lỗi phát sinh.

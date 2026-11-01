@@ -1,0 +1,70 @@
+Google:
+	1. Phần mềm mới:
+		https://docs.google.com/spreadsheets/d/1wf7ZFHQFfHOLzxHQ6McbgMpcSShS4F1oEpbcIukTPaI/edit?pli=1&gid=2038657537#gid=2038657537
+	2. file mới 3.11.2025:
+		https://docs.google.com/spreadsheets/d/1wf7ZFHQFfHOLzxHQ6McbgMpcSShS4F1oEpbcIukTPaI/edit?gid=0#gid=0
+	3. Danh mục đề nghị fix, bug
+		https://docs.google.com/spreadsheets/d/1Z0yx-azekSVWWJq8MrYoI9Y5e_k78e3WjihowDW_NAg/edit?gid=0#gid=0
+	4. Quản lý kho (Thu - Chi)
+		https://docs.google.com/spreadsheets/d/1jljZd94q5hPs_VCUIFFelofH5LKgkAhLZL3cJTgx-xM/edit?gid=667655869#gid=667655869
+	5. miro: 
+		https://miro.com/app/board/uXjVJbsrZyU=/
+
+	6. Test trang QC: https://qc.giaiphapvang.net/
+		TK: gdncccn1@gmail.com ------role Giao dịch NCC
+		TK: khocn1@gmail.com   ------role quản lý kho
+			vukho@gmail.com  ------ Demo@123
+			test_tho@gmail.com ------ Demo@123
+
+
+
+		TK: qlcn1@gmail.com   ------role quản lý
+		TK: vnx@gmail.com   ------ Vu123456#
+		TK: Vu_ThuChi@gmail.com   ------ Demo@123
+		VuThuChi_cn1@gmail.com
+
+		TK:ThuNgan_QLCN1@gmail.com ------ Demo@123
+		TK: ThuNganKD@gmail.com   ------ Demo@123 (Test nút nhận tiền KVKD)
+		Tk: CN2_QLCN2_VuTest@gmail.com ------ Demo@123
+		
+		Kiểm kê sản phẩm
+		Vu_SanPham@gmail.com
+		Vu_SanPham_CN1@gmail.com
+		Vu_CN2_SanPham@gmail.com 
+
+		Vu_qlcn1@gmail.com 
+		Vu_CSKH@gmail.com
+		Vu_tem@gmail.com
+		Vu_muaban_nguyenlieu@gmail.com
+
+	----Bán lẻ ----
+		Vu_Ban
+
+
+
+	6. Công thức nhâp phần mêm:
+		+ Giá vốn: OriginLabor +( GoldWeight * LossRate * GoldRate )+ TaxAmount + OtherCosts 
+		+ Công vốn: OriginLabor +( GoldWeight * LossRate * GoldRate )+ TaxAmount + OtherCosts +200000
+	
+	7. Issue QC với thảo:https://docs.google.com/spreadsheets/d/1e_Y5jUeIhyBz8E6JCgzgevxm0iheMh9OLdxu8fV4n0U/edit?gid=0#gid=0
+	8. Phần test chung Cty: https://docs.google.com/spreadsheets/d/1Z0yx-azekSVWWJq8MrYoI9Y5e_k78e3WjihowDW_NAg/edit?gid=1688224319#gid=1688224319
+	
+	8. Học kế toán cơ bản: https://docs.google.com/spreadsheets/d/1sy5z_yK-cL-J2k5MS7AwtHI2ANWP3_b61patZNXjNXg/edit?gid=193485354#gid=193485354
+		
+	9. Log: https://qc.giaiphapvang.net/administrator/audit-log/
+	10. Quy trình test: https://docs.google.com/spreadsheets/d/1KGlBX5Z9dTcq7QxgOFcR0av5QbDB2O1z4_eoLsbGIvg/edit?gid=1406203907#gid=1406203907
+	
+	12. https://docs.google.com/spreadsheets/d/1Z0yx-azekSVWWJq8MrYoI9Y5e_k78e3WjihowDW_NAg/edit?gid=932421435#gid=932421435
+	13. https://docs.google.com/spreadsheets/d/1KGlBX5Z9dTcq7QxgOFcR0av5QbDB2O1z4_eoLsbGIvg/edit?gid=374956781#gid=374956781
+	14. https://docs.google.com/spreadsheets/d/1e_Y5jUeIhyBz8E6JCgzgevxm0iheMh9OLdxu8fV4n0U/edit?gid=581950871#gid=581950871
+
+	Sprint-Release: https://docs.google.com/spreadsheets/d/1NkXX7nv8tB-51gFGRRasMph8ossjh5tjkoAMtZz6mGQ/edit?gid=1498964428#gid=1498964428
+	ADO:https://dev.azure.com/trthanhvinh/GoldenSolutions/_boards/board/t/GoldenSolutions%20Team/Stories
+
+	 ------Phần riêng của Vũ-----
+	11. Vũ test lại công thức nghiệp vụ: https://docs.google.com/spreadsheets/d/1aBY6VA_3ssChgo2uG74Sm4ZDtitrQkUwheef0MGWhtk/edit?gid=355568105#gid=355568105
+	15. Anh Vũ tự test: https://docs.google.com/spreadsheets/d/1aBY6VA_3ssChgo2uG74Sm4ZDtitrQkUwheef0MGWhtk/edit?gid=2145845839#gid=2145845839
+
+
+	16 Gem : https://gemini.google.com/gems/view
+	17. https://docs.google.com/spreadsheets/d/1KGlBX5Z9dTcq7QxgOFcR0av5QbDB2O1z4_eoLsbGIvg/edit?gid=1141960157#gid=1141960157

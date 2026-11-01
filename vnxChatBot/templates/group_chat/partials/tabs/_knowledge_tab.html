@@ -1,0 +1,109 @@
+<!-- File: templates/group_chat/partials/tabs/_knowledge_tab.html -->
+<div class="d-flex flex-column h-100">
+    <!-- Tiêu đề và nút mở Dashboard đầy đủ -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-dark mb-0">
+            <i class="fas fa-brain text-primary me-1"></i> Kho Tri thức Nhóm 🧠
+        </h6>
+        <a href="{% url 'group_chat:knowledge_dashboard' group.id %}" class="btn btn-outline-primary btn-sm py-0 px-2"
+            style="font-size: 0.75rem;">
+            <i class="fas fa-external-link-alt me-1"></i> Quản trị đầy đủ
+        </a>
+    </div>
+
+    <!-- Form tải lên tài liệu nhanh -->
+    <div class="card bg-light border-0 mb-3 shadow-sm">
+        <div class="card-body p-2">
+            <form action="{% url 'group_chat:upload_document' group.id %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="input-group input-group-sm">
+                    <input type="file" name="file" class="form-control form-control-sm" required>
+                    <button class="btn btn-success btn-sm" type="submit" title="Tải lên tài liệu">
+                        <i class="fas fa-upload"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danh sách tóm tắt tri thức theo trạng thái -->
+    <div class="accordion accordion-flush flex-grow-1 overflow-auto" id="offcanvasKnowledgeAccordion"
+        style="max-height: 350px;">
+
+        <!-- Phần Chờ duyệt (Pending) -->
+        <div class="accordion-item bg-transparent">
+            <h2 class="accordion-header" id="ohHeadingPending">
+                <button
+                    class="accordion-button collapsed py-2 px-2 bg-warning-subtle text-warning-emphasis fw-semibold small"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#ohCollapsePending" aria-expanded="false"
+                    aria-controls="ohCollapsePending">
+                    <i class="fas fa-clock me-1"></i> Chờ duyệt (<span id="oh-pending-count">
+                        {{ group.pending_knowledge_count|default:0 }}</span>)
+                </button>
+            </h2>
+            <div id="ohCollapsePending" class="accordion-collapse collapse"
+                data-bs-parent="#offcanvasKnowledgeAccordion">
+                <div class="accordion-body p-2 bg-white small">
+                    {% for ku in group.knowledge_units.all %}
+                    {% if ku.status == 'pending' %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                        <span class="text-truncate text-dark me-2" style="max-width: 140px;"
+                            title="{{ ku.document.get_file_name }}">
+                            {{ ku.document.get_file_name }}
+                        </span>
+                        <div class="btn-group btn-group-sm">
+                            <!-- Nút Duyệt AJAX khớp với knowledge_tab.js -->
+                            <button type="button" class="btn btn-outline-success py-0 px-1 btn-approve-knowledge"
+                                data-id="{{ ku.id }}" title="Phê duyệt">
+                                <i class="fas fa-check" style="font-size: 0.7rem;"></i>
+                            </button>
+                            <!-- Nút Từ chối / Thu hồi AJAX -->
+                            <button type="button" class="btn btn-outline-danger py-0 px-1 btn-reject-knowledge"
+                                data-id="{{ ku.id }}" title="Từ chối">
+                                <i class="fas fa-trash-alt" style="font-size: 0.7rem;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% empty %}
+                    <div class="text-muted text-center py-1">Không có tài liệu chờ duyệt.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần Đã duyệt (Approved) -->
+        <div class="accordion-item bg-transparent mt-2">
+            <h2 class="accordion-header" id="ohHeadingApproved">
+                <button class="accordion-button py-2 px-2 bg-success-subtle text-success-emphasis fw-semibold small"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#ohCollapseApproved" aria-expanded="true"
+                    aria-controls="ohCollapseApproved">
+                    <i class="fas fa-check-circle me-1"></i> Đã duyệt RAG (<span id="oh-approved-count">
+                        {{ group.approved_knowledge_count|default:0 }}</span>)
+                </button>
+            </h2>
+            <div id="ohCollapseApproved" class="accordion-collapse collapse show"
+                data-bs-parent="#offcanvasKnowledgeAccordion">
+                <div class="accordion-body p-2 bg-white small">
+                    {% for ku in group.knowledge_units.all %}
+                    {% if ku.status == 'approved' %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                        <span class="text-truncate text-success me-2" style="max-width: 160px;"
+                            title="{{ ku.document.get_file_name }}">
+                            <i class="fas fa-file-alt"></i> {{ ku.document.get_file_name }}
+                        </span>
+                        <!-- Nút Rollback (Gỡ khỏi Vector DB) AJAX -->
+                        <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 btn-rollback-knowledge"
+                            data-id="{{ ku.id }}" title="Thu hồi khỏi Vector DB">
+                            <i class="fas fa-trash-alt" style="font-size: 0.7rem;"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% empty %}
+                    <div class="text-muted text-center py-1">Chưa có tri thức trong Vector DB.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

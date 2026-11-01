@@ -1,0 +1,34 @@
+GHI CHÚ QUY TRÌNH HỆ THỐNG NHẬP HÀNG & CẤU HÌNH
+1. Nguyên lý vận hành: "Cấu hình dẫn dắt, Thực thi vận hành"
+Hệ thống được thiết kế theo tư duy: Cấu hình là luật - Nhập hàng là việc thực thi.
+
+Mọi quy tắc về chi nhánh, kho bãi và công thức tính toán phải được xác lập tại Form Cấu hình trước khi bắt đầu nhập hàng.
+
+Người nhập hàng tại Form Nhập hàng không cần phải nhớ công thức thủ công, hệ thống sẽ tự động đối chiếu cấu hình để áp dụng.
+
+2. Các liên kết nghiệp vụ chính
+Kho & Trạng thái: Khi nhập hàng, nếu bạn chọn kho "Kho KD - Hàng mới", hệ thống sẽ kiểm tra xem chi nhánh đó có được phép nhập hàng mới hay không dựa trên thiết lập tại Form Cấu hình.
+
+Tính toán Công bán tự động: Nếu tùy chọn "Áp dụng tự động tính công bán" đang được tick, giá trị công bán sẽ được làm tròn theo hệ số (5 hoặc 10) đã cài sẵn trong cấu hình.
+
+Quy trình xử lý lỗi: Hàng hóa không đạt tiêu chuẩn kỹ thuật (TCKT) sẽ không nằm trong dòng nhập hàng thông thường mà phải được tách riêng qua Phiếu hàng hư lỗi để thực hiện quy trình trình duyệt khắt khe.
+
+3. Ví dụ trường hợp cụ thể (Dùng để training)
+Kịch bản: Chi nhánh 01 nhập lô hàng vàng 610, hàng mới.
+
+Bước 1 (Thiết lập): Quản lý vào Form Cấu hình, chọn HTJ Chi nhánh 01 - Kho KD - Hàng mới - Hàng hư lỗi (hoặc tình trạng tương ứng), chọn Làm tròn lên với Hệ số 5.
+
+Bước 2 (Thực hiện):
+
+Nhân viên nhập hàng chọn Quầy Bông 610, Vàng 610, Hàng mới.
+
+Hệ thống nhận diện: Đây là chi nhánh 01, kho mới, hệ số 5.
+
+Khi nhân viên nhập giá công bán ban đầu là 125,359, hệ thống tự động tính toán và điều chỉnh thành 130,000 (theo logic làm tròn hệ số 5 đã cấu hình).
+
+Bước 3 (Xử lý phát sinh): Nếu trong lô hàng có 02 món bị cong vênh hoặc trầy xước, nhân viên không nhập vào phiếu này mà tách ra tạo Phiếu hàng hư lỗi, cập nhật mã sản phẩm (ví dụ: 01B1050600001) và trình cấp trên duyệt.
+
+4. Lưu ý quan trọng cho người dùng
+Checkbox: Sử dụng checkbox để chọn hàng loạt danh sách sản phẩm giúp đẩy nhanh tốc độ xử lý phiếu, nhưng cần kiểm tra kỹ trước khi nhấn nút "Duyệt" hoặc "Nhập kho".
+
+Tính chính xác: Trọng lượng vàng (TL vàng) và Tiêu chuẩn cơ sở là linh hồn của phiếu nhập. Sai số ở đây sẽ gây thiệt hại tài chính trực tiếp, cần đối chiếu với máy đo quang phổ hoặc cân tiểu ly trước khi lưu.

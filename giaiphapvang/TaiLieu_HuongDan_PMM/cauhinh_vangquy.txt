@@ -1,0 +1,8 @@
+I. Cấu hình vàng quy:
+1. Quy đổi giữa các đơn vị vàng chỉ ->gram (ngược lại):
+	Có: Tỷ lệ quy đổi *
+	https://docs.google.com/spreadsheets/d/1wf7ZFHQFfHOLzxHQ6McbgMpcSShS4F1oEpbcIukTPaI/edit?pli=1&gid=2038657537#gid=2038657537
+2. Quy đổi để ghi nhận nợ NCC:
+	Có trường chọn quy chuẩn Vàng 10
+	Form này hiện ở Hệ thống Pages, giaiphapvang.net
+	

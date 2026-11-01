@@ -1,0 +1,9 @@
+Mô tả chiến lược:
+1. Xây dựng cấu hình tự chọn models, NGười tự setup dùng cấu hình theo các cách sau:
+- Kết hợp các models local, chia nhỏ phân việc cho nhiều models chạy cùng lúc để giảm thời gian, theo local (ghi chú tài liệu bạn luôn được bảo mật)
+- Mô hình dùng AI miễn phí theo các cách (gemini+ grok + allama):
++ lấy câu hỏi người dùng xác định nhiệm vụ đang hỏi, dựa vào token hoặc 
+=> Nếu là câu hỏi dễ chọn model nào
+=> Nếu câu hỏi phức tạp (dựa vào Chọn và phân cấp cho các model sao cho hợp lý) chia nhỏ câu hỏi, chia nhỏ nhiệm vụ cho các model sau đó gom lại
+=> Tính toán lượng token sao cho phân vai hợp lý giữa các model để không bị chậm và vẫn đảm bảo lượng luọng token cấp miễn phí không bị từ chối (kể cả trong ngày hay 1 giờ)
+Khi người dùng chọn model trả phí thì không cần quan tâm miễn kiểm tra API key và tên modle và chạy hợp lệ là được, ngược lại báo lỗi họ cụ thể lỗi do sao

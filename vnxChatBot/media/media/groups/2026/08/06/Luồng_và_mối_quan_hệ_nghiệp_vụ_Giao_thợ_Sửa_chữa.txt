@@ -1,0 +1,71 @@
+1. Tóm tắt yêu cầu nghiệp vụ & Luồng liên kết (Mapping Flow)
+Quy trình tổng thể vòng đời khép kín "Giao thợ sửa chữa/tân trang & Nhận hàng":
+
+Chủ cửa hàng/chi nhánh lập phiếu giao tổng trọng lượng cho nhân viên; nhân viên phân loại hàng theo loại vàng để giao thợ đi Tân trang, Sửa chữa, Xi ngoài. Sau khi thợ hoàn tất, lập Phiếu nhận hàng sau sửa chữa để tiếp nhận tài sản và phân tách thành các nhóm: Hàng đã sửa (nhập kho), Hàng rẻo (hàng hư), Vàng dư (nguyên liệu), và Hàng hư không sửa được. Cuối cùng, hệ thống sinh phiếu nhập kho chính thức và in tem để bán.
+
+Luồng liên kết dữ liệu chứng từ toàn diện (Data Lineage):
+
+Phiếu giao thợ (PGT) → Chi tiết giao vàng (1:N): Chọn lọc từ tồn kho chi tiết thông qua Popup tra cứu theo số lô/Serial.
+
+Phiếu giao thợ (PGT) → Đề xuất vật tư (1:N): Quản lý các dòng vật tư/vàng bổ sung cần cấp phát kèm theo phiếu giao.
+
+Phiếu giao thợ (PGT) → Bảng tổng hợp giao + đề xuất (1:1 theo dòng loại vàng): Gom nhóm tổng trọng lượng giao và tổng trọng lượng đề xuất theo từng Loại vàng.
+
+Phiếu giao thợ (PGT) → Sai số phân loại (1:1): Đối soát tự động chênh lệch giữa số lượng/trọng lượng giao thực tế và số liệu phân loại chi tiết ở quầy.
+
+Phiếu giao thợ (PGT) → Chi tiết phân loại (1:N): Chi tiết hóa số món, trọng lượng, tỷ giá vốn và thành tiền theo từng quầy hàng nhận phân loại.
+
+Phiếu giao thợ (PGT) → Phiếu nhận hàng sau sửa chữa (1:1): Mỗi phiếu giao tương ứng với một phiếu nhận từ thợ.
+
+Phiếu nhận → Chi tiết hàng đã sửa / Tab 1 (1:N): Kế thừa từ chi tiết phân loại của phiếu giao thợ để tạo lô nhập kho.
+
+Phiếu nhận → Chi tiết hàng hư & vàng dư / Tab 2 (1:N): Quản lý các thành phần phát sinh (rẻo, vàng dư, hàng hỏng).
+
+Phiếu nhận → Phiếu nhập kho (1:N): Cho phép lập nhiều phiếu nhập kho chính thức phân tách theo loại tài sản về kho quản lý.
+
+2. Đặc tả giao diện cần bổ sung (UI/UX Specs)
+Màn hình Phiếu giao thợ sửa chữa/tân trang:
+
+Block Thông tin chung: Mã số phiếu (PGT-...), ngày chứng từ, người giao, người nhận, chi nhánh, khu vực, từ kho, số lô (Lot), người tạo, người duyệt, ngày duyệt.
+
+Hệ thống Action Buttons: HỦY, CHUYỂN PHÂN LOẠI, TRÌNH DUYỆT, DUYỆT, Lưu, Lưu và đóng, In phiếu, Đề xuất vật tư, Tạo Phiếu nhận.
+
+Grid 1 - Chi tiết giao vàng & Popup chọn: Bảng liệt kê serial, loại vàng, ĐVT, tuổi vàng (HLV thực tế), số lượng, tổng TL, TL hột, TL vàng, tỷ giá vốn, thành tiền, kèm popup tra cứu tồn kho chi tiết hỗ trợ bộ lọc và checkbox chọn hàng loạt.
+
+Grid 2 - Đề xuất vật tư: Quản lý danh sách vật tư đính kèm.
+
+Grid 3 - Tổng hợp giao + đề xuất: Bảng quy đổi tổng hợp theo loại vàng.
+
+Tab / Section Sai số phân loại & Chi tiết phân loại: Bảng đối soát sai số và bảng chi tiết phân loại theo quầy hàng.
+
+Màn hình Phiếu nhận hàng sau sửa chữa:
+
+Block Thông tin chung & Trạng thái: Số phiếu, ngày lập, kho nhận, người giao, người nhận, ngày nhận, chi nhánh, hyperlink trỏ về Phiếu giao thợ gốc, số lô, và các nút trạng thái (HỦY, TRÌNH DUYỆT, DUYỆT).
+
+Block Tổng hợp tài chính & trọng lượng: Tổng TLV giao, Tổng TLV sau sửa, Tổng TLV dư hư, Tổng TLV hao hụt, Chi phí làm sạch, Chi phí hao hụt, Chi phí khác, Tổng chi phí.
+
+Tab 1 - Hàng nhận: Bảng chi tiết hàng đã sửa (có cột Chọn, quầy hàng, số món, TL giao, tỷ giá vốn, thành tiền) tích hợp sub-grid Phiếu nhập kho.
+
+Tab 2 - Hàng hư & vàng dư: Bảng quản lý hàng rẻo, vàng nguyên liệu dư sau gia công.
+
+3. Gợi ý thiết kế dữ liệu cho Dev (Backend/DB Notes)
+Bảng Master repair_delivery_tickets (Phiếu giao thợ): Lưu thông tin chung, trạng thái chứng từ, khóa ngoại liên kết chi nhánh, kho, nhân viên giao/nhận và mã lô (lot_number).
+
+Bảng Detail repair_delivery_details (Chi tiết giao vàng): Quan hệ 1:N với bảng master, lưu thông tin serial, loại vàng, tuổi vàng, trọng lượng và đơn giá/thành tiền.
+
+Bảng liên kết material_proposals (Đề xuất vật tư): Quan hệ 1:N với phiếu giao thợ quản lý vật tư bổ sung.
+
+Bảng kiểm soát repair_classification_details (Chi tiết phân loại): Quan hệ 1:N với phiếu giao, lưu trữ dữ liệu phân loại theo quầy hàng.
+
+Bảng Master repair_receive_tickets (Phiếu nhận sửa chữa): Thiết lập khóa ngoại repair_delivery_ticket_id trỏ về Phiếu giao thợ theo quan hệ 1:1. Lưu các chi phí làm sạch, hao hụt và tổng chi phí.
+
+Bảng Detail Tab 1 repair_receive_details & Tab 2 repair_receive_defects: Quan hệ 1:N với bảng nhận thợ để lưu danh sách hàng đã sửa và hàng hư/vàng dư.
+
+Bảng inventory_receipts (Phiếu nhập kho): Thiết lập quan hệ 1:N với phiếu nhận thợ để ghi nhận tăng tồn kho chính thức.
+
+4. Mẫu tin nhắn tóm tắt ngắn gọn để gửi team dev
+[TECH-SPEC] Hoàn thiện toàn bộ quy trình Giao thợ sửa chữa/tân trang & Nhận hàng sau sửa chữa
+
+Backend & DB: Xây dựng hệ thống bảng master-detail liên thông từ Phiếu giao thợ (repair_delivery_tickets), Chi tiết giao, Đề xuất vật tư, Chi tiết phân loại cho đến Phiếu nhận thợ (repair_receive_tickets), Chi tiết hàng nhận (Tab 1), Hàng hư/vàng dư (Tab 2) và Phiếu nhập kho (inventory_receipts). Xây dựng API popup lọc tồn kho và logic tính toán chi phí gia công, hao hụt tự động.
+
+UI/UX: Phát triển đồng bộ 2 màn hình chính: Form Phiếu giao thợ (đầy đủ thông tin chung, action buttons, grid chi tiết giao kèm popup, grid đề xuất và section sai số/phân loại quầy) và Form Phiếu nhận hàng sau sửa chữa (chia 2 Tab rõ ràng: Tab 1 hàng nhận kèm sub-grid phiếu nhập kho, Tab 2 hàng hư & vàng dư, tích hợp link tra cứu ngược về phiếu giao).

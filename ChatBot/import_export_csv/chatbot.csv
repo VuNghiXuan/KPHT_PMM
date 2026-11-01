@@ -1,0 +1,40 @@
+﻿Order,Title,Category,Content
+1,1. Tổng quan Chiến lược Hệ thống,XÂY DỰNG HỆ THỐNG CHATBOT,"### 🚀 Tầm nhìn Hệ thống Trợ lý Nghiệp vụ số HTJ
+Hệ thống được thiết kế đặc thù cho ngành kim hoàn Kim Phát Hiệp Thành, giải quyết bài toán cốt lõi: Chuyển đổi dữ liệu phi cấu trúc từ hơn 300 bảng tính Excel phức tạp thành tri thức số có thể truy vấn ngay lập tức. Thay vì nhân viên phải lật tìm thủ công từng trang tài liệu hay tra cứu giá vàng trong các file rời rạc, hệ thống sử dụng kiến trúc **Agentic RAG** (Retrieval-Augmented Generation) phối hợp cùng Đồ thị tri thức để mang lại phản hồi chính xác tuyệt đối và có tính logic cao.
+Hệ thống được cấu thành từ 4 lớp module chiến lược:
+* **Miner (Bóc tách)**: Hoạt động như lớp giác quan, tự động thu thập và chuẩn hóa dữ liệu thô từ Excel và PDF.
+* **Knowledge (Đồ thị tri thức)**: Trái tim của hệ thống, nơi lưu trữ các node dữ liệu và mối quan hệ nghiệp vụ giữa các loại vàng và nhà cung cấp.
+* **Coach (Huấn luyện)**: Giao diện kiểm soát chất lượng, cho phép Admin uốn nắn hành vi AI và phê duyệt tri thức mới.
+* **Agent (Điều phối)**: Lớp tương tác ngôn ngữ tự nhiên, đóng vai trò trợ lý trực tiếp trả lời khách hàng và nhân viên."
+2,1.1 Module app_miner (Bóc tách),XÂY DỰNG HỆ THỐNG CHATBOT,"### 🔍 Module Bóc tách Dữ liệu Thông minh (app_miner)
+Module Miner đóng vai trò là 'trạm thu phát' dữ liệu đầu vào của toàn bộ hệ thống. Nhiệm vụ trọng tâm là bóc tách dữ liệu từ các nguồn như file Excel dự án, PDF hướng dẫn nghiệp vụ và đặc biệt là hình ảnh bảng giá niêm yết tại quầy thông qua công nghệ OCR. 
+Miner không chỉ đọc văn bản đơn thuần mà còn sử dụng thuật toán phân vùng **Table Regions** để xác định chính xác tọa độ các cột dữ liệu. Điều này cực kỳ quan trọng trong việc xử lý hơn 300 sheet Excel với cấu trúc không đồng nhất, giúp hệ thống phân biệt rõ ràng đâu là đơn giá vàng quy tuổi, đâu là tiền công và các loại phí bảo hiểm hàng hóa đi kèm.
+**Ví dụ logic bóc tách chuyên sâu bằng Pandas:**
+```python
+import pandas as pd
+# Hàm xử lý bóc tách đa tầng từ file Excel nghiệp vụ HTJ
+def extract_complex_gold_sheet(file_path):
+    # Đọc dữ liệu với engine Openpyxl để giữ cấu trúc định dạng và công thức
+    df = pd.read_excel(file_path, engine='openpyxl')
+    # Loại bỏ các dòng tiêu đề thừa, chuẩn hóa định dạng số để AI không bị nhầm lẫn
+    processed_data = df.dropna(subset=['Mã Loại Vàng']).fillna({'Giá': 0})
+    return processed_data.to_dict(orient='records')
+```"
+3,1.2 Module app_knowledge (GraphRAG),XÂY DỰNG HỆ THỐNG CHATBOT,"### 🧠 Module Đồ thị Tri thức (app_knowledge)
+Khác với các hệ thống tìm kiếm văn bản thông thường (Vector Search) thường bị mất ngữ cảnh, app_knowledge sử dụng công nghệ **GraphRAG** tích hợp trên cơ sở dữ liệu đồ thị Neo4j. Mọi thông tin về loại vàng (24K, 18K, SJC), nhà cung cấp, và công thức tính toán đều được ánh xạ dưới dạng các 'Nút' (Nodes) và 'Mối quan hệ' (Relationships). 
+Ví dụ: Một nút 'Vàng 24K' sẽ có mối quan hệ trực tiếp với 'Nhà cung cấp SJC' và thuộc tính 'Phí gia công'. Cách tiếp cận này giúp Chatbot có khả năng suy luận logic, trả lời được các câu hỏi phức tạp như: 'Nếu giá vàng thế giới tăng 2%, thì giá bán ra tại tiệm sau khi cộng phí bảo hiểm là bao nhiêu?' mà không bao giờ bị 'ảo giác' dữ liệu.
+**Ví dụ truy vấn quan hệ bằng Cypher:**
+```cypher
+// Tìm kiếm tất cả các chính sách ưu đãi áp dụng cho vàng nữ trang 18K
+MATCH (g:GoldType {name: 'Vàng 18K'})-[:HAS_POLICY]->(p:DiscountPolicy)
+RETURN g.name, p.description, p.discount_rate
+```"
+4,1.3 Module app_coach (Huấn luyện),XÂY DỰNG HỆ THỐNG CHATBOT,"### 👨‍🏫 Module Quản trị và Huấn luyện (app_coach)
+Trong môi trường kinh doanh vàng bạc, độ chính xác của thông tin là yếu tố sống còn. Module Coach được thiết kế như một 'bộ lọc' kiểm soát chất lượng tri thức trước khi AI được phép trả lời người dùng. 
+Khi hệ thống Agent nhận thấy một câu hỏi nằm ngoài vùng dữ liệu đã biết (trạng thái **Uncertainty**), nó sẽ tự động đẩy yêu cầu về Module Coach. Tại đây, Admin Vũ hoặc người quản lý có thể xem lại lịch sử truy vấn, thực hiện hiệu chỉnh (Correction) và phê duyệt nội dung. Quy trình này tạo ra một vòng lặp học tập liên tục (Feedback Loop), giúp AI ngày càng hoàn thiện kiến thức nghiệp vụ và hiểu sâu hơn về văn hóa phục vụ khách hàng tại Kim Phát Hiệp Thành."
+5,1.4 Module app_chat_agent (Điều phối),XÂY DỰNG HỆ THỐNG CHATBOT,"### 🤖 Module Điều phối Agent (app_chat_agent)
+Agent là 'người quản gia' thông minh, đóng vai trò giao diện ngôn ngữ tự nhiên giữa người dùng và hệ thống dữ liệu đồ sộ phía sau. Nhiệm vụ chính của Agent bao gồm 3 bước: 
+1. **Phân tích ý định (Intent Detection)**: Hiểu xem người dùng đang hỏi về giá vàng, quy trình cầm cố hay tìm kiếm vị trí cửa hàng.
+2. **Điều phối luồng (Orchestration)**: Ra lệnh cho Module Knowledge truy xuất dữ liệu thực tế và kết hợp với các công thức tính toán từ Miner.
+3. **Phản hồi tự nhiên**: Tổng hợp kết quả thành một câu trả lời ngắn gọn, chuyên nghiệp và lịch sự. 
+Agent đảm bảo tính nhất quán trong mọi câu trả lời, giúp chuẩn hóa quy trình tư vấn khách hàng trên toàn hệ thống cửa hàng HTJ."

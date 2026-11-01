@@ -1,0 +1,39 @@
+Các thuộc liên quan đến bảng:
+- Sản phẩm:
+	+ Bảng giá vàng
+	+ Loại vàng
+
+- Khách hàng:
+	+ Hạng KH
+	+ Điểm tích lũy
+	+ Công nợ Khách hàng
+	+ Điểm tích lũy (Quản lý tích lũy điểm: Cấu hình+ lịch sử tích lũy)
+
+- Hóa đơn chứng từ
+- Nhân viên
+	+ Tích lũy doanh thu
+- Quầy thu ngân:
+	+ Tài khoản thu chi
+	+ Phiếu thu chi
+	+ QR thanh toán
+- Cấu hình giao dịch bán lẻ
+- Chương trình khuyến mãi:
+	+ Quà tặng
+	+ Voucher: Phiếu tặng quà
+	(Chiết khấu KM liên qua đến voucher và quà tặng)
+
+- Chính sách đổi trả
+- Phiếu đặt hàng
+- Bảng kê 02NDN
+- Câc biên bản liên quan: HĐồng, BB trao đổi, giấy dảm bảo
+
+- Lịch sử hủy giao dịch:
+	+ Hủy thanh toán: quay về trạng thái trước thanh toán-> KHởi tạo
+	+ Hủy hóa đơn: giống trả lại hàng
+
+Form GD mua bán: Nếu tích vào :sử dụng giá đổi, thì căn cứ vào giá mua hay giá bán + chênh lệch (2 cột kế bên)
+
+1.Khi đổi trả sản phẩm có hồi công sẽ áp dụng hồi lại tiền công
+2.Đối với tiền Chiết khấu chug cho hóa đơn (như đổi điểm, tiền chiết khấu chung): thì tính  phân bổ cho taonf bộ sản phẩm
+khách trả cho sản phẩm nào thì tính cho sp đó (theo phân bổ), nếu lẻ thì làm tròn, phần còn lại sẽ khấu trừ theo sản phẩm cuối cùng
+

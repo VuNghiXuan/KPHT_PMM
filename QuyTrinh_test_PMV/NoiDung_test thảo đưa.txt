@@ -1,0 +1,53 @@
+https://docs.google.com/spreadsheets/d/1KGlBX5Z9dTcq7QxgOFcR0av5QbDB2O1z4_eoLsbGIvg/edit?gid=1141960157#gid=1141960157
+Em viết TC CTKM, anh test theo kịch bản này trước để làm quen, quản lý bằng TC nên không cần note bug trên sheet kia của AE mình nữa
+sau khi test theo kịch bản thì anh thực hiện test tự do xem có phát sinh thêm lỗi khác không
+case nào anh chưa chắc thì confirm lại với em nhé, e gen = AI cho nhanh chưa có thời gian review lại nên sẽ có trường hợp bị sót, khi nào test xong hết thì e review lại và tạo bug cho DEV, chức năng này 2 AE mình test chung, qua sprint 12 làm độc lập nhé
+Anh viết TC rùi em review, nào dev làm xong anh tự test tự tạo bug, và anh chịu trách nhiệm chính cho chức năng anh làm
+Anh tìm hiểu Test Design Techniques
+- Equivalence Partitioning.
+- Boundary Value Analysis.
+- Decision Table.
+- State Transition.
+- Use Case Testing.
+- Error Guessing.
+- Risk-Based Testing.
+
+Coverage - Kiểm tra 10 nhóm khi liên quan:
+A. Functional — Positive, Negative, CRUD, Search, Filter, Approval, Cancel, Print, Export.
+B. UI/UX — Label, Placeholder, Font, Alignment, Responsive, Scroll, Tooltip, Icon, Button, Mandatory, Message, Loading, Empty State.
+C. Validation — Required, Type, Length, Format, Unique, Dependency, Business Rule.
+D. Business Rule — Preconditions, State Transition, Calculations, Locking, Approval Rules.
+E. Permission — View, Create, Edit, Delete, Approve, Menu, Button, API, Direct URL.
+F. Data — Mapping, Data Integrity, Duplicate, Rollback, Audit Log.
+G. Integration — API Response, Timeout, Retry, Synchronization, Partial Failure, Duplicate Request.
+H. Performance — Large Dataset, Search, Export, Multiple Users, Concurrent Actions.
+I. Security — Unauthorized Access, Permission Bypass, SQL Injection, XSS, Session Timeout, Sensitive Data Masking.
+J. Exception — Double Click, Refresh, Browser Back, Network Loss, Expired Token, Concurrent Update, Deleted Data, Upload Error.
+
+Cách viết Steps
+Bước thực hiện cần cụ thể, thực thi được và độc lập với suy đoán.
+Mỗi bước xuống dòng trong cùng một ô Excel.
+Ví dụ:
+1. Đăng nhập bằng tài khoản có quyền được chỉ định.
+2. Truy cập menu [Tên menu].
+3. Mở màn hình [Tên màn hình].
+4. Chọn [Thao tác].
+5. Nhập [Dữ liệu kiểm thử].
+6. Nhấn [Nút xử lý].
+7. Quan sát và đối chiếu kết quả.
+Không lạm dụng việc mô tả lại thao tác đăng nhập trong từng TC nếu quy trình thực thi hoặc template của dự án có hướng dẫn chung khác; tuy nhiên phải tuân thủ yêu cầu trình bày đã được phê duyệt.
+Cách viết Expected Result
+Expected Result phải phản ánh:
+- Hành vi hệ thống.
+- UI nếu có.
+- Thông báo nếu có đặc tả.
+- Dữ liệu nếu có cơ sở.
+- Trạng thái chứng từ nếu được quy định.
+- Ảnh hưởng liên module nếu được xác nhận.
+Không được ghi:
+- Hoạt động đúng.
+- Lưu thành công.
+- Hiển thị đúng.
+- Xử lý bình thường.
+Phải mô tả điều kiện thành công/thất bại cụ thể.
+Không bịa nội dung message, status, schema hoặc API response.

@@ -1,0 +1,116 @@
+"""
+Mục đích: Cung cấp Service trung tâm (LLMService) để kết nối với các LLM Provider.
+Đặc điểm: Hỗ trợ Backward Compatibility (ai_model <-> model_name), 
+          Safety Fallback (Settings), và cấu trúc lỗi rõ ràng.
+Tác giả: Kiến trúc sư VnxChatBot (Phiên bản 2.0)
+"""
+import openai
+import requests
+import logging
+from django.conf import settings
+from google import genai
+
+logger = logging.getLogger(__name__)
+
+class LLMService:
+    """
+    Lớp xử lý LLM sử dụng Factory Pattern và Lazy Initialization.
+    Cung cấp cơ chế fallback an toàn cho các cấu hình cũ và mới.
+    """
+
+    @staticmethod
+    def _get_config_attr(config, keys: list, default_setting: str, default_val: str) -> str:
+        for key in keys:
+            val = getattr(config, key, None)
+            if val:
+                return val
+        return getattr(settings, default_setting, default_val)
+
+    @staticmethod
+    def get_response(config, prompt: str) -> str:
+        provider = getattr(config, 'provider', 'gemini').lower()
+        
+        try:
+            if provider == 'groq': 
+                return LLMService._call_groq(config, prompt)
+            elif provider == 'gemini': 
+                return LLMService._call_gemini(config, prompt)
+            elif provider == 'ollama': 
+                return LLMService._call_ollama(config, prompt)
+            return f"Error: Provider '{provider}' chưa được hỗ trợ."
+        except Exception as e:
+            logger.error(f"LLMService Error [{provider}]: {str(e)}")
+            return f"Hệ thống AI đang gặp lỗi kết nối: {str(e)}"
+
+    @staticmethod
+    def _call_groq(config, prompt: str) -> str:
+        api_key = LLMService._get_config_attr(config, ['api_key', 'custom_api_key'], 'GROQ_API_KEY', '')
+        model = LLMService._get_config_attr(config, ['model_name', 'ai_model'], 'GROQ_MODEL', 'qwen/qwen3.8-27b')
+        
+        client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content
+
+    @staticmethod
+    def _call_gemini(config, prompt: str) -> str:
+        api_key = LLMService._get_config_attr(config, ['api_key', 'custom_api_key'], 'GOOGLE_API_KEY', '')
+        model = LLMService._get_config_attr(config, ['model_name', 'ai_model'], 'GEMINI_MODEL', 'gemini-2.0-flash')
+        
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(model=model, contents=prompt)
+        return response.text
+
+    @staticmethod
+    def _call_ollama(config, prompt: str) -> str:
+        base_url = getattr(settings, 'OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
+        url = f"{base_url}/api/generate"
+        raw_model = LLMService._get_config_attr(config, ['model_name', 'ai_model'], 'OLLAMA_MODEL', 'qwen2.5:7b')
+        
+        # 🛡️ Loại bỏ tiền tố 'ollama/' nếu có để phù hợp với REST API của Ollama
+        clean_model = raw_model.replace('ollama/', '', 1) if raw_model.startswith('ollama/') else raw_model
+
+        payload = {"model": clean_model, "prompt": prompt, "stream": False}
+        response = requests.post(url, json=payload, timeout=30)
+        
+        if response.status_code == 200:
+            return response.json().get('response', '')
+        raise Exception(f"Ollama trả về status {response.status_code}: {response.text}")
+
+    @staticmethod
+    def validate_provider_key(provider: str, api_key: str, model_name: str) -> bool:
+        provider = provider.lower() if provider else ''
+        try:
+            if provider == 'gemini':
+                client = genai.Client(api_key=api_key)
+                client.models.generate_content(model=model_name, contents="ping")
+            elif provider == 'groq':
+                client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
+                client.chat.completions.create(
+                    model=model_name, 
+                    messages=[{"role": "user", "content": "ping"}], 
+                    max_tokens=1
+                )
+            elif provider == 'ollama':
+                base_url = getattr(settings, 'OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
+                url = f"{base_url}/api/generate"
+                clean_model = model_name.replace('ollama/', '', 1) if model_name.startswith('ollama/') else model_name
+                payload = {"model": clean_model, "prompt": "ping", "stream": False}
+                response = requests.post(url, json=payload, timeout=10)
+                if response.status_code != 200:
+                    raise Exception(f"Ollama HTTP {response.status_code}: {response.text}")
+            else:
+                logger.warning(f"⚠️ [Health Check Failure] Provider '{provider}' không được hỗ trợ.")
+                return False
+                
+            logger.info(f"✅ [Health Check Success] Provider '{provider}' với model '{model_name}' hoạt động tốt.")
+            return True
+
+        except Exception as e:
+            logger.warning(
+                f"⚠️ [Health Check Failure] Kiểm tra Provider '{provider}' thất bại. "
+                f"Model: '{model_name}' | Chi tiết lỗi: {str(e)}"
+            )
+            return False

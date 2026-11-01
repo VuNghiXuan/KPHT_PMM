@@ -1,0 +1,7 @@
+Khi trả NCC đầu tiên phải biết LV lấy từ kho ra:
+TRong phiếu PL lọc:
+1.Chỉ hiện danh sách NCC có loại vàng cần trả
+2.Khi chọn xong NCC thì danh sách Loại hàng NCC: Chỉ còn danh sách tương ứng với LV và NCC có loại hàng cảu NCC đó 
+
+- Phiếu phân loại trả NCC, lấy từ dẻ: Loại vàng này mua dẻ từ khách, không cần hồi công
+- Còn trả NCC có hồi công (Công gốc) là hàng của NCC: Chỗ này lấy công gốc qua Bẩng kê xuất kho trả NCC (Bảng này đang có dự kiến thay đổi tên Bảng đối chiếu công nợ NCC)

@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VnxChatBot | {% block title %}Dashboard{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.8-dist/css/bootstrap.min.css' %}">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="{% static 'css/fontawesome/css/all.min.css' %}">
+    <!-- Ledger / Theme CSS -->
+    <link rel="stylesheet" href="{% static 'css/ledger_theme.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="d-flex">
+    <!-- Nhúng Sidebar từ component riêng -->
+    {% include 'components/sidebar.html' %}
+
+    <!-- Main Workspace Content -->
+    <div class="main-content flex-grow-1 d-flex flex-column" style="min-width: 0;">
+        <!-- Nhúng Navbar từ component riêng -->
+        {% include 'components/navbar.html' %}
+
+        <div class="container-fluid p-0 flex-grow-1 bg-light">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script>
+        document.getElementById('sidebarToggle').addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        });
+
+    </script>
+
+
+    {% block extra_js %}
+    <!-- Thư viện parse Markdown và Sanitize HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <script src="{% static 'group_chat/js/knowledge_dashboard.js' %}"></script>
+    {% endblock %}
+</body>
+
+</html>

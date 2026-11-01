@@ -1,0 +1,3309 @@
+[
+    {
+        "term": "(icon help) Trợ giúp",
+        "suggested_definition": {
+            "definition": "Nút hướng dẫn nhanh hoặc mở tài liệu hướng dẫn sử dụng (User Manual) cho từng phân hệ cụ thể trong hệ thống HTJ.",
+            "questions": [
+                "Làm sao để xem hướng dẫn?",
+                "Nút trợ giúp nằm ở đâu?",
+                "Hướng dẫn sử dụng phần mềm"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "- Chi tiết phiếu nhập không có Phân loại hàng, Phân luồng, Quầy hàng",
+        "suggested_definition": {
+            "definition": "Trạng thái cảnh báo khi dữ liệu nhập kho thiếu các chỉ số phân loại cấp thấp. Cần bổ sung để hệ thống có thể báo cáo tồn kho theo quầy hoặc dòng hàng.",
+            "questions": [
+                "Tại sao phiếu nhập bị thiếu phân loại?",
+                "Lỗi thiếu quầy hàng khi nhập phiếu",
+                "Cách xử lý phiếu nhập thiếu thông tin phân luồng"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "API kết nối Mobile App",
+        "suggested_definition": {
+            "definition": "Cổng giao tiếp dữ liệu giữa Server trung tâm và ứng dụng di động dành cho khách hàng hoặc nhân viên kinh doanh để cập nhật giá vàng và xem báo cáo nhanh.",
+            "questions": [
+                "Link API Mobile App là gì?",
+                "Lỗi kết nối Mobile App",
+                "Cách cấu hình API cho ứng dụng di động"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Admin",
+        "suggested_definition": {
+            "definition": "Tài khoản quản trị viên tối cao, có quyền can thiệp vào cấu hình hệ thống, quản lý danh mục dùng chung và phân quyền nhân viên.",
+            "questions": [
+                "Quyền Admin làm được gì?",
+                "Cách cấp quyền Admin",
+                "Quên mật khẩu Admin"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Background Image",
+        "suggested_definition": {
+            "definition": "Hình ảnh nền của giao diện phần mềm hoặc hình nền trên các mẫu in tem, phiếu xuất kho nhằm nhận diện thương hiệu.",
+            "questions": [
+                "Thay đổi ảnh nền hệ thống ở đâu?",
+                "Chỉnh ảnh nền mẫu in",
+                "Kích thước Background Image chuẩn"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Bước (Step)",
+        "suggested_definition": {
+            "definition": "Thứ tự thực hiện trong một quy trình (Workflow). Ví dụ: Bước 1: Lập phiếu, Bước 2: Duyệt, Bước 3: Xuất kho.",
+            "questions": [
+                "Quy trình gồm mấy bước?",
+                "Cách chuyển sang bước tiếp theo",
+                "Lỗi ở bước duyệt"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "CCCD/MST",
+        "suggested_definition": {
+            "definition": "Thông tin định danh khách hàng hoặc nhà cung cấp. MST bắt buộc đối với khách hàng doanh nghiệp để xuất hóa đơn điện tử.",
+            "questions": [
+                "Nhập mã số thuế ở đâu?",
+                "Căn cước công dân khách hàng",
+                "Truy xuất thông tin qua MST"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Chi phí gia công",
+        "suggested_definition": {
+            "definition": "Tiền công thợ hoặc phí trả cho nhà cung cấp để chế tác sản phẩm từ vàng nguyên liệu thành nữ trang.",
+            "questions": [
+                "Phí gia công tính như thế nào?",
+                "Sửa tiền công thợ",
+                "Báo cáo chi phí gia công"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Cho phép sửa giá đổi/tiền bù",
+        "suggested_definition": {
+            "definition": "Cấu hình phân quyền cho phép nhân viên bán hàng thay đổi giá trị chênh lệch khi khách hàng thực hiện giao dịch đổi vàng cũ lấy vàng mới.",
+            "questions": [
+                "Ai có quyền sửa giá bù?",
+                "Tại sao không sửa được tiền chênh lệch?",
+                "Cấp quyền sửa giá đổi cho quầy"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Chênh lệch giá",
+        "suggested_definition": {
+            "definition": "Số tiền phát sinh khi giá trị vàng mua vào và bán ra không bằng nhau, hoặc chênh lệch giữa giá thị trường và giá chốt với khách.",
+            "questions": [
+                "Tính chênh lệch giá như thế nào?",
+                "Báo cáo lỗ lãi chênh lệch giá",
+                "Xử lý chênh lệch khi đổi vàng"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Công nợ vàng",
+        "suggested_definition": {
+            "definition": "Số lượng vàng (quy về tuổi chuẩn hoặc theo loại) mà cửa hàng còn nợ nhà cung cấp hoặc khách hàng còn nợ cửa hàng.",
+            "questions": [
+                "Kiểm tra công nợ vàng nhà cung cấp",
+                "Cách trả nợ bằng vàng",
+                "Chốt số dư công nợ vàng"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Căn cứ tính giá đổi",
+        "suggested_definition": {
+            "definition": "Tham chiếu dùng để tính toán giá trị khi khách đổi hàng. Thường căn cứ vào Giá mua vào của vàng cũ và Giá bán ra của vàng mới tại thời điểm giao dịch.",
+            "questions": [
+                "Căn cứ tính giá đổi là gì?",
+                "Thiết lập công thức tính giá đổi",
+                "Tại sao giá đổi bị sai?"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "FORM NHÓM VÀNG NGUYÊN LIỆU - VÀNG MỚI",
+        "suggested_definition": {
+            "definition": "Giao diện quản lý việc phân nhóm giữa vàng chưa chế tác (vàng khối, vàng vụn) và hàng nữ trang thành phẩm để quản lý kho riêng biệt.",
+            "questions": [
+                "Cách nhập vàng nguyên liệu",
+                "Chuyển vàng nguyên liệu sang vàng mới",
+                "Quản lý nhóm vàng thành phẩm"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Giá vàng thế giới (API)",
+        "suggested_definition": {
+            "definition": "Luồng dữ liệu tự động cập nhật giá vàng từ thị trường quốc tế (Kitco, Bloomberg...) làm cơ sở tham chiếu cho bảng giá nội bộ.",
+            "questions": [
+                "Cập nhật giá vàng thế giới ở đâu?",
+                "API giá vàng thế giới bị lỗi",
+                "Cách tính giá sàn theo giá thế giới"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Hàm lượng vàng thực tế",
+        "suggested_definition": {
+            "definition": "Độ tinh khiết thực tế của sản phẩm được xác định qua đo phổ hoặc kiểm định, dùng để tính toán 'Vàng quy tuổi' chính xác.",
+            "questions": [
+                "Hàm lượng vàng thực tế là bao nhiêu?",
+                "Nhập độ tinh khiết khi mua vào",
+                "Cách quy đổi vàng theo hàm lượng thực tế"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Loại vàng quy",
+        "suggested_definition": {
+            "definition": "Tiêu chuẩn vàng dùng làm đơn vị tính toán chung (thường là vàng 99.99 hoặc vàng 24k) để quy đổi các loại vàng khác về cùng một giá trị trọng lượng tương đương.",
+            "questions": [
+                "Loại vàng quy chuẩn là gì?",
+                "Cách tính trọng lượng quy tuổi",
+                "Công thức quy đổi vàng 18k về vàng quy"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Lô hàng NCC",
+        "suggested_definition": {
+            "definition": "Danh sách các sản phẩm cùng nhập từ một Nhà Cung Cấp trong một đợt, dùng để theo dõi công nợ và chất lượng hàng theo nguồn gốc.",
+            "questions": [
+                "Xem lô hàng theo nhà cung cấp",
+                "Nhập lô hàng mới",
+                "Trả hàng theo lô cho NCC"
+            ]
+        },
+        "status": "APPROVED",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Lô hàng tân trang/sửa chữa",
+        "suggested_definition": {
+            "definition": "Danh sách tập hợp các sản phẩm trang sức cũ hoặc lỗi được gom lại để thực hiện quy trình đánh bóng, làm mới hoặc sửa chữa cấu trúc trước khi tái nhập kho bán lẻ.",
+            "questions": [
+                "Lô hàng này có bao gồm chi phí hao mòn vàng trong quá trình tân trang không?",
+                "Có tách biệt giữa hàng bảo hành cho khách và hàng tân trang nội bộ không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Lý do",
+        "suggested_definition": {
+            "definition": "Trường thông tin bắt buộc giải thích nguyên nhân của các biến động dữ liệu như: xuất/nhập kho khác, điều chỉnh số dư nợ, hoặc hủy phiếu.",
+            "questions": [
+                "Có cần danh mục lý do mẫu để chọn nhanh (dropdown) không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Lưu",
+        "suggested_definition": {
+            "definition": "Thao tác xác nhận ghi dữ liệu vào hệ thống. Tùy vào phân quyền, 'Lưu' có thể chỉ là lưu nháp hoặc lưu và chốt số liệu thực tế.",
+            "questions": [
+                "Sau khi lưu có cho phép sửa không, hay phải qua bước phê duyệt?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Lịch cập nhật",
+        "suggested_definition": {
+            "definition": "Bảng ghi nhận thời gian và nội dung các lần thay đổi giá vàng, thay đổi chính sách biểu phí hoặc cập nhật phiên bản phần mềm.",
+            "questions": [
+                "Lịch cập nhật giá vàng có tự động đồng bộ từ nguồn ngoài không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "MST",
+        "suggested_definition": {
+            "definition": "Mã số thuế của doanh nghiệp hoặc hộ kinh doanh cá thể, dùng để xuất hóa đơn điện tử và báo cáo thuế theo thông tư hiện hành.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã",
+        "suggested_definition": {
+            "definition": "Chuỗi ký tự định danh duy nhất cho một đối tượng (sản phẩm, đối tác, chứng từ) trong cơ sở dữ liệu HTJ.",
+            "questions": [
+                "Quy tắc tạo mã là tự động tăng hay theo cấu trúc phân loại (Prefix)?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã Nguồn vốn",
+        "suggested_definition": {
+            "definition": "Ký hiệu phân loại dòng tiền hoặc tài sản dùng để nhập hàng (ví dụ: Vốn chủ sở hữu, Vốn vay, Vốn ký gửi).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã SP",
+        "suggested_definition": {
+            "definition": "Định danh duy nhất cho từng món trang sức (mã vạch/barcode). Chứa thông tin về loại vàng, trọng lượng và tiền công.",
+            "questions": [
+                "Mã SP có thay đổi khi sản phẩm được tái chế/nấu lại không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã biên bản kiểm kê",
+        "suggested_definition": {
+            "definition": "Số hiệu quản lý đợt kiểm tra thực tế hàng hóa tại quầy/kho so với số liệu trên phần mềm tại một thời điểm nhất định.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã biểu phí",
+        "suggested_definition": {
+            "definition": "Mã quy định các loại phí dịch vụ đi kèm như phí đổi vàng, phí thiết kế, hoặc phí kiểm định kim cương.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã bảng giá",
+        "suggested_definition": {
+            "definition": "Định danh cho các khung giá vàng (mua vào/bán ra) áp dụng cho từng thời điểm hoặc từng đối tượng khách hàng (sỉ/lẻ).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã chi nhánh",
+        "suggested_definition": {
+            "definition": "Ký hiệu phân biệt giữa các cửa hàng hoặc địa điểm kinh doanh khác nhau trong cùng hệ thống HTJ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã cấu hình",
+        "suggested_definition": {
+            "definition": "Ký hiệu các thiết lập hệ thống như cấu hình in tem, cấu hình kết nối máy cân vàng, hoặc thông số kỹ thuật AI.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã danh mục chi phí",
+        "suggested_definition": {
+            "definition": "Phân loại các khoản chi hoạt động như: chi mặt bằng, chi lương, chi mua phụ liệu (hộp, túi).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã dịch vụ",
+        "suggested_definition": {
+            "definition": "Định danh các loại hình dịch vụ không phải là bán sản phẩm vật chất, ví dụ: xi mạ, gắn đá, khắc chữ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã hình thức",
+        "suggested_definition": {
+            "definition": "Phân loại phương thức giao dịch như: Trả tiền mặt, Chuyển khoản, hoặc Đổi vàng cũ lấy vàng mới.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã kho",
+        "suggested_definition": {
+            "definition": "Ký hiệu quản lý vị trí lưu trữ hàng hóa (Kho tủ bán lẻ, Kho hàng chờ gia công, Kho vàng nguyên liệu).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã khách hàng",
+        "suggested_definition": {
+            "definition": "Định danh duy nhất cho cá nhân hoặc tổ chức mua hàng, dùng để tích điểm và theo dõi lịch sử nợ/trao đổi vàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã loại hình kinh doanh",
+        "suggested_definition": {
+            "definition": "Phân loại hoạt động của đơn vị (Bán lẻ trang sức, Gia công sỉ, hay Chầm đổi vàng miếng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã loại vàng",
+        "suggested_definition": {
+            "definition": "Ký hiệu độ tinh khiết của vàng (ví dụ: 999, 610, 750) dùng để áp giá và tính toán 'quy tuổi' (Identified Designation).",
+            "questions": [
+                "Hệ thống đã cập nhật đủ các loại vàng phổ biến tại cửa hàng chưa?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã mục thu/chi",
+        "suggested_definition": {
+            "definition": "Phân loại chi tiết các dòng tiền ra vào để phục vụ báo cáo tài chính cuối tháng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã ngân hàng",
+        "suggested_definition": {
+            "definition": "Ký hiệu các tài khoản ngân hàng của tiệm dùng để đối soát các giao dịch chuyển khoản từ khách hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã người dùng",
+        "suggested_definition": {
+            "definition": "Tên đăng nhập hoặc mã nhân viên chịu trách nhiệm thực hiện các tác vụ trên hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã nhóm",
+        "suggested_definition": {
+            "definition": "Cấp quản lý trung gian để phân loại các đối tượng có cùng đặc tính chung.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã nhóm hàng",
+        "suggested_definition": {
+            "definition": "Phân loại sản phẩm theo chủng loại lớn như: Nhẫn, Dây chuyền, Bông tai, Vòng tay.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã nhóm quyền",
+        "suggested_definition": {
+            "definition": "Định danh tập hợp các quyền hạn (Role) như: Admin, Nhân viên bán hàng, Kế toán kho.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã phiếu",
+        "suggested_definition": {
+            "definition": "Số chứng từ duy nhất cho mỗi giao dịch (Phiếu bán hàng, Phiếu nhập kho, Phiếu chi nợ).",
+            "questions": [
+                "Mã phiếu có cần bao gồm tiền tố ngày tháng (ví dụ: BH210426-001) không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã quầy",
+        "suggested_definition": {
+            "definition": "Ký hiệu định danh cho một khu vực bán hàng cụ thể trong cửa hàng (ví dụ: Quầy 1, Quầy 2) nhằm quản lý doanh thu và trách nhiệm của nhân viên trực quầy.",
+            "questions": [
+                "Một nhân viên có thể đăng nhập vào nhiều quầy cùng lúc không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã quầy hàng",
+        "suggested_definition": {
+            "definition": "Mã quản lý các vị trí trưng bày sản phẩm theo danh mục vật lý, dùng để kiểm soát việc luân chuyển hàng hóa giữa các tủ trưng bày.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã quầy vàng",
+        "suggested_definition": {
+            "definition": "Định danh chuyên biệt cho khu vực giao dịch vàng miếng hoặc vàng 24k, thường tách biệt với trang sức mỹ nghệ để theo dõi biến động giá nhanh.",
+            "questions": [
+                "Quầy vàng có áp dụng quy trình kiểm kê khác so với quầy trang sức không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã số thuế",
+        "suggested_definition": {
+            "definition": "Thông tin định danh pháp lý của doanh nghiệp hoặc hộ kinh doanh cá thể HTJ, sử dụng trong các nghiệp vụ in hóa đơn và báo cáo cơ quan thuế.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã thuế",
+        "suggested_definition": {
+            "definition": "Mã nội bộ định nghĩa các mức thuế suất giá trị gia tăng (VAT) áp dụng cho từng loại mặt hàng (ví dụ: 0%, 8%, 10%).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã toa",
+        "suggested_definition": {
+            "definition": "Số hiệu quản lý một tập hợp nhiều sản phẩm trong cùng một lần giao dịch nhập hàng từ nhà cung cấp hoặc xuất hàng sỉ.",
+            "questions": [
+                "Mã toa có được dùng để đối soát công nợ tổng của một lần nhập hàng không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mã vốn vay",
+        "suggested_definition": {
+            "definition": "Ký hiệu dùng để theo dõi các khoản tài chính huy động từ bên ngoài để nhập hàng, cần được hạch toán riêng để tính chi phí lãi vay.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mô tả",
+        "suggested_definition": {
+            "definition": "Trường văn bản tự do cho phép ghi chú chi tiết đặc điểm sản phẩm, tình trạng hư hại của hàng sửa chữa hoặc nội dung ghi chú phiếu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Múi giờ hệ thống *",
+        "suggested_definition": {
+            "definition": "Tham số thiết lập thời gian tiêu chuẩn (thường là GMT+7) để đồng bộ hóa thời điểm ghi nhận giao dịch, xuất hóa đơn và sao lưu dữ liệu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mặc định",
+        "suggested_definition": {
+            "definition": "Giá trị hoặc thiết lập được hệ thống ưu tiên chọn sẵn khi người dùng tạo mới dữ liệu (ví dụ: mặc định loại vàng là 610).",
+            "questions": [
+                "Người dùng có thể tự cấu hình giá trị mặc định theo tài khoản cá nhân không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mệnh giá chuẩn",
+        "suggested_definition": {
+            "definition": "Các đơn vị tiền tệ hoặc đơn vị trọng lượng vàng (Chỉ, Lượng) được quy ước làm căn cứ tính toán cho toàn bộ hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Mới",
+        "suggested_definition": {
+            "definition": "Trạng thái của một đối tượng dữ liệu vừa được tạo hoặc tình trạng của sản phẩm trang sức chưa qua sử dụng, vừa nhập từ xưởng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nguồn giá nội bộ",
+        "suggested_definition": {
+            "definition": "Bảng giá vàng do doanh nghiệp tự thiết lập dựa trên giá thị trường và chiến lợi nhuận riêng, dùng để áp dụng thống nhất cho toàn hệ thống quầy bán lẻ.",
+            "questions": [
+                "Nguồn giá này có tự động cập nhật theo giá vàng thế giới/SJC không hay phải nhập thủ công?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nguồn gốc sản phẩm",
+        "suggested_definition": {
+            "definition": "Thông tin xác định sản phẩm được nhập từ nhà cung cấp nào, do xưởng nội bộ sản xuất, hay là hàng thu mua cũ từ khách hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nguồn gốc sản phẩm *",
+        "suggested_definition": {
+            "definition": "Trường dữ liệu bắt buộc nhằm phân loại chính xác hàng hóa để áp dụng chính sách bảo hành và đổi trả (ví dụ: Hàng công ty, Hàng ngoại, Hàng ký gửi).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày bắt đầu",
+        "suggested_definition": {
+            "definition": "Thời điểm hiệu lực khởi đầu của một chương trình khuyến mãi, một bảng giá mới hoặc một đợt kiểm kê.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày chứng từ",
+        "suggested_definition": {
+            "definition": "Ngày ghi trên hóa đơn hoặc phiếu giao dịch thực tế, có thể khác với ngày nhập dữ liệu vào phần mềm.",
+            "questions": [
+                "Hệ thống có cho phép hạch toán lùi ngày chứng từ so với ngày hiện tại không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày duyệt",
+        "suggested_definition": {
+            "definition": "Thời điểm cấp quản lý xác nhận thông qua một yêu cầu nhập xuất kho, chi tiền hoặc điều chỉnh công nợ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày giao dịch",
+        "suggested_definition": {
+            "definition": "Thời điểm phát sinh việc mua bán hoặc trao đổi hàng hóa/tiền tệ thực tế giữa cửa hàng và đối tác.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày giờ chốt giá",
+        "suggested_definition": {
+            "definition": "Mốc thời gian cụ thể dùng để xác định giá vàng áp dụng cho một giao dịch, đặc biệt quan trọng khi giá vàng biến động liên tục trong ngày.",
+            "questions": [
+                "Sau khi chốt giá, nhân viên có quyền thay đổi nếu khách hàng chưa thanh toán không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày kiểm kê",
+        "suggested_definition": {
+            "definition": "Ngày thực hiện việc đếm hàng thực tế để đối chiếu với tồn kho sổ sách nhằm xác định hao hụt hoặc dư thừa.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày kết thúc",
+        "suggested_definition": {
+            "definition": "Thời điểm hết hiệu lực của một thiết lập hoặc một giai đoạn báo cáo dữ liệu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày lập",
+        "suggested_definition": {
+            "definition": "Thời điểm phiếu được khởi tạo trên hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày lập *",
+        "suggested_definition": {
+            "definition": "Trường thời gian hệ thống tự động ghi nhận (System Date) khi tạo mới bản ghi, không được phép chỉnh sửa để đảm bảo tính minh bạch.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày nhận",
+        "suggested_definition": {
+            "definition": "Ngày cửa hàng thực nhận hàng hóa từ nhà cung cấp hoặc nhận trang sức sửa chữa từ khách hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày sinh",
+        "suggested_definition": {
+            "definition": "Thông tin cá nhân của khách hàng dùng để triển khai các chính sách ưu đãi, quà tặng vào dịp sinh nhật.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày thành lập",
+        "suggested_definition": {
+            "definition": "Ngày bắt đầu hoạt động chính thức của chi nhánh hoặc doanh nghiệp, dùng trong thông tin hồ sơ hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày tạo",
+        "suggested_definition": {
+            "definition": "Mốc thời gian đầu tiên dữ liệu (khách hàng, sản phẩm) được đưa vào cơ sở dữ liệu HTJ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày áp dụng",
+        "suggested_definition": {
+            "definition": "Ngày bắt đầu triển khai một quy định, biểu phí hoặc cấu hình hệ thống mới.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngày đề xuất",
+        "suggested_definition": {
+            "definition": "Ngày nhân viên gửi yêu cầu phê duyệt (nhập hàng, chi quỹ) lên cấp trên.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngân hàng",
+        "suggested_definition": {
+            "definition": "Tên tổ chức tín dụng nơi doanh nghiệp mở tài khoản giao dịch, dùng để thực hiện các nghiệp vụ chuyển khoản và đối soát dòng tiền.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngân hàng *",
+        "suggested_definition": {
+            "definition": "Trường dữ liệu bắt buộc chọn khi hình thức thanh toán được xác định là chuyển khoản hoặc quẹt thẻ, nhằm đảm bảo tiền được hạch toán đúng tài khoản đích.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ngôn ngữ mặc định *",
+        "suggested_definition": {
+            "definition": "Thiết lập ngôn ngữ chính hiển thị trên giao diện người dùng và các mẫu in hóa đơn (thường là Tiếng Việt).",
+            "questions": [
+                "Hệ thống có hỗ trợ in song ngữ cho khách nước ngoài không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người duyệt",
+        "suggested_definition": {
+            "definition": "Cá nhân có thẩm quyền (Quản lý/Chủ tiệm) thực hiện xác nhận cuối cùng để hoàn tất một quy trình nghiệp vụ quan trọng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người giao",
+        "suggested_definition": {
+            "definition": "Đối tượng thực hiện bàn giao hàng hóa hoặc tiền tệ (có thể là nhân viên kho, shipper hoặc đại diện nhà cung cấp).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người kiểm",
+        "suggested_definition": {
+            "definition": "Nhân viên chịu trách nhiệm kiểm tra số lượng, chất lượng hàng thực tế so với thông tin trên chứng từ trước khi ký xác nhận.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người lập",
+        "suggested_definition": {
+            "definition": "Nhân viên trực tiếp soạn thảo và khởi tạo nội dung trên phiếu/chứng từ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người nhận",
+        "suggested_definition": {
+            "definition": "Cá nhân hoặc đơn vị tiếp nhận tài sản/hàng hóa sau khi hoàn tất giao dịch.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người nhập",
+        "suggested_definition": {
+            "definition": "Người chịu trách nhiệm đưa dữ liệu thô vào phần mềm (ví dụ: nhập số liệu kiểm kê vào máy).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người thực hiện",
+        "suggested_definition": {
+            "definition": "Cá nhân trực tiếp xử lý công việc chuyên môn (ví dụ: thợ sửa chữa, nhân viên xi mạ).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người tạo",
+        "suggested_definition": {
+            "definition": "Tài khoản hệ thống ghi nhận lần đầu khi một bản ghi dữ liệu (sản phẩm, khách hàng) được hình thành.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Người đề xuất",
+        "suggested_definition": {
+            "definition": "Nhân viên khởi xướng yêu cầu cần phê duyệt (như yêu cầu mua thêm hàng, yêu cầu tạm ứng chi phí).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhà cung cấp",
+        "suggested_definition": {
+            "definition": "Các đơn vị, công ty hoặc xưởng gia công cung cấp hàng hóa/nguyên liệu cho cửa hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhà cung cấp *",
+        "suggested_definition": {
+            "definition": "Trường bắt buộc khi tạo phiếu nhập kho để theo dõi nguồn gốc hàng hóa và quản lý nợ công nợ nhà cung cấp.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên",
+        "suggested_definition": {
+            "definition": "Danh mục tổng quát về những người làm việc trong hệ thống HTJ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên 1",
+        "suggested_definition": {
+            "definition": "Định danh tạm thời hoặc vị trí nhân viên chính đứng tên trên phiếu trong các trường hợp chia doanh số theo nhóm.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên 3",
+        "suggested_definition": {
+            "definition": "Định danh nhân viên hỗ trợ (thường dùng trong nghiệp vụ cộng tác bán hàng nhiều người).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên giao dịch",
+        "suggested_definition": {
+            "definition": "Người trực tiếp tương tác và chốt đơn hàng với khách hàng tại quầy.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên mua hàng",
+        "suggested_definition": {
+            "definition": "Bộ phận hoặc cá nhân phụ trách tìm kiếm nguồn hàng, thương lượng giá với nhà cung cấp (Purchasing).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên nhập",
+        "suggested_definition": {
+            "definition": "Tài khoản thực hiện thao tác nhập kho hoặc nhập chứng từ kế toán.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên phụ trách",
+        "suggested_definition": {
+            "definition": "Người được giao quản lý trực tiếp một danh mục hàng hóa, một nhóm khách hàng hoặc một dự án.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên tạo",
+        "suggested_definition": {
+            "definition": "Họ tên của nhân viên thực hiện thao tác lưu bản ghi đầu tiên trên hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhân viên đề xuất",
+        "suggested_definition": {
+            "definition": "Tên người đứng ra gửi yêu cầu xét duyệt chi tiêu hoặc điều chỉnh kho.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm NCC",
+        "suggested_definition": {
+            "definition": "Phân loại các nhà cung cấp theo đặc thù hàng hóa (ví dụ: NCC Vàng miếng, NCC Trang sức Ý, NCC Đá quý) để quản lý chính sách công nợ và ưu đãi riêng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm doanh số",
+        "suggested_definition": {
+            "definition": "Cách thức gộp các chỉ tiêu bán hàng theo quầy, theo nhân viên hoặc theo chủng loại hàng để tính thưởng và đánh giá hiệu quả kinh doanh.",
+            "questions": [
+                "Một nhân viên có thể thuộc nhiều nhóm doanh số để tính thưởng doanh thu tổng không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm doanh thu/chi phí",
+        "suggested_definition": {
+            "definition": "Hệ thống phân loại các dòng tiền vào/ra (ví dụ: Doanh thu bán lẻ, Chi phí gia công, Chi phí vận hành) phục vụ cho báo cáo kết quả kinh doanh (P&L).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm dịch vụ",
+        "suggested_definition": {
+            "definition": "Tập hợp các loại hình dịch vụ có cùng tính chất (ví dụ: Nhóm dịch vụ sửa chữa, Nhóm dịch vụ kiểm định) để quản lý biểu phí.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm giao dịch",
+        "suggested_definition": {
+            "definition": "Phân loại các loại giao dịch phát sinh (ví dụ: Giao dịch nội bộ, Giao dịch với khách lẻ, Giao dịch đại lý).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm người dùng",
+        "suggested_definition": {
+            "definition": "Tập hợp các tài khoản có cùng vị trí hoặc phòng ban trong công ty (ví dụ: Nhóm nhân viên Quầy 1).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm người dùng (Role)",
+        "suggested_definition": {
+            "definition": "Phân quyền theo vai trò chức năng (Admin, Accountant, Staff). Quyết định việc người dùng được phép Xem, Thêm, Sửa hay Xóa dữ liệu.",
+            "questions": [
+                "Có cho phép một người dùng sở hữu nhiều Role cùng lúc không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm sản phẩm/kích cỡ *",
+        "suggested_definition": {
+            "definition": "Trường bắt buộc dùng để phân loại hàng hóa theo thuộc tính kỹ thuật (ví dụ: Nhẫn - Size 12, Dây chuyền - 45cm) để quản lý tồn kho chi tiết.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm vàng",
+        "suggested_definition": {
+            "definition": "Phân loại vàng theo hàm lượng và mục đích sử dụng (ví dụ: Vàng 24k nguyên liệu, Vàng 18k trang sức, Vàng trắng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm vật tư",
+        "suggested_definition": {
+            "definition": "Quản lý các mặt hàng phụ trợ không phải vàng (ví dụ: Hộp đựng, túi xách, đá gắn kèm, hóa chất xi mạ).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Nhóm ĐVT",
+        "suggested_definition": {
+            "definition": "Hệ thống các đơn vị đo lường quy chuẩn (Trọng lượng: Chỉ/Phân/Ly; Số lượng: Chiếc/Bộ/Đôi).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "PGT-CN1-180825-0003",
+        "suggested_definition": {
+            "definition": "Mã định danh ví dụ cho 'Phiếu Giao Thợ' tại Chi nhánh 1, lập ngày 18/08/2025, số thứ tự 0003.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "PNTT-CN1-200825-0003",
+        "suggested_definition": {
+            "definition": "Mã định danh ví dụ cho 'Phiếu Nhập Tân Trang' tại Chi nhánh 1, lập ngày 20/08/2025, số thứ tự 0003.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phiếu giao làm nhẫn trơn",
+        "suggested_definition": {
+            "definition": "Chứng từ nghiệp vụ xuất vàng nguyên liệu cho thợ hoặc xưởng để gia công loại nhẫn không gắn đá, dùng để đối soát trọng lượng vàng trước và sau gia công.",
+            "questions": [
+                "Có tính hao mòn (tiền dôi) ngay trên phiếu này không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phiếu giao nhận thợ",
+        "suggested_definition": {
+            "definition": "Chứng từ tổng quát ghi lại việc bàn giao và tiếp nhận tài sản (vàng, đá quý, thành phẩm) giữa kho/cửa hàng và bộ phận kỹ thuật để theo dõi trách nhiệm vật chất.",
+            "questions": [
+                "Phiếu này có cần chữ ký số hoặc xác nhận qua app của thợ không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phiếu giao thợ",
+        "suggested_definition": {
+            "definition": "Chứng từ xuất kho nguyên liệu hoặc sản phẩm lỗi cho thợ để thực hiện các công đoạn chế tác, sửa chữa hoặc gắn đá.",
+            "questions": [
+                "Hệ thống có tự động trừ tồn kho nguyên liệu khi lập phiếu này không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phiếu giao thợ tân trang",
+        "suggested_definition": {
+            "definition": "Chứng từ chuyên biệt dành cho việc chuyển các sản phẩm cũ, xỉn màu hoặc hàng trưng bày lâu ngày cho thợ để đánh bóng, xi mạ lại.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phiếu giao thợ tân trang/sửa chữa",
+        "suggested_definition": {
+            "definition": "Loại phiếu kết hợp dùng để quản lý các món hàng cần cả việc làm mới lẫn khắc phục lỗi cấu trúc (như hàn nối, nới size nhẫn).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phiếu nhận sau tân trang",
+        "suggested_definition": {
+            "definition": "Chứng từ nhập lại kho các sản phẩm đã hoàn thiện quy trình làm mới, dùng để đối soát trọng lượng sau khi hao mòn và cập nhật trạng thái 'Sẵn sàng bán'.",
+            "questions": [
+                "Hệ thống có tự động tính toán tỷ lệ hao hụt vàng cho phép không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phát sinh định kỳ",
+        "suggested_definition": {
+            "definition": "Các khoản thu hoặc chi lặp lại theo chu kỳ thời gian (tháng/quý) như tiền thuê mặt bằng, tiền điện, phí phần mềm.",
+            "questions": [
+                "Có cần tính năng tự động tạo phiếu chi khi đến kỳ hạn không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phân cấp",
+        "suggested_definition": {
+            "definition": "Cấu trúc tổ chức dữ liệu theo nhiều tầng (ví dụ: Công ty > Chi nhánh > Quầy > Nhân viên) để phục vụ báo cáo và phân quyền.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phí ngân hàng",
+        "suggested_definition": {
+            "definition": "Các khoản chi phí khấu trừ từ ngân hàng khi khách hàng thanh toán qua máy POS, chuyển khoản liên ngân hàng hoặc phí duy trì tài khoản.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phí tính khách",
+        "suggested_definition": {
+            "definition": "Các loại phí dịch vụ mà khách hàng phải trả thêm ngoài giá vàng và tiền công (ví dụ: phí thiết kế riêng, phí vận chuyển bảo đảm).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Phòng ban",
+        "suggested_definition": {
+            "definition": "Đơn vị tổ chức trong doanh nghiệp kim hoàn (ví dụ: Phòng Kế toán, Tổ thợ máy, Bộ phận Bán hàng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quy chuẩn",
+        "suggested_definition": {
+            "definition": "Bộ quy tắc thiết lập sẵn cho các thông số kỹ thuật (ví dụ: quy chuẩn về độ sai số cân, quy chuẩn về tên gọi loại vàng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quy cách làm tròn",
+        "suggested_definition": {
+            "definition": "Tập hợp các quy tắc toán học áp dụng khi tính toán giá trị cuối cùng trên phiếu (ví dụ: làm tròn đến hàng đơn vị, hàng chục, hoặc hàng nghìn) để thuận tiện cho việc thanh toán tiền mặt.",
+            "questions": [
+                "Hệ thống có cho phép thiết lập quy cách làm tròn riêng cho từng loại ngoại tệ hoặc đơn vị vàng không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quét SP",
+        "suggested_definition": {
+            "definition": "Hành động sử dụng thiết bị đọc mã vạch để truy xuất nhanh thông tin sản phẩm từ cơ sở dữ liệu vào giao diện bán hàng hoặc kiểm kê.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quét mã hàng",
+        "suggested_definition": {
+            "definition": "Thao tác kỹ thuật nhập định danh sản phẩm thông qua barcode hoặc QR code để thực hiện các lệnh xuất/nhập/điều chuyển kho.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quản lý",
+        "suggested_definition": {
+            "definition": "Nhóm người dùng có quyền hạn cao nhất trong một phạm vi cụ thể (chi nhánh hoặc hệ thống), chịu trách nhiệm phê duyệt các giao dịch đặc biệt và giám sát báo cáo.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quầy hàng",
+        "suggested_definition": {
+            "definition": "Đơn vị quản lý nhỏ nhất trong cửa hàng, nơi trưng bày và thực hiện việc bán các nhóm sản phẩm cụ thể.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quầy thu ngân",
+        "suggested_definition": {
+            "definition": "Khu vực tập trung xử lý các bước thanh toán cuối cùng, in hóa đơn và quản lý dòng tiền mặt/chuyển khoản trong ca làm việc.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quầy thu ngân 1",
+        "suggested_definition": {
+            "definition": "Định danh cụ thể cho điểm thanh toán số 1 trong trường hợp cửa hàng lớn có nhiều vị trí thu ngân độc lập.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quầy thu ngân nhận",
+        "suggested_definition": {
+            "definition": "Vị trí thu ngân đích được chỉ định để tiếp nhận tiền hoặc chứng từ trong quy trình bàn giao ca hoặc điều chuyển quỹ nội bộ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quầy vàng",
+        "suggested_definition": {
+            "definition": "Khu vực chuyên doanh các loại vàng miếng, vàng nhẫn trơn (vàng 24k, 999.9), thường có đặc thù biến động giá theo thời gian thực.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Quầy xoàn",
+        "suggested_definition": {
+            "definition": "Khu vực cao cấp chuyên doanh trang sức kim cương và đá quý, yêu cầu quy trình quản lý kiểm định và bảo mật nghiêm ngặt hơn.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "SL số thập phân",
+        "suggested_definition": {
+            "definition": "Tham số cấu hình số lượng các chữ số sau dấu phẩy khi hiển thị trọng lượng (ví dụ: 0.001 đối với vàng chỉ) để đảm bảo độ chính xác tuyệt đối trong ngành kim hoàn.",
+            "questions": [
+                "Đối với tiền VND, số thập phân có được mặc định là 0 không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "STT trên Bảng giá PM",
+        "suggested_definition": {
+            "definition": "Thứ tự hiển thị của các loại vàng trên màn hình cập nhật giá hoặc bảng giá điện tử ngoài cửa hàng, giúp nhân viên ưu tiên các loại vàng giao dịch phổ biến.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Shortcut key",
+        "suggested_definition": {
+            "definition": "Phím tắt trên bàn phím giúp nhân viên thực hiện nhanh các thao tác mà không cần dùng chuột (ví dụ: F1 để tìm sản phẩm, F12 để thanh toán), nhằm tối ưu tốc độ phục vụ tại quầy.",
+            "questions": [
+                "Hệ thống có cho phép người dùng tự cấu hình lại phím tắt theo thói quen không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Sprint",
+        "suggested_definition": {
+            "definition": "Chu kỳ phát triển và cập nhật tính năng phần mềm (thường từ 1-4 tuần), dùng để quản lý tiến độ nâng cấp các module mới cho hệ thống HTJ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "SĐT",
+        "suggested_definition": {
+            "definition": "Số điện thoại liên lạc của khách hàng hoặc đối tác, là thông tin quan trọng để tra cứu lịch sử giao dịch và triển khai các chương trình chăm sóc khách hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số HDDT",
+        "suggested_definition": {
+            "definition": "Mã số định danh của Hóa đơn điện tử đã được cơ quan Thuế cấp mã hoặc ghi nhận, dùng để tra cứu tính pháp lý của giao dịch trên cổng thông tin hóa đơn.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số chứng từ",
+        "suggested_definition": {
+            "definition": "Mã số duy nhất được hệ thống tự động sinh ra cho mỗi phiếu (nhập, xuất, thu, chi) để phục vụ việc quản lý, đối soát và lưu trữ hồ sơ.",
+            "questions": [
+                "Số chứng từ có được thiết lập theo quy tắc: [Loại phiếu]-[Chi nhánh]-[Ngày]-[STT] không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số giao dịch",
+        "suggested_definition": {
+            "definition": "Mã định danh cho một phiên làm việc hoặc một đơn hàng cụ thể, có thể bao gồm nhiều chứng từ liên quan (ví dụ: 1 số giao dịch gồm phiếu xuất hàng và phiếu thu tiền).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số hóa đơn",
+        "suggested_definition": {
+            "definition": "Số thứ tự in trên hóa đơn tài chính bàn giao cho khách hàng, dùng làm căn cứ để tính thuế và giải quyết khiếu nại, đổi trả.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số ký tự đơn giá nguyên (bảng giá)",
+        "suggested_definition": {
+            "definition": "Thông số cấu hình độ dài tối đa của phần số nguyên trong đơn giá khi hiển thị trên bảng giá điện tử hoặc mẫu in, tránh việc vỡ khung giao diện khi giá vàng tăng cao.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số lô",
+        "suggested_definition": {
+            "definition": "Mã quản lý một nhóm sản phẩm cùng loại được nhập về trong cùng một đợt hoặc sản xuất trong cùng một mẻ để theo dõi chất lượng và giá vốn.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số lô (Lot)",
+        "suggested_definition": {
+            "definition": "Định danh lô hàng theo chuẩn quản lý kho (Batch/Lot number), giúp thực hiện quy tắc xuất kho (FIFO - Nhập trước xuất trước) đối với các mặt hàng có cùng mã sản phẩm.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số lượng",
+        "suggested_definition": {
+            "definition": "Trường dữ liệu thể hiện số đơn vị sản phẩm (chiếc, bộ, đôi) trong một giao dịch hoặc trong kho.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số lượng sản phẩm *",
+        "suggested_definition": {
+            "definition": "Trường bắt buộc phải nhập khi tạo mới mặt hàng hoặc thực hiện giao dịch, đảm bảo hệ thống tính toán được tổng giá trị và số tồn kho.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số món",
+        "suggested_definition": {
+            "definition": "Tổng số lượng các vật phẩm riêng lẻ có trong một đơn hàng hoặc một bộ trang sức (ví dụ: một bộ trang sức có thể gồm 3 món: nhẫn, bông tai, dây chuyền).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số ngày hủy",
+        "suggested_definition": {
+            "definition": "Khoảng thời gian tối đa cho phép người dùng thực hiện lệnh hủy một chứng từ hoặc đơn hàng trên hệ thống kể từ lúc khởi tạo mà không cần quy trình phê duyệt phức tạp.",
+            "questions": [
+                "Sau thời hạn này, lệnh hủy có bắt buộc phải được Quản lý duyệt không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số ngày đổi trả (ngày)",
+        "suggested_definition": {
+            "definition": "Thời hạn quy định khách hàng được quyền đổi sang sản phẩm khác hoặc trả hàng hoàn tiền theo chính sách của tiệm (thường tính từ ngày trên hóa đơn).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số phiếu",
+        "suggested_definition": {
+            "definition": "Số thứ tự định danh duy nhất của một loại chứng từ (ví dụ: số phiếu thu, số phiếu chi, số phiếu xuất kho).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số thứ tự ưu tiên",
+        "suggested_definition": {
+            "definition": "Chỉ số dùng để sắp xếp thứ tự hiển thị của sản phẩm, danh mục hoặc loại vàng trên giao diện phần mềm hoặc bảng giá.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền",
+        "suggested_definition": {
+            "definition": "Giá trị tài chính thuần túy của một món hàng hoặc một dòng giao dịch chưa tính đến các điều chỉnh khác.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền (+/-)",
+        "suggested_definition": {
+            "definition": "Giá trị điều chỉnh tăng hoặc giảm trực tiếp vào tổng thanh toán (ví dụ: + phí gia công hoặc - chiết khấu giảm giá).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền chuyển khoản",
+        "suggested_definition": {
+            "definition": "Phần giá trị trong tổng hóa đơn được thanh toán thông qua hình thức chuyển khoản ngân hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền chuyển đổi",
+        "suggested_definition": {
+            "definition": "Giá trị được quy đổi từ một đơn vị này sang đơn vị khác (ví dụ: quy đổi từ ngoại tệ sang VND hoặc từ giá trị vàng quy tuổi sang tiền mặt).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền còn lại",
+        "suggested_definition": {
+            "definition": "Số dư nợ khách hàng còn phải trả hoặc số tiền cửa hàng còn phải trả cho nhà cung cấp sau khi đã thanh toán một phần.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền giới hạn/ngày",
+        "suggested_definition": {
+            "definition": "Hạn mức chi tiêu hoặc rút quỹ tối đa được thiết lập cho một nhân viên hoặc một chi nhánh trong một ngày để kiểm soát rủi ro tài chính.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền thực chi",
+        "suggested_definition": {
+            "definition": "Số tiền thực tế đã rời khỏi quỹ tiền mặt hoặc tài khoản ngân hàng của cửa hàng sau khi trừ tất cả các khoản chiết khấu/thuế.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền yêu cầu",
+        "suggested_definition": {
+            "definition": "Giá trị được ghi nhận trên phiếu đề xuất chi hoặc lệnh thanh toán đang chờ cấp quản lý phê duyệt.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tiền đã thanh toán",
+        "suggested_definition": {
+            "definition": "Tổng số tiền đã được ghi nhận nhập quỹ hoặc chuyển khoản thành công cho một đơn hàng cụ thể.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tài khoản",
+        "suggested_definition": {
+            "definition": "Dãy số định danh tài khoản ngân hàng của đơn vị thụ hưởng hoặc người chuyển tiền.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số tài khoản *",
+        "suggested_definition": {
+            "definition": "Trường bắt buộc nhập thông tin tài khoản ngân hàng để hệ thống thực hiện lệnh chuyển tiền tự động hoặc đối soát qua API ngân hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số điểm tích lũy",
+        "suggested_definition": {
+            "definition": "Tổng điểm khách hàng nhận được dựa trên giá trị các giao dịch mua hàng, dùng để đổi quà hoặc giảm trừ tiền trong các lần mua sau.",
+            "questions": [
+                "Tỷ lệ quy đổi điểm ra tiền mặt là bao nhiêu?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số điểm từ",
+        "suggested_definition": {
+            "definition": "Hạn mức điểm tối thiểu trong một phân hạng khách hàng (ví dụ: Hạng Vàng từ 1000 điểm).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số điểm đến",
+        "suggested_definition": {
+            "definition": "Hạn mức điểm tối đa trong một phân hạng khách hàng trước khi được nâng cấp lên hạng cao hơn.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Số điện thoại",
+        "suggested_definition": {
+            "definition": "Thông tin liên lạc chính của khách hàng, đối tác hoặc nhân viên; dùng làm khóa tìm kiếm nhanh lịch sử giao dịch và gửi thông báo biến động số dư/khuyến mãi.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Sử dụng giá đổi",
+        "suggested_definition": {
+            "definition": "Cơ chế áp dụng mức giá đặc biệt (thường cao hơn giá mua vào thông thường) khi khách hàng thực hiện đổi sản phẩm cũ lấy sản phẩm mới tại cửa hàng.",
+            "questions": [
+                "Tỷ lệ phần trăm ưu đãi khi 'đổi' so với 'bán đứt' là bao nhiêu?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Sửa",
+        "suggested_definition": {
+            "definition": "Quyền hạn cho phép thay đổi thông tin của một bản ghi dữ liệu đã tồn tại (khách hàng, danh mục sản phẩm) trước khi dữ liệu đó bị khóa hoặc chốt sổ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Sửa chữa",
+        "suggested_definition": {
+            "definition": "Nghiệp vụ tiếp nhận sản phẩm lỗi hoặc hư hỏng từ khách hàng để thực hiện các thao tác kỹ thuật (hàn, nối, gắn đá) mà không làm thay đổi bản chất mã sản phẩm.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Sửa giá khi giao dịch",
+        "suggested_definition": {
+            "definition": "Tính năng cho phép nhân viên (có thẩm quyền) điều chỉnh trực tiếp đơn giá bán lẻ trên màn hình giao dịch để xử lý các trường hợp mặc cả hoặc ưu đãi đặc biệt.",
+            "questions": [
+                "Hệ thống có lưu vết (log) ai là người đã thực hiện sửa giá không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TAB PHƯỜNG/XÃ",
+        "suggested_definition": {
+            "definition": "Phân mục quản lý danh sách đơn vị hành chính cấp xã/phường, hỗ trợ tự động điền địa chỉ chi tiết cho khách hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TAB QUẬN/HUYỆN",
+        "suggested_definition": {
+            "definition": "Phân mục quản lý danh sách đơn vị hành chính cấp quận/huyện.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TAB QUỐC GIA",
+        "suggested_definition": {
+            "definition": "Phân mục quản lý danh sách các quốc gia, dùng trong trường hợp hệ thống có tệp khách hàng nước ngoài hoặc quản lý nguồn gốc hàng nhập khẩu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TAB TỈNH/THÀNH PHỐ",
+        "suggested_definition": {
+            "definition": "Phân mục quản lý danh sách đơn vị hành chính cấp tỉnh.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TCCS01:2025/TD",
+        "suggested_definition": {
+            "definition": "Mã Tiêu chuẩn cơ sở áp dụng cho năm 2025, định nghĩa các quy chuẩn về chất lượng vàng và kỹ thuật chế tác tại đơn vị.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "THUỘC TÍNH CHI TIẾT",
+        "suggested_definition": {
+            "definition": "Các đặc điểm kỹ thuật mở rộng của sản phẩm như: độ tinh khiết của đá, kiểu cắt, màu sắc (nếu là kim cương) hoặc các họa tiết chạm khắc.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TL Vàng",
+        "suggested_definition": {
+            "definition": "Trọng lượng vàng nguyên chất hoặc vàng theo tuổi được tính toán sau khi đã loại trừ trọng lượng của các vật liệu đi kèm (hột, đá, dây buộc).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TL còn lại",
+        "suggested_definition": {
+            "definition": "Trọng lượng thực tế của sản phẩm sau khi đã trừ đi phần hao hụt trong quá trình gia công hoặc tân trang.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TL hột",
+        "suggested_definition": {
+            "definition": "Trọng lượng của các loại đá quý, kim cương hoặc hột giả gắn trên trang sức, thường được đo bằng đơn vị Carat hoặc quy đổi ra Ly/Phân vàng.",
+            "questions": [
+                "Hệ thống có bảng quy đổi từ Carat sang trọng lượng vàng tương ứng không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TL tổng ước lượng",
+        "suggested_definition": {
+            "definition": "Trọng lượng dự kiến ban đầu của món hàng bao gồm cả vàng và hột, dùng để đối soát sơ bộ trước khi thực hiện cân chi tiết.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TL vàng",
+        "suggested_definition": {
+            "definition": "Giá trị trọng lượng thực của kim loại vàng có trong sản phẩm (thường gọi là 'trọng lượng tịnh').",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TL vàng quy sau trừ lai",
+        "suggested_definition": {
+            "definition": "Trọng lượng vàng sau khi đã quy đổi về vàng chuẩn (999.9) và trừ đi 'tiền lai' (phí hao hụt/phí dịch vụ) theo thỏa thuận với đối tác hoặc thợ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TLV giao",
+        "suggested_definition": {
+            "definition": "Trọng lượng vàng thực tế bàn giao cho thợ hoặc đối tác để gia công.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TLV hao hụt",
+        "suggested_definition": {
+            "definition": "Phần trọng lượng vàng bị mất đi trong quá trình chế tác (mài, giũa, đánh bóng) được hệ thống ghi nhận để quyết toán đơn hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TLV quy",
+        "suggested_definition": {
+            "definition": "Trọng lượng vàng đã được quy đổi về một độ tuổi tiêu chuẩn dựa trên công thức: (Trọng lượng thực tế * Tuổi vàng hiện tại) / Tuổi chuẩn.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TLV sau phân loại",
+        "suggested_definition": {
+            "definition": "Trọng lượng vàng được xác định lại sau khi thực hiện nghiệp vụ phân tách các loại vàng khác nhau từ một lô hàng hỗn hợp.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thuế (%)",
+        "suggested_definition": {
+            "definition": "Tỷ lệ phần trăm thuế Giá trị gia tăng (VAT) hoặc các loại thuế liên quan áp dụng trên tổng giá trị hàng hóa.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thuế mong muốn (VNĐ)",
+        "suggested_definition": {
+            "definition": "Số tiền thuế mục tiêu mà cửa hàng muốn hạch toán cho một giao dịch cụ thể nhằm khớp với kế hoạch tài chính hoặc hóa đơn đầu vào.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thuế suất (%)",
+        "suggested_definition": {
+            "definition": "Mức thuế quy định bởi nhà nước cho từng nhóm mặt hàng (ví dụ: vàng trang sức 10%, vàng miếng có thể có quy định riêng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thuộc mục thu/chi",
+        "suggested_definition": {
+            "definition": "Phân loại một khoản tiền vào danh mục Thu hoặc Chi cụ thể (ví dụ: Thu bán lẻ, Chi lương nhân viên) để hệ thống tự động hạch toán vào sổ quỹ tương ứng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thành tiền",
+        "suggested_definition": {
+            "definition": "Giá trị cuối cùng của một dòng hàng hoặc một hóa đơn sau khi đã nhân đơn giá với số lượng và cộng/trừ các khoản phí, chiết khấu liên quan.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thành tiền hao hụt",
+        "suggested_definition": {
+            "definition": "Giá trị quy đổi ra tiền mặt của phần trọng lượng vàng bị mất đi trong quá trình chế tác, dựa trên đơn giá vàng tại thời điểm quyết toán.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thêm",
+        "suggested_definition": {
+            "definition": "Chức năng khởi tạo một bản ghi mới trong hệ thống (thêm khách hàng, thêm phiếu nhập hàng, thêm danh mục).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thêm bảng giá",
+        "suggested_definition": {
+            "definition": "Hành động thiết lập một phiên bản giá mới cho các loại vàng hoặc sản phẩm, thường thực hiện vào đầu ngày hoặc khi có biến động mạnh từ thị trường thế giới.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thông tin khác",
+        "suggested_definition": {
+            "definition": "Trường dữ liệu mở rộng để ghi chú các chi tiết không nằm trong các danh mục mặc định (ví dụ: yêu cầu riêng của khách về bao bì, ghi chú về đặc điểm thợ).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thời gian",
+        "suggested_definition": {
+            "definition": "Dữ liệu ngày giờ ghi nhận thời điểm phát sinh giao dịch hoặc thời điểm cập nhật dữ liệu gần nhất.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thời gian tra cứu (tháng)",
+        "suggested_definition": {
+            "definition": "Tham số giới hạn phạm vi thời gian (tính bằng tháng) khi thực hiện tìm kiếm lịch sử giao dịch hoặc xuất báo cáo để tối ưu tốc độ xử lý của hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thời gian xóa tối đa (tháng)",
+        "suggested_definition": {
+            "definition": "Quy định khoảng thời gian cho phép xóa dữ liệu sau khi khởi tạo; quá thời hạn này hệ thống sẽ khóa chức năng xóa để đảm bảo tính toàn vẹn của sổ sách kế toán.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thời gian áp dụng",
+        "suggested_definition": {
+            "definition": "Thời điểm bắt đầu có hiệu lực của một thiết lập (ví dụ: bảng giá mới áp dụng từ 8:00 sáng, chương trình khuyến mãi bắt đầu từ ngày 01/01).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thời hạn (tháng)",
+        "suggested_definition": {
+            "definition": "Khoảng thời gian hiệu lực của một cam kết hoặc thẻ thành viên (ví dụ: thời hạn bảo hành 12 tháng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thời hạn sử dụng: {10/01/2030}",
+        "suggested_definition": {
+            "definition": "Ngày hết hạn cụ thể của một chứng chỉ kiểm định, voucher hoặc thời điểm hệ thống yêu cầu bảo trì định kỳ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Thứ tự ưu tiên",
+        "suggested_definition": {
+            "definition": "Chỉ số sắp xếp các mục dữ liệu; số nhỏ hơn thường được hiển thị lên trên cùng của danh sách hoặc bảng giá.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiêu chuẩn cơ sở",
+        "suggested_definition": {
+            "definition": "Các quy chuẩn kỹ thuật nội bộ về chất lượng vàng, độ bóng, độ tinh khiết của đá quý mà cửa hàng cam kết với khách hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền bù",
+        "suggested_definition": {
+            "definition": "Khoản chênh lệch tài chính phát sinh khi trao đổi hàng hóa (ví dụ: khách đổi vàng tuổi cao lấy vàng tuổi thấp hoặc ngược lại, tiệm hoặc khách sẽ phải bù tiền chênh lệch tương ứng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền chiết khấu",
+        "suggested_definition": {
+            "definition": "Số tiền thực tế được giảm trừ trực tiếp vào hóa đơn cho khách hàng dựa trên các chương trình ưu đãi hoặc thỏa thuận riêng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền công",
+        "suggested_definition": {
+            "definition": "Chi phí thợ chế tác hoặc cửa hàng thu từ khách để thực hiện việc tạo hình trang sức, không bao gồm giá trị nguyên liệu vàng và hột.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền cầm tối đa/ngày",
+        "suggested_definition": {
+            "definition": "Hạn mức tổng số tiền tối đa mà một chi nhánh hoặc nhân viên được phép chi ra để thực hiện các giao dịch cầm cố tài sản trong một ngày làm việc nhằm kiểm soát dòng tiền mặt.",
+            "questions": [
+                "Khi vượt hạn mức này, hệ thống có yêu cầu mã phê duyệt từ cấp quản lý không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền hột chủ",
+        "suggested_definition": {
+            "definition": "Giá trị của viên đá quý chính (thường là kim cương hoặc đá quý có kích thước lớn, có giấy kiểm định riêng) được gắn trên sản phẩm trang sức.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền hột tấm",
+        "suggested_definition": {
+            "definition": "Tổng giá trị của các viên đá phụ có kích thước nhỏ được gắn xung quanh hột chủ hoặc trên vỏ trang sức để tạo độ sáng và trang trí.",
+            "questions": [
+                "Tiền hột tấm được tính theo đơn giá từng viên hay tính gộp theo trọng lượng/số lượng lô?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền mặt",
+        "suggested_definition": {
+            "definition": "Hình thức thanh toán bằng tiền vật lý (VND hoặc ngoại tệ) được thu hoặc chi trực tiếp tại quầy thu ngân.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền thanh toán",
+        "suggested_definition": {
+            "definition": "Tổng số tiền cuối cùng khách hàng thực trả cho cửa hàng (hoặc cửa hàng trả cho đối tác) sau khi đã cộng mọi loại phí và trừ đi các khoản giảm trừ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền thuế GTGT",
+        "suggested_definition": {
+            "definition": "Số tiền thuế Giá trị gia tăng được tính trên giá trị hàng hóa/dịch vụ theo thuế suất quy định, dùng để kê khai với cơ quan thuế.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tiền vàng",
+        "suggested_definition": {
+            "definition": "Giá trị kinh tế của phần kim loại vàng có trong sản phẩm, được tính bằng công thức: Trọng lượng vàng x Đơn giá vàng tại thời điểm giao dịch.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Toa hàng NCC",
+        "suggested_definition": {
+            "definition": "Danh sách chi tiết các mặt hàng hoặc nguyên liệu đi kèm đơn giá và số lượng được nhập về từ Nhà cung cấp (NCC).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Toa hàng món NCC",
+        "suggested_definition": {
+            "definition": "Hình thức nhập hàng từ nhà cung cấp theo từng đơn vị sản phẩm riêng lẻ (món), thường áp dụng cho hàng trang sức thành phẩm đã hoàn thiện.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tra cứu",
+        "suggested_definition": {
+            "definition": "Chức năng tìm kiếm và truy xuất thông tin từ cơ sở dữ liệu dựa trên các tiêu chí lọc (như mã sản phẩm, tên khách hàng, số điện thoại hoặc khoảng thời gian).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Trưởng BP/Phòng ban",
+        "suggested_definition": {
+            "definition": "Vai trò người dùng có quyền quản lý và phê duyệt các yêu cầu, chứng từ hoặc thay đổi dữ liệu trong phạm vi một bộ phận cụ thể (như Trưởng quầy, Trưởng kho).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Trọng lượng tem (chỉ)",
+        "suggested_definition": {
+            "definition": "Trọng lượng của sản phẩm được in trực tiếp trên tem nhãn theo đơn vị đo lường truyền thống của Việt Nam (Chỉ - Phân - Ly - Zem).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Trọng lượng tem (gram)",
+        "suggested_definition": {
+            "definition": "Trọng lượng sản phẩm hiển thị theo đơn vị gram (1 chỉ tương đương 3.75g), thường dùng trong việc in tem chuẩn quy định nhà nước hoặc giao dịch quốc tế.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Trọng lượng tem (ly)",
+        "suggested_definition": {
+            "definition": "Đơn vị đo lường nhỏ trong ngành vàng (1 chỉ = 100 ly), dùng để thể hiện độ chính xác của các chi tiết nhỏ hoặc trọng lượng đá quý gắn kèm.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tuấn Kiệt",
+        "suggested_definition": {
+            "definition": "Tên định danh của một đối tác, nhà cung cấp hoặc một chi nhánh cụ thể trong hệ thống mạng lưới HTJ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tuổi quy",
+        "suggested_definition": {
+            "definition": "Chỉ số hàm lượng vàng dùng để quy đổi giá trị giữa các loại vàng khác nhau về một chuẩn chung (thường quy về vàng 99.99%) để tính toán nợ hoặc thanh toán.",
+            "questions": [
+                "Hệ thống đang mặc định tuổi quy chuẩn là bao nhiêu?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tuổi quy *",
+        "suggested_definition": {
+            "definition": "Thông số bắt buộc phải nhập khi thực hiện nghiệp vụ trao đổi vàng hoặc chốt nợ với nhà cung cấp để đảm bảo tính chính xác về mặt giá trị.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "TÂN THANH DANH",
+        "suggested_definition": {
+            "definition": "Tên một thực thể kinh doanh (cửa hàng hoặc nhà cung cấp) trong danh mục đối tác của hệ thống.",
+            "status": "NEW",
+            "context": "HTJ Jewelry System"
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản",
+        "suggested_definition": {
+            "definition": "Thông tin đăng nhập của nhân viên vào hệ thống hoặc một tài khoản kế toán dùng để theo dõi dòng tiền/hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản (Avatar)",
+        "suggested_definition": {
+            "definition": "Hình ảnh đại diện gắn liền với hồ sơ người dùng trong hệ thống, giúp nhận diện nhanh nhân viên đang thao tác.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản chi",
+        "suggested_definition": {
+            "definition": "Tài khoản nguồn (tiền mặt tại quầy hoặc tài khoản ngân hàng) được lựa chọn để thực hiện xuất tiền trả cho các hoạt động vận hành.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản nguồn",
+        "suggested_definition": {
+            "definition": "Nơi bắt đầu của dòng tiền hoặc hàng hóa trong một giao dịch điều chuyển nội bộ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản nhận",
+        "suggested_definition": {
+            "definition": "Đích đến của dòng tiền hoặc hàng hóa trong giao dịch điều chuyển hoặc thanh toán.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản thanh toán",
+        "suggested_definition": {
+            "definition": "Tài khoản ngân hàng hoặc ví điện tử được chỉ định để khách hàng thực hiện chuyển khoản khi mua hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản tổng hợp",
+        "suggested_definition": {
+            "definition": "Tài khoản kế toán cấp cao dùng để gom dữ liệu từ nhiều tài khoản con, phục vụ mục đích lập báo cáo tài chính toàn diện.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản vay",
+        "suggested_definition": {
+            "definition": "Phân mục quản lý các khoản nợ vay từ ngân hàng hoặc cá nhân, bao gồm cả việc theo dõi lãi suất và kỳ hạn trả nợ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tài khoản ưu tiên",
+        "suggested_definition": {
+            "definition": "Tài khoản thường xuyên sử dụng được đẩy lên đầu danh sách chọn để tối ưu hóa tốc độ nhập liệu chứng từ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên Nguồn vốn",
+        "suggested_definition": {
+            "definition": "Tên gọi của các quỹ tài chính dùng để vận hành kinh doanh (ví dụ: Vốn tự có, Vốn vay ngân hàng, Vốn góp cổ đông).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên bảng giá",
+        "suggested_definition": {
+            "definition": "Nhãn định danh cho một bộ quy tắc giá cụ thể (ví dụ: Bảng giá bán lẻ sáng, Bảng giá sỉ, Bảng giá ưu đãi lễ).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên chi nhánh",
+        "suggested_definition": {
+            "definition": "Tên riêng của từng cửa hàng hoặc địa điểm kinh doanh trong chuỗi hệ thống HTJ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên chức danh",
+        "suggested_definition": {
+            "definition": "Tên vị trí công tác của nhân viên (ví dụ: Nhân viên bán hàng, Kế toán kho, Quản lý chi nhánh).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên công ty",
+        "suggested_definition": {
+            "definition": "Tên pháp nhân đầy đủ của doanh nghiệp sở hữu hệ thống, dùng để in trên hóa đơn VAT và hợp đồng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên cấu hình",
+        "suggested_definition": {
+            "definition": "Định danh cho một bộ thiết lập thông số kỹ thuật (ví dụ: Cấu hình in tem, Cấu hình phí dịch vụ).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên danh mục chi phí",
+        "suggested_definition": {
+            "definition": "Tên gọi các nhóm phí tổn phát sinh (ví dụ: Chi phí mặt bằng, Chi phí điện nước, Chi phí bao bì).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên dịch vụ",
+        "suggested_definition": {
+            "definition": "Tên các hoạt động phi hàng hóa có thu phí (ví dụ: Dịch vụ xi mạ, Dịch vụ khắc chữ, Dịch vụ kiểm định).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên hiển thị trên TV",
+        "suggested_definition": {
+            "definition": "Tên loại vàng hoặc thông điệp quảng cáo được rút gọn để trình chiếu trên màn hình bảng giá tại cửa hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên hình thức",
+        "suggested_definition": {
+            "definition": "Tên các phương thức giao dịch hoặc thanh toán (ví dụ: Trả góp, Chuyển khoản, Tiền mặt).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên hạng",
+        "suggested_definition": {
+            "definition": "Tên phân cấp khách hàng dựa trên mức độ thân thiết (ví dụ: Hạng Đồng, Hạng Vàng, Hạng Kim Cương).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên kho",
+        "suggested_definition": {
+            "definition": "Định danh nơi lưu trữ hàng hóa (ví dụ: Kho hàng mới, Kho hàng cũ, Kho tủ trưng bày 01).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên khu vực",
+        "suggested_definition": {
+            "definition": "Tên vùng địa lý hoặc phân khu quản lý (ví dụ: Khu vực Miền Tây, Khu vực TP.HCM).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên khách hàng",
+        "suggested_definition": {
+            "definition": "Họ và tên đầy đủ của người mua hàng hoặc đối tác giao dịch cá nhân.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên loại",
+        "suggested_definition": {
+            "definition": "Tên gọi chung cho một nhóm đối tượng cùng đặc tính trong một danh mục cụ thể.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên loại hàng",
+        "suggested_definition": {
+            "definition": "Phân loại sản phẩm theo công dụng (ví dụ: Nhẫn, Dây chuyền, Bông tai, Vòng tay).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên loại hình kinh doanh",
+        "suggested_definition": {
+            "definition": "Mô tả hình thức hoạt động của doanh nghiệp hoặc đối tác (ví dụ: Bán lẻ, Bán sỉ, Gia công).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên loại thẻ",
+        "suggested_definition": {
+            "definition": "Định danh các loại thẻ ngân hàng hoặc thẻ thành viên (ví dụ: Thẻ ATM, Thẻ Tín dụng, Thẻ VIP HTJ).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên loại vàng",
+        "suggested_definition": {
+            "definition": "Tên phổ thông của sản phẩm vàng theo hàm lượng (ví dụ: Vàng 24K, Vàng 18K (75%), Vàng trắng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên loại vàng quy *",
+        "suggested_definition": {
+            "definition": "Tên loại vàng chuẩn dùng làm căn cứ tính nợ hoặc quy đổi giá trị (thường là Vàng 99.99). Đây là trường bắt buộc.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên máy in/thiết bị",
+        "suggested_definition": {
+            "definition": "Định danh các thiết bị ngoại vi kết nối với hệ thống (ví dụ: Máy in tem TSC, Máy in hóa đơn Bixolon).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên mục thu/chi",
+        "suggested_definition": {
+            "definition": "Mô tả chi tiết nội dung của một khoản giao dịch tiền tệ (ví dụ: Thu tiền bán nhẫn, Chi tiền ăn trưa).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên ngoại tệ",
+        "suggested_definition": {
+            "definition": "Tên các loại tiền tệ nước ngoài được chấp nhận (ví dụ: USD, EUR, AUD).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên ngân hàng",
+        "suggested_definition": {
+            "definition": "Tên thương mại của ngân hàng mở tài khoản (ví dụ: Vietcombank, Agribank, BIDV).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên nhà cung cấp",
+        "suggested_definition": {
+            "definition": "Tên đơn vị hoặc cá nhân cung cấp hàng hóa, nguyên liệu cho hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên nhà cung cấp *",
+        "suggested_definition": {
+            "definition": "Trường bắt buộc nhập tên nhà cung cấp khi khởi tạo phiếu nhập hàng hoặc toa hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên nhóm",
+        "suggested_definition": {
+            "definition": "Tên phân loại cấp cao dùng để gom nhóm các đối tượng có cùng thuộc tính hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên nhóm hàng",
+        "suggested_definition": {
+            "definition": "Cấp bậc phân loại cao hơn 'Loại hàng' (ví dụ: Trang sức vàng, Trang sức bạc, Đá quý rời).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên nhóm quyền",
+        "suggested_definition": {
+            "definition": "Tên bộ quy tắc phân quyền người dùng (ví dụ: Nhóm Admin, Nhóm Kế toán, Nhóm Sales).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên phòng ban",
+        "suggested_definition": {
+            "definition": "Tên gọi các đơn vị chức năng trong tổ chức (ví dụ: Phòng Kế toán, Phòng Kinh doanh, Xưởng chế tác).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên quầy hàng",
+        "suggested_definition": {
+            "definition": "Định danh cụ thể cho từng khu vực trưng bày sản phẩm tại cửa hàng (ví dụ: Quầy nhẫn cưới, Quầy trang sức đá quý).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên quầy thu ngân",
+        "suggested_definition": {
+            "definition": "Định danh máy tính hoặc vị trí thực hiện thanh toán hóa đơn cho khách hàng (ví dụ: Thu ngân quầy 1, Thu ngân tầng trệt).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên quầy vàng",
+        "suggested_definition": {
+            "definition": "Khu vực chuyên biệt dành cho giao dịch vàng miếng hoặc vàng 24K tại cửa hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên thuế",
+        "suggested_definition": {
+            "definition": "Tên gọi các loại sắc thuế áp dụng (ví dụ: Thuế Giá trị gia tăng, Thuế Tiêu thụ đặc biệt).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên thuế suất",
+        "suggested_definition": {
+            "definition": "Định danh cho các mức thuế suất cụ thể để dễ dàng lựa chọn khi lập hóa đơn (ví dụ: VAT 8%, VAT 10%, Thuế 0%).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên tiếng anh",
+        "suggested_definition": {
+            "definition": "Tên sản phẩm hoặc dịch vụ được dịch sang tiếng Anh, dùng để in trên các chứng chỉ kiểm định quốc tế hoặc hóa đơn cho khách nước ngoài.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên tài khoản",
+        "suggested_definition": {
+            "definition": "Tên đại diện cho một tài khoản ngân hàng hoặc tài khoản định danh người dùng trong hệ thống phần mềm.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên viết tắt",
+        "suggested_definition": {
+            "definition": "Ký hiệu rút gọn của sản phẩm hoặc đối tác để hiển thị trên các giao diện có không gian hẹp hoặc in trên tem nhỏ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên vật tư",
+        "suggested_definition": {
+            "definition": "Tên gọi các nguyên liệu phụ trợ trong ngành kim hoàn (ví dụ: sáp nến, bột đúc, dung dịch xi mạ, hộp đựng).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên vốn vay",
+        "suggested_definition": {
+            "definition": "Định danh cho các khoản vay cụ thể (ví dụ: Vay thấu chi VCB, Vay tín chấp cá nhân).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên ĐVT",
+        "suggested_definition": {
+            "definition": "Tên đầy đủ của đơn vị tính được sử dụng (ví dụ: Chỉ, Bộ, Chiếc, Gram, Ly).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tên đăng nhập",
+        "suggested_definition": {
+            "definition": "Chuỗi ký tự duy nhất (thường là mã nhân viên hoặc số điện thoại) dùng để định danh người dùng khi truy cập vào hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tìm kiếm",
+        "suggested_definition": {
+            "definition": "Công cụ lọc dữ liệu nhanh giúp người dùng tìm thấy chứng từ, hàng hóa hoặc khách hàng dựa trên các từ khóa liên quan.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tình trạng",
+        "suggested_definition": {
+            "definition": "Trạng thái hiện tại của một thực thể trong hệ thống (ví dụ: Đang hoạt động, Tạm khóa, Đã hủy).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tình trạng sản phẩm",
+        "suggested_definition": {
+            "definition": "Mô tả trạng thái vật lý hoặc lưu kho của món hàng (ví dụ: Mới, Đang trưng bày, Đã bán, Đang gia công).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tính chất",
+        "suggested_definition": {
+            "definition": "Đặc điểm phân loại bổ sung cho hàng hóa hoặc nghiệp vụ (ví dụ: Hàng ký gửi, Hàng nội bộ, Hàng nhập ngoài).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tính theo Tổng TL",
+        "suggested_definition": {
+            "definition": "Phương thức tính toán giá trị dựa trên tổng trọng lượng của sản phẩm (bao gồm cả vàng và đá gắn kèm) thay vì tách rời từng phần.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tạo mới",
+        "suggested_definition": {
+            "definition": "Lệnh bắt đầu thiết lập một bản ghi dữ liệu hoàn toàn mới trong một phân hệ cụ thể.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tải lên",
+        "suggested_definition": {
+            "definition": "Hành động đưa tệp tin (ảnh sản phẩm, danh sách Excel, hồ sơ quét) từ thiết bị cá nhân lên máy chủ hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tất cả",
+        "suggested_definition": {
+            "definition": "Tùy chọn hiển thị toàn bộ dữ liệu trong một danh mục mà không áp dụng bất kỳ bộ lọc hạn chế nào.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tệp đính kèm (nếu có)",
+        "suggested_definition": {
+            "definition": "Các tài liệu bổ trợ đi kèm chứng từ chính (ví dụ: ảnh giấy chứng nhận kiểm định đá quý, ảnh hóa đơn NCC).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tồn kho",
+        "suggested_definition": {
+            "definition": "Số lượng và trọng lượng hàng hóa thực tế đang còn lưu giữ tại kho hoặc quầy kệ tại thời điểm kiểm tra.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng SL",
+        "suggested_definition": {
+            "definition": "Tổng số lượng đơn vị sản phẩm (chiếc, đôi, bộ) có trong một lô hàng hoặc một hóa đơn.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng TL",
+        "suggested_definition": {
+            "definition": "Tổng trọng lượng thực tế của (các) sản phẩm khi đặt trên cân, bao gồm tất cả các thành phần cấu thành.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng TL còn lại",
+        "suggested_definition": {
+            "definition": "Trọng lượng vàng hoặc hàng hóa còn tồn sau khi đã thực hiện các nghiệp vụ xuất kho hoặc bán lẻ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng TL hột",
+        "suggested_definition": {
+            "definition": "Tổng trọng lượng của các loại đá quý, hột chủ, hột tấm gắn trên (các) sản phẩm, thường được quy đổi ra chỉ hoặc gram để trừ khỏi tổng trọng lượng khi tính vàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng TL nhận",
+        "suggested_definition": {
+            "definition": "Tổng trọng lượng hàng hóa thực tế được ghi nhận khi nhập kho hoặc nhận từ một phiếu điều chuyển.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng TL tổng",
+        "suggested_definition": {
+            "definition": "Chỉ số cộng dồn toàn bộ trọng lượng của nhiều dòng hàng khác nhau trong một chứng từ tổng quát.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng TL vàng",
+        "suggested_definition": {
+            "definition": "Trọng lượng vàng thực tế (đã trừ trọng lượng hột/đá) dùng làm căn cứ để tính tiền vàng theo đơn giá.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng TL đã nhận/đã bán",
+        "suggested_definition": {
+            "definition": "Chỉ số cộng dồn tổng trọng lượng hàng hóa thực tế đã được nhập kho thành công hoặc đã hoàn tất giao dịch xuất bán cho khách hàng trong một khoảng thời gian báo cáo.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng TLV",
+        "suggested_definition": {
+            "definition": "Tổng Trọng Lượng Vàng thực tế (sau khi đã khấu trừ trọng lượng đá/hột), dùng làm căn cứ chính xác để tính toán giá trị hàng hóa và quản lý kho vàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng chi phí",
+        "suggested_definition": {
+            "definition": "Toàn bộ các khoản tiền phải chi ra cho một hoạt động, bao gồm giá vốn hàng hóa cộng với các chi phí vận hành, thuế và dịch vụ đi kèm.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng công",
+        "suggested_definition": {
+            "definition": "Tổng số tiền công chế tác hoặc phí dịch vụ gia công cho tất cả các sản phẩm có trong một hóa đơn hoặc toa hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng công hồi",
+        "suggested_definition": {
+            "definition": "Số tiền công mà cửa hàng thu lại hoặc hoàn lại khi thực hiện nghiệp vụ mua lại hàng cũ (hàng hồi) từ khách hàng, dựa trên quy định khấu trừ tiền công khi mua vào.",
+            "questions": [
+                "Tỷ lệ công hồi đang được tính cố định theo món hay theo phần trăm giá bán ban đầu?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng số món",
+        "suggested_definition": {
+            "definition": "Tổng số lượng đơn vị sản phẩm riêng lẻ trong một lô hàng, chứng từ hoặc báo cáo kiểm kho.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng số nhân viên",
+        "suggested_definition": {
+            "definition": "Chỉ số thống kê tổng lượng nhân sự đang hoạt động tại một chi nhánh hoặc toàn hệ thống tính đến thời điểm tra cứu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng thành tiền",
+        "suggested_definition": {
+            "definition": "Giá trị cuối cùng của toàn bộ chứng từ sau khi đã cộng dồn tất cả dòng hàng và áp dụng các khoản thuế, chiết khấu hoặc phí phụ thu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền",
+        "suggested_definition": {
+            "definition": "Giá trị gộp của hàng hóa trước khi tính các khoản giảm trừ hoặc thuế (thường dùng trong các bảng kê chi tiết).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền công",
+        "suggested_definition": {
+            "definition": "Tổng hợp chi phí gia công chế tác của tất cả mặt hàng, dùng để tách bạch giữa giá trị nguyên liệu (vàng) và chi phí sản xuất.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền giao dịch",
+        "suggested_definition": {
+            "definition": "Tổng số tiền luân chuyển thực tế phát sinh trong một phiên làm việc hoặc một đợt đối soát giữa các quầy/chi nhánh.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền nợ cũ",
+        "suggested_definition": {
+            "definition": "Toàn bộ số dư nợ (tiền mặt) tích lũy từ các giao dịch trước đó của khách hàng hoặc nhà cung cấp chưa được tất toán tính đến thời điểm lập chứng từ hiện tại.",
+            "questions": [
+                "Số dư nợ này có bao gồm cả nợ vàng quy đổi hay chỉ tính nợ tiền mặt?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền thanh toán",
+        "suggested_definition": {
+            "definition": "Số tiền cuối cùng mà người mua phải trả cho người bán, sau khi đã cộng mọi loại thuế, phí và trừ đi các khoản giảm giá, chiết khấu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền thực nhận",
+        "suggested_definition": {
+            "definition": "Số tiền thực tế đã vào quỹ hoặc tài khoản ngân hàng của cửa hàng sau khi trừ đi các loại phí giao dịch (nếu có, như phí quẹt thẻ) hoặc các khoản cấn trừ nợ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền toa hàng",
+        "suggested_definition": {
+            "definition": "Giá trị gộp của tất cả các mặt hàng có trong một đơn hàng/toa hàng cụ thể, thường dùng để đối soát với nhà cung cấp.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền tạm tính",
+        "suggested_definition": {
+            "definition": "Giá trị ước tính sơ bộ của hàng hóa hoặc dịch vụ dựa trên thông số hiện có, có thể thay đổi sau khi cân đo thực tế hoặc chốt giá vàng chính thức.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tổng tiền ước lượng",
+        "suggested_definition": {
+            "definition": "Số tiền dự kiến cho một giao dịch (thường dùng trong nghiệp vụ cầm đồ hoặc đặt gia công) dựa trên giá trị định giá sơ bộ tài sản.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Từ kho",
+        "suggested_definition": {
+            "definition": "Địa điểm kho nguồn nơi hàng hóa được xuất đi trong các giao dịch điều chuyển nội bộ hoặc xuất bán.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Từ kho *",
+        "suggested_definition": {
+            "definition": "Thông tin bắt buộc phải chọn về kho xuất hàng để hệ thống có thể trừ tồn kho chính xác.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Từ ngày",
+        "suggested_definition": {
+            "definition": "Mốc thời gian bắt đầu của một khoảng thời gian dùng để lọc dữ liệu báo cáo hoặc tra cứu lịch sử giao dịch.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Từ ngày *",
+        "suggested_definition": {
+            "definition": "Tham số bắt buộc phải nhập để xác định thời điểm bắt đầu khi truy xuất các báo cáo tài chính hoặc báo cáo kho.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tự động xuất",
+        "suggested_definition": {
+            "definition": "Cơ chế hệ thống tự thực hiện lệnh xuất kho hoặc xuất hóa đơn ngay sau khi một điều kiện phê duyệt được thỏa mãn mà không cần thao tác thủ công.",
+            "questions": [
+                "Quy trình tự động xuất có yêu cầu kiểm tra tồn kho tối thiểu trước khi thực hiện không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tỷ giá lớn nhất",
+        "suggested_definition": {
+            "definition": "Mức giá trần (giá cao nhất) của một loại vàng hoặc ngoại tệ trong một khung thời gian xác định hoặc theo cấu hình biên độ giao dịch.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tỷ giá nhỏ nhất",
+        "suggested_definition": {
+            "definition": "Mức giá sàn (giá thấp nhất) được phép giao dịch đối với loại vàng hoặc ngoại tệ tương ứng trong hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tỷ giá sau phân loại",
+        "suggested_definition": {
+            "definition": "Mức giá được áp dụng cho từng loại vàng sau khi nhân viên đã thực hiện giám định và phân tách hàng cũ (vàng hồi) thành các nhóm tuổi vàng khác nhau.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tỷ lệ hao hụt (%)",
+        "suggested_definition": {
+            "definition": "Phần trăm trọng lượng vàng bị mất đi trong quá trình chế tác, đánh bóng hoặc nấu lại, được dùng để tính toán giá thành sản phẩm.",
+            "questions": [
+                "Hệ thống có cấu hình định mức hao hụt riêng cho từng nhóm thợ/nhà cung cấp không?"
+            ]
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tỷ lệ quy đổi",
+        "suggested_definition": {
+            "definition": "Hệ số dùng để chuyển đổi giá trị giữa các đơn vị đo lường khác nhau hoặc giữa các loại vàng có độ tinh khiết khác nhau về một chuẩn chung.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Tỷ lệ đổi (%)",
+        "suggested_definition": {
+            "definition": "Mức phí phần trăm hoặc tỷ lệ giá trị được áp dụng khi khách hàng thực hiện nghiệp vụ đổi hàng (ví dụ: đổi mẫu cũ lấy mẫu mới).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Việt Nam",
+        "suggested_definition": {
+            "definition": "Quốc gia mặc định trong cấu hình địa lý, định dạng tiền tệ (VNĐ) và các tiêu chuẩn tuổi vàng theo quy định nhà nước.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Vàng cũ",
+        "suggested_definition": {
+            "definition": "Các sản phẩm vàng đã qua sử dụng khách hàng mang đến bán lại hoặc đổi, thường phải trải qua quá trình kiểm định lại tuổi và trọng lượng thực tế.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Vàng mới",
+        "suggested_definition": {
+            "definition": "Sản phẩm trang sức hoặc vàng miếng chưa qua sử dụng, đang trong tình trạng hoàn hảo để xuất bán lẻ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Vàng mới tính bằng tiền",
+        "suggested_definition": {
+            "definition": "Nghiệp vụ quy đổi giá trị của món hàng mới ra đơn vị tiền mặt để thực hiện các giao dịch bù trừ khi khách hàng mang vàng cũ đến đổi.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Vàng nguyên liệu",
+        "suggested_definition": {
+            "definition": "Vàng chưa được chế tác thành trang sức (thường là vàng hạt hoặc vàng miếng), dùng để cấp phát cho thợ gia công hoặc nhập kho nguyên liệu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Vàng quy bằng tiền",
+        "suggested_definition": {
+            "definition": "Giá trị tiền mặt tương đương của một lượng vàng sau khi đã nhân trọng lượng quy đổi với đơn giá tại thời điểm giao dịch.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Ví dụ minh họa",
+        "suggested_definition": {
+            "definition": "Mẫu hướng dẫn thao tác hoặc cách tính toán cụ thể được tích hợp trong hệ thống để người dùng tham khảo khi thực hiện các nghiệp vụ phức tạp.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Xem",
+        "suggested_definition": {
+            "definition": "Lệnh truy cập vào chi tiết bản ghi hoặc chứng từ mà không cho phép chỉnh sửa dữ liệu.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Xuất excel",
+        "suggested_definition": {
+            "definition": "Chức năng trích xuất dữ liệu đang hiển thị trên màn hình ra tệp tin định dạng .xlsx để phục vụ báo cáo hoặc xử lý dữ liệu ngoại tuyến.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Xuống",
+        "suggested_definition": {
+            "definition": "Thao tác di chuyển thứ tự hiển thị của một dòng dữ liệu hoặc một danh mục xuống phía dưới.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Xóa",
+        "suggested_definition": {
+            "definition": "Lệnh loại bỏ hoàn toàn một bản ghi hoặc chứng từ khỏi danh sách hiển thị (thông tin có thể được lưu trữ trong nhật ký xóa hoặc thùng rác tùy cấu hình).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "ĐVT",
+        "suggested_definition": {
+            "definition": "Viết tắt của Đơn Vị Tính, dùng để định danh cách thức đo lường hàng hóa (ví dụ: Chỉ, Gram, Chiếc).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "ĐVT quy đổi",
+        "suggested_definition": {
+            "definition": "Đơn vị tính dùng trong quá trình chuyển đổi (ví dụ: nhập hàng theo Gram nhưng bán ra và quản lý theo Chỉ).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "ĐVT xuất HĐĐT",
+        "suggested_definition": {
+            "definition": "Đơn vị tính chính thức được ánh xạ theo danh mục chuẩn của Tổng cục Thuế khi phát hành hóa đơn điện tử.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Điều chỉnh tuổi vàng",
+        "suggested_definition": {
+            "definition": "Nghiệp vụ sửa đổi thông số hàm lượng vàng của một sản phẩm hoặc lô hàng sau khi có kết quả kiểm định chính xác hơn.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Điện thoại",
+        "suggested_definition": {
+            "definition": "Thông tin liên lạc bắt buộc của khách hàng hoặc đối tác để phục vụ việc gửi SMS thông báo, tích điểm và chăm sóc sau bán hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đã thanh toán",
+        "suggested_definition": {
+            "definition": "Trạng thái xác nhận một phần hoặc toàn bộ số tiền của hóa đơn đã được khớp lệnh thu chi thực tế trong hệ thống.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đơn giá",
+        "suggested_definition": {
+            "definition": "Giá trị tính trên một đơn vị đo lường của sản phẩm (ví dụ: giá trên một chỉ vàng, giá trên một viên kim cương) tại thời điểm giao dịch.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đơn vị tính",
+        "suggested_definition": {
+            "definition": "Đại lượng dùng để đo lường số lượng hoặc trọng lượng hàng hóa (ví dụ: Chiếc, Đôi, Chỉ, Phân, Ly).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đơn vị tính *",
+        "suggested_definition": {
+            "definition": "Tham số bắt buộc phải lựa chọn khi khai báo hàng hóa mới để đảm bảo tính nhất quán trong tính toán tồn kho.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đế xoàn",
+        "suggested_definition": {
+            "definition": "Phần ổ chờ hoặc khung trang sức bằng vàng/bạch kim dùng để gắn đá chủ hoặc đá tấm.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đến kho *",
+        "suggested_definition": {
+            "definition": "Địa điểm kho đích bắt buộc phải xác định trong lệnh điều chuyển hàng hóa nội bộ.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đến ngày",
+        "suggested_definition": {
+            "definition": "Mốc thời gian kết thúc của một khoảng thời gian tra cứu dữ liệu hoặc báo cáo.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đến ngày *",
+        "suggested_definition": {
+            "definition": "Tham số bắt buộc phải nhập để giới hạn phạm vi cuối cùng của dữ liệu cần truy xuất.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Địa chỉ",
+        "suggested_definition": {
+            "definition": "Thông tin nơi cư trú hoặc địa điểm kinh doanh của khách hàng và nhà cung cấp, phục vụ công tác giao hàng và quản lý vùng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đối tượng",
+        "suggested_definition": {
+            "definition": "Phân loại nhóm chủ thể tham gia giao dịch (ví dụ: Khách lẻ, Đại lý, Thợ gia công, Nhà cung cấp).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đồng bộ tồn kho",
+        "suggested_definition": {
+            "definition": "Hành động cập nhật lại số liệu thực tế từ các quầy hàng vào hệ thống dữ liệu trung tâm để đảm bảo tính chính xác sau khi kiểm kê.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đổi ngang bù tiền",
+        "suggested_definition": {
+            "definition": "Nghiệp vụ trao đổi hàng hóa có giá trị tương đương về vàng nhưng chênh lệch về tiền công hoặc trọng lượng nhỏ, yêu cầu thanh toán phần giá trị chênh lệch phát sinh.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Độ ưu tiên",
+        "suggested_definition": {
+            "definition": "Thứ tự xử lý của các lệnh sản xuất, đơn hàng hoặc cấu hình hiển thị (số càng nhỏ ưu tiên càng cao).",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "Đột xuất",
+        "suggested_definition": {
+            "definition": "Loại nghiệp vụ hoặc kiểm kê không theo kế hoạch định kỳ, thường dùng để xử lý các tình huống phát sinh ngoài quy trình chuẩn.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    },
+    {
+        "term": "🔍 Tìm kiếm ...",
+        "suggested_definition": {
+            "definition": "Ô nhập liệu nhanh nằm trên thanh công cụ, cho phép truy vấn tức thời theo tên sản phẩm, mã vạch hoặc tên khách hàng.",
+            "questions": []
+        },
+        "status": "NEW",
+        "context": "HTJ Jewelry System"
+    }
+]

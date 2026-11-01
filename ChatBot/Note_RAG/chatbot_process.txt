@@ -1,0 +1,73 @@
+Hệ điều hành Tri thức Tác tử (Agentic Knowledge OS) rất chi tiết và có tính hệ thống cao. Để anh dễ dàng theo dõi tiến độ lập trình và biết mình đang ở đâu, thiếu gì, tôi sẽ sơ đồ hóa và chia nhỏ các thành phần này thành một "danh mục kiểm tra" (Checklist) kỹ thuật.
+
+1. Kiến trúc Tổng thể Hệ thống
+Hệ thống của anh hoạt động như một dây chuyền sản xuất tri thức tự động, nơi dữ liệu thô đi vào và tri thức "sạch" đi ra.
+
+2. Chi tiết các Tầng và Thành phần Code (Checklist)
+Tầng 1: Tiếp nhận & Phân loại (The Router Agent)
+Trạng thái: Anh đã có Model BusinessTask và KnowledgeChunk.
+
+Cần Code:
+
+File Processor: Bộ lọc định dạng file (Excel, PDF, Image).
+
+Fingerprint Scanner: Hàm lấy mẫu dữ liệu (ví dụ: lấy 5 dòng đầu) để AI nhận diện nghiệp vụ.
+
+Task Matcher: Logic đối chiếu mẫu dữ liệu với slug hoặc matching_keywords trong DB.
+
+Task Suggester: Cơ chế thông báo nếu phát hiện nghiệp vụ mới chưa có trong hệ thống.
+
+Tầng 2: Soạn thảo & Phát hiện Xung đột (The Architect & Critic)
+Trạng thái: Anh đã định nghĩa Model KnowledgeDraft.
+
+Cần Code:
+
+Prompt Composer: Hàm compose_letter anh vừa viết để trộn Context + Prompt.
+
+The Architect: Gọi API AI (Gemini/Ollama) để bóc tách dữ liệu thô thành logic nghiệp vụ.
+
+The Critic (Conflict Checker): Hàm so sánh văn bản hoặc logic giữa bản thảo mới và dữ liệu đã APPROVED trong DB.
+
+Conflict Reporter: Logic liệt kê chi tiết các điểm khác biệt (ví dụ: Vàng 610 cũ: 0.61 vs Mới: 0.615).
+
+Tầng 3: Học tăng cường (The Learning Loop)
+Trạng thái: Anh đã có Model CorrectionLedger.
+
+Cần Code:
+
+Feedback UI: Giao diện để anh bấm "Lấy mới", "Giữ cũ" hoặc "Sửa tay".
+
+Ledger Logger: Tự động ghi lại sự thay đổi vào CorrectionLedger.
+
+Dynamic Prompt Updater: Hàm định kỳ tổng hợp dữ liệu từ Ledger để cập nhật vào trường learning_notes của BusinessTask.
+
+Tầng 4: Chatbot Định hướng (The Intent-Driven Chatbot)
+Trạng thái: Đã có Model BusinessTerm và BusinessProcess để lưu tri thức "sạch".
+
+Cần Code:
+
+Intent Router: Khi khách hỏi, Bot phải truy vấn BusinessTask để đưa ra các lựa chọn định hướng.
+
+Clean Retriever: Logic chỉ lấy dữ liệu từ những bảng đã được is_published=True hoặc status='APPROVED'.
+
+Fallback Logic: Xử lý khi khách hỏi ngoài các nghiệp vụ đã định nghĩa.
+
+3. Những gì anh đang "Thiếu" (Khoảng trống kỹ thuật)
+Dựa trên các đoạn code anh đã cung cấp, anh đang thiếu các thành phần trung gian để kết nối các Model lại với nhau:
+
+Hệ thống xử lý File (The Miner): Anh cần viết logic để băm file (Chunking) ngay khi Upload và lưu vào KnowledgeChunk.
+
+Logic so sánh (The Critic): Anh thiếu thuật toán để phát hiện xung đột giữa hai đoạn văn bản hoặc hai công thức JSON.
+
+Giao diện quản lý (The Dashboard): Anh cần một trang Admin (có thể dùng Django Admin nhưng tùy biến thêm) để duyệt các KnowledgeDraft đang chờ (PENDING).
+
+Hàm tự học: Logic để "đọc" các bản sửa lỗi trong CorrectionLedger và viết lại learning_notes một cách súc tích cho AI.
+
+Tổng kết thứ tự ưu tiên cho anh Xuân:
+Ưu tiên 1: Code luồng băm nhỏ file (Chunking) và lưu vào KnowledgeChunk.
+
+Ưu tiên 2: Hoàn thiện hàm gọi AI để tạo ra KnowledgeDraft.
+
+Ưu tiên 3: Code bộ so sánh Conflict Checker.
+
+Ưu tiên 4: Xây dựng luồng Chatbot hỏi định hướng.

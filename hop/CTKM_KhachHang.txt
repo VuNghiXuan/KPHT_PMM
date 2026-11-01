@@ -1,0 +1,10 @@
+Sinh nhật KH (là con của Voucher)
+Quà tang
+
+Chiết khấu gồm: Voucher, đổi điểm
+
+Trả hết tính trên sản phẩm cuối cùng vì chỗ này liên quan đến đổi điểm
+Đổi điểm hiện nay đag sử dung chiết khấu từ tiền công
+
+---> Cách giải quyết chia chiết khấu đổi điểm theo tỉ lệ số món đưa vào ck voucher (tiền công)
+ 

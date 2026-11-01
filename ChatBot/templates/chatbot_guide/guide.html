@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load guide_filters %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+<style>
+    :root {
+        --django-primary: #79aec8;
+        --django-secondary: #417690;
+        --django-header: #102833;
+        --django-link: #447e9b;
+        --django-bg: #f4f7f9;
+    }
+
+    /* KHÔNG định nghĩa body chung, chỉ định nghĩa nội dung bên trong wrapper */
+    .main-wrapper {
+        background-color: var(--django-bg);
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* CHỈ định nghĩa Icon cho đúng các class của FontAwesome, tránh dùng !important bừa bãi */
+    .fas,
+    .far,
+    .fa {
+        font-family: "Font Awesome 6 Free" !important;
+        font-weight: 900 !important;
+    }
+
+    /* Các thành phần Sidebar và Content Card giữ nguyên nhưng bọc trong class cha */
+    .django-sidebar {
+        background: #fff;
+        border-right: 1px solid #dee2e6;
+        height: calc(100vh - 56px);
+        /* Trừ đi chiều cao Navbar */
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    /* Đảm bảo chữ trong bảng của Django Admin không bị bóp nhỏ */
+    .guide-content table {
+        width: 100% !important;
+        font-size: 14px !important;
+        margin: 20px 0;
+    }
+
+    /* Giữ nguyên các định nghĩa class khác của anh... */
+    .sidebar-header {
+        background: var(--django-secondary);
+        color: #fff;
+        padding: 15px;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+    /* Thêm đoạn này để ép cỡ chữ Wiki không bị nhỏ */
+    .guide-content {
+        line-height: 1.8;
+        color: #333;
+        font-size: 16px !important;
+        /* Ép cỡ chữ nội dung Wiki to rõ */
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-3 col-lg-2 d-none d-md-block django-sidebar p-0">
+            <div class="sidebar-header text-uppercase fw-bold">
+                <i class="fas fa-project-diagram me-2"></i> Kiến trúc HTJ
+            </div>
+            <div class="overflow-auto" style="height: calc(100vh - 50px);">
+                {% for cat in categories %}
+                <div class="py-2 px-3 bg-light text-muted small fw-bold border-bottom">
+                    <i class="far fa-folder-open me-1"></i> {{ cat.name|upper }}
+                </div>
+                {% for entry in cat.entries.all %}
+                <a href="{% url 'chatbot_guide:detail' entry.id %}"
+                    class="nav-link nav-link-django {% if current_entry and entry.id == current_entry.id %}active{% endif %}">
+                    {{ entry.title }}
+                </a>
+                {% endfor %}
+                {% endfor %}
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/guide/" style="color: var(--django-link);">Wiki</a></li>
+                    {% if current_entry %}
+                    <li class="breadcrumb-item active">{{ current_entry.title }}</li>
+                    {% else %}
+                    <li class="breadcrumb-item active">Tổng quan</li>
+                    {% endif %}
+                </ol>
+            </nav>
+
+            <div class="content-card">
+                {% if current_entry %}
+                <div class="content-header d-flex justify-content-between align-items-center">
+                    <h1 class="h5 m-0 fw-bold">{{ current_entry.title }}</h1>
+                    <span class="badge bg-light text-dark shadow-sm">
+                        <i class="far fa-calendar-alt me-1"></i> {{ current_entry.updated_at|date:"d/m/Y" }}
+                    </span>
+                </div>
+                <div class="p-4 p-md-5">
+                    <div class="guide-content">
+                        {# Sử dụng filter markdown để render nội dung từ CSV #}
+                        {{ current_entry.content|markdown }}
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-book-reader"></i>
+                    <h3 class="fw-bold">Chào mừng anh Vũ đến với Wiki HTJ</h3>
+                    <p class="mb-1">Hệ thống quản lý tri thức và hướng dẫn vận hành Agentic RAG.</p>
+                    <p class="small text-muted">Vui lòng chọn một chuyên mục ở sidebar bên trái để xem chi tiết.</p>
+
+                    <div class="mt-4 p-3 border rounded bg-light mx-auto" style="max-width: 500px;">
+                        <div class="d-flex align-items-center justify-content-center text-danger fw-bold">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span>LƯU Ý HỆ THỐNG</span>
+                        </div>
+                        <ul class="list-unstyled mt-2 small text-danger">
+                            <li class="mb-1">• Nội dung bài học có thể chưa được tải lên hệ thống (Vui lòng kiểm tra
+                                file CSV).</li>
+                            <li>• Hoặc bài học hiện đang trong trạng thái chờ Admin phê duyệt (is_reviewed = False).
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4">
+                        <span class="badge rounded-pill bg-secondary opacity-50">v1.2.0 - System Architect</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer
+    crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cypher.min.js" defer
+    crossorigin="anonymous"></script>
+
+<script>
+    // Đảm bảo PrismJS highlight lại nội dung sau khi load xong trang
+    document.addEventListener('DOMContentLoaded', (event) => {
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAll();
+        }
+    });
+</script>
+{% endblock %}

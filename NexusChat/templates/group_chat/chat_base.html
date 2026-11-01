@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Chit AI - {% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-w: 280px;
+            --kb-w: 320px;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .chat-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar trái: Navigation thông minh */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: #ffffff;
+            border-right: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Main Chat: Khu vực làm việc */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+        }
+
+        /* Sidebar phải: AI & Knowledge (Vũ khí chính) */
+        .kb-sidebar {
+            width: var(--kb-w);
+            background: #fdfdfd;
+            border-left: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-summary-card {
+            background: #eef6ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px;
+            border-left: 4px solid #0d6efd;
+            font-size: 0.9rem;
+        }
+
+        .file-tag {
+            font-size: 0.7rem;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <div class="p-3 border-bottom d-flex align-items-center">
+                <a href="{% url 'core:dashboard' %}" class="btn btn-sm btn-outline-dark me-2"><i
+                        class="fas fa-home"></i></a>
+                <h6 class="mb-0 fw-bold">Chat Chit</h6>
+            </div>
+            <div class="p-3">
+                <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm hội thoại...">
+            </div>
+            <nav class="nav nav-pills flex-column px-2">
+                <a class="nav-link active" href="#"><i class="fas fa-comments me-2"></i> Nhóm công việc</a>
+                <a class="nav-link" href="#"><i class="fas fa-user-friends me-2"></i> Bạn bè & Đồng nghiệp</a>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <div class="p-3 border-bottom bg-white d-flex justify-content-between">
+                <h5 class="mb-0 fw-bold">{{ group.name }}</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-phone"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-video"></i></button>
+                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-cog"></i></button>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chat-box">
+                {% block chat_content %}{% endblock %}
+            </div>
+
+            <div class="chat-input-area border-top p-3 bg-white">
+                <div class="ai-config-panel d-flex gap-3 mb-2">
+                    <select class="form-select form-select-sm w-auto">
+                        <option>GPT-4o (Phân tích tài liệu)</option>
+                    </select>
+                    <button class="btn btn-sm btn-light"><i class="fas fa-brain"></i> Tự động tóm tắt</button>
+                </div>
+                <div class="input-group">
+                    <button class="btn btn-light"><i class="fas fa-smile"></i></button>
+                    <input type="text" class="form-control" placeholder="Gõ @AI để hỏi tài liệu hoặc nhập tin nhắn...">
+                    <button class="btn btn-primary px-4"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="kb-sidebar">
+            <div class="p-3 border-bottom bg-white">
+                <h6><i class="fas fa-magic me-2"></i> Trợ lý thông minh</h6>
+            </div>
+            <div class="ai-summary-card">
+                <small class="text-primary fw-bold">TÓM TẮT CUỘC TRÒ CHUYỆN</small>
+                <p class="mt-1 mb-0">AI đã tổng hợp: Các quyết định chính về dự án kế toán đã được thống nhất...</p>
+            </div>
+            <div class="p-3 flex-grow-1 overflow-auto">
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="fw-bold">TÀI LIỆU (5)</small>
+                    <button class="btn btn-link btn-sm p-0">Xem tất cả</button>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for doc in documents %}
+                    <div class="list-group-item bg-transparent border-0 px-0">
+                        <i class="fas fa-file-pdf text-danger me-2"></i> {{ doc.name }}
+                        <span class="file-tag">Kế toán</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

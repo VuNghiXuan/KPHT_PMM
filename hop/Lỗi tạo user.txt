@@ -1,0 +1,6 @@
+Khi tạo user thì phải thực hiện:
+-Gắn với nhóm được phân quyền
+- gắn với Nhân viên cụ thể
+- Đối với thao tác quầy thu ngân thì mỗi quầy phải gắn với nhân viên tương ứng quầy: nghĩa là phải add nhân viên đó vào quầy mới nhìn thấy và thao tác
+- Phân quyền cho nhóm : để nhìn thấy các chi nhánh phải gắn quyền chi nhánh, còn quyền nhân viên không thấy được chi nhánh khác
+- Cấu hình duyêt: Nhân viên chỉ thấy những gì do nhân viên tạo ra, Phòng ban thấy hết các phiếu do Nhân viên phòng mình, Chi nhánh thấy hết các các nhân viên và phòng ban, Chi nhánh thấy hết các phòng ban và nhân viên

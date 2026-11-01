@@ -1,0 +1,12 @@
+{% extends "group_chat/chat_base.html" %}
+
+{% block chat_content %}
+<div class="flex-grow-1 overflow-auto p-4" id="chat-messages">
+    {% for message in messages %}
+    <div class="message-bubble">...</div>
+    {% endfor %}
+</div>
+<div class="p-3 border-top">
+    <input type="text" class="form-control" placeholder="Gõ @AI...">
+</div>
+{% endblock %}

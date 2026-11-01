@@ -1,0 +1,93 @@
+# TỔNG HỢP NGHIỆP VỤ QUẢN LÝ KINH DOANH VÀNG TRANG SỨC (DÀNH CHO ỨNG DỤNG)
+
+========================================================================
+I. MODULE QUẢN LÝ DANH MỤC & ĐỊNH GIÁ (MASTER DATA & PRICING)
+========================================================================
+
+1. ĐƠN VỊ CƠ SỞ VÀ QUY ĐỔI:
+- Đơn vị Cơ sở (Base Unit): CHỈ (1 Chỉ = 3.75 Gram) được dùng cho toàn bộ nghiệp vụ nội bộ (tồn kho, giá vốn).
+- Quy tắc Quy đổi: Áp dụng hệ số 3.75 để quy đổi Gram sang Chỉ và ngược lại.
+
+2. DANH MỤC VÀNG VÀ TUỔI VÀNG:
+- Loại Vàng: Vàng 24K, 18K, 14K, 610, v.v.
+- Hàm lượng Chuẩn: Ghi nhận hàm lượng vàng ròng chuẩn (ví dụ: 18K = 75.0%).
+- Hệ số Vàng Ròng: Hệ số dùng để chuẩn hóa trọng lượng vàng về Vàng 24K tương đương (Ví dụ: 18K là 0.75).
+
+3. GIÁ NIÊM YẾT:
+- Giá Mua vào/Bán ra: Cập nhật giá theo đơn vị CHỈ cho từng loại vàng theo thời điểm.
+
+4. DANH MỤC SẢN PHẨM:
+- Mã Sản phẩm/Tên Sản phẩm: Thông tin định danh.
+- Trọng lượng Thực (Chỉ): Trọng lượng vàng thực tế của sản phẩm.
+- Chi phí Công Gia công: Tiền công tiêu chuẩn theo mẫu mã.
+- Cấu hình Định giá: Công thức tính giá bán dựa trên Giá vốn, Tiền công, và Lợi nhuận kỳ vọng.
+
+========================================================================
+II. MODULE QUẢN LÝ NHÀ CUNG CẤP & MUA HÀNG
+========================================================================
+
+1. DANH MỤC NHÀ CUNG CẤP (NCC):
+- Thông tin định danh: Tên, Mã số thuế, Địa chỉ.
+- Phân loại: Loại hàng cung cấp, Loại giao dịch.
+
+2. QUẢN LÝ GIAO DỊCH TUỔI VÀNG PHỨC TẠP:
+- Tuổi Xuất Kho (Nội bộ): Hàm lượng vàng đo được của công ty bạn (Ví dụ: 61.2%).
+- Tuổi Thu Mua (Đo NCC): Hàm lượng vàng trung bình NCC đo được (thường thấp hơn, Ví dụ: 61.1%).
+- Tuổi Quy Công Nợ Chuẩn: Tuổi cố định được NCC áp dụng cho giao dịch công nợ (Ví dụ: 62.2% cho đổi ngang). Đây là tuổi dùng để ghi nhận công nợ.
+
+3. ĐƠN VỊ TÍNH CÔNG NỢ:
+- Thiết lập theo NCC: Quy định NCC này tính công nợ theo CHỈ hay GRAM (áp dụng cho các loại vàng như 750).
+
+4. PHIẾU MUA HÀNG (PO):
+- Ghi nhận chi tiết: Số phiếu, Ngày giao dịch, NCC, Tổng tiền.
+- Theo dõi Công nợ: Tiền Đã Đặt cọc, Tiền Còn Lại phải trả (Công nợ), Phiếu Chi Liên kết.
+
+========================================================================
+III. MODULE QUẢN LÝ KHO HÀNG (INVENTORY)
+========================================================================
+
+1. TỒN KHO THEO ĐƠN VỊ CHỈ:
+- Kho Nguyên liệu: Tồn kho theo Trọng lượng (Chỉ) và Độ tuổi (Vàng ròng tương đương).
+- Kho Thành phẩm: Tồn kho theo Mã Sản phẩm, Số lượng (món), Trọng lượng (Chỉ), Giá vốn (Chỉ).
+
+2. QUẢN LÝ VỊ TRÍ VÀ TRẠNG THÁI:
+- Vị trí: Chi nhánh/Quầy trưng bày nào đang giữ hàng.
+- Trạng thái: Đã Bán, Đang Gia công, Đang Trưng bày, Bị Hư hỏng.
+
+3. XUẤT/NHẬP/ĐIỀU CHUYỂN:
+- Phiếu Nhập kho: Ghi nhận nhập kho từ Mua hàng hoặc Gia công.
+- Phiếu Xuất kho: Ghi nhận xuất kho cho Bán hàng hoặc Gia công.
+- Phiếu Điều chuyển (Nội bộ): Quản lý luân chuyển hàng hóa/tiền giữa các Chi nhánh (Mượn/Trả, Chuyển tiền).
+
+========================================================================
+IV. MODULE BÁN HÀNG & KHÁCH HÀNG
+========================================================================
+
+1. PHIẾU BÁN HÀNG (SALES):
+- Ghi nhận: Sản phẩm bán, Số lượng (Món/Chỉ), Giá bán, Chiết khấu.
+- Thanh toán: Hình thức thanh toán (Tiền mặt, CK, Thẻ) và Tình trạng thanh toán.
+
+2. DỊCH VỤ THU ĐỔI (MUA LẠI VÀNG CŨ):
+- Quy trình: Kiểm tra Tuổi vàng thực tế của sản phẩm khách hàng mang đến.
+- Tính toán: Áp dụng công thức tính Giá Mua Lại dựa trên hàm lượng vàng ròng thực tế và chi phí xử lý/hao mòn.
+
+3. QUẢN LÝ KHÁCH HÀNG:
+- Thông tin liên hệ và Lịch sử giao dịch.
+- Quản lý Khách hàng Thân thiết (Điểm thưởng/Ưu đãi).
+
+========================================================================
+V. MODULE KẾ TOÁN & TÀI CHÍNH
+========================================================================
+
+1. QUẢN LÝ QUỸ & NGÂN HÀNG:
+- Theo dõi Số dư Tiền mặt tại từng Quầy Thu Ngân/Chi nhánh.
+- Theo dõi Số dư Tài khoản Ngân hàng.
+- Nghiệp vụ: Phiếu Thu, Phiếu Chi, Phiếu Tạm Ứng.
+
+2. QUẢN LÝ CÔNG NỢ:
+- Báo cáo Công nợ Phải trả (NCC, đối tác).
+- Báo cáo Công nợ Phải thu (Khách hàng, nội bộ chi nhánh).
+
+3. BÁO CÁO TÀI CHÍNH:
+- Báo cáo Bán hàng, Báo cáo Lãi/Lỗ.
+- Báo cáo Quản trị: Báo cáo Tồn kho, Báo cáo Chi phí Gia công, Báo cáo Hiệu suất Chi nhánh.

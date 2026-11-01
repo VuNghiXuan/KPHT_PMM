@@ -1,0 +1,30 @@
+1. Nhóm Giao dịch Thu tiền (Dòng tiền đi vào)
+Đây là các nghiệp vụ làm tăng quỹ tiền mặt hoặc tiền gửi của tiệm:
+
+Thu tiền: Các khoản thu ngoài bán hàng (ví dụ: thu nợ khách hàng, thu khác).
+
+Hoàn ứng: Nhân viên trả lại tiền sau khi đã thực hiện xong công việc tạm ứng.
+
+Thanh lý: Thu tiền từ việc bán các tài sản, đồ cũ của tiệm.
+
+Chuộc đồ: Khách trả tiền gốc và lãi để lấy lại tài sản cầm cố (dành cho mảng cầm đồ).
+
+2. Nhóm Giao dịch Chi tiền (Dòng tiền đi ra)
+Đây là các nghiệp vụ phát sinh chi phí hoặc mua sắm:
+
+Chi tiền: Chi các khoản phí vận hành (điện, nước, lương, mặt bằng...).
+
+Tạm ứng: Đưa tiền cho nhân viên đi lấy hàng hoặc thực hiện công việc của tiệm.
+
+Cấp quỹ: Chuyển tiền từ quỹ tổng về các quỹ con hoặc quầy thu ngân.
+
+Mua hàng hóa / Mua vàng nguyên liệu: Chi tiền mặt để nhập hàng vào kho.
+
+3. Nhóm Giao dịch Luân chuyển nội bộ (Chỉ thay đổi vị trí tiền)
+Các giao dịch này không làm thay đổi tổng tài sản nhưng cần quản lý để đối soát:
+
+Chuyển đổi: Đổi từ tiền mặt sang ngoại tệ hoặc ngược lại.
+
+Chuyển nội bộ: Di chuyển tiền giữa các tài khoản ngân hàng hoặc các két sắt trong tiệm.
+
+Chuyển liên cửa hàng: Điều chuyển dòng tiền giữa chi nhánh này và chi nhánh khác trong cùng hệ thống.

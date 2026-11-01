@@ -1,0 +1,5 @@
+Có 2 loại xác nhận:
+1. Xác nhận có chuyển khoản nhưng tiền chưa vào tài khoản nhận, ghi nhận lại số giao dịch chuyển khỏa từ ngân hàng
+2. Chuyển nhầm: chuyển nhầm số tài khoản (Loại này không có chứng từ đề xuất bỏ)
+Còn trường hợp chuyển dư thì chuyển dùng phiếu hoàn tiền
+Ghi chú: Thêm trường laioj giao dịch
