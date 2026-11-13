@@ -1,0 +1,355 @@
+https://docs.google.com/spreadsheets/d/1wf7ZFHQFfHOLzxHQ6McbgMpcSShS4F1oEpbcIukTPaI/edit?gid=1417488169#gid=1417488169
+
+Là một nhân viên giao dịch NCC, tôi muốn quản lý toàn bộ thông tin Toa hàng của Nhà cung cấp (NCC) bao gồm danh sách toa hàng, thông tin chung & chi tiết, quy trình duyệt, trọng lượng sau quy đổi, chi tiết từng dòng hàng, để đảm bảo việc nhập – duyệt – hạch toán được thực hiện chính xác, minh bạch và có thể truy xuất lịch sử khi cần.
+
+CHUNG: https://docs.google.com/document/d/1r6-eKqT_eQe-DFS5zdjhyBTeFH8J84isEAVjeE5TLQ4/edit?usp=sharing
+Danh sách Toa hàng
+Image
+DS Toa hàng hiển thị: - sort theo ngày lập gần nhất
+STT- ghim trái
+Mã toa - ghim trái, click để xem chi tiết 
+Ngày lập
+Chi nhánh
+Nhà cung cấp
+Số món
+Tổng TL
+Tổng TL hột
+Tổng TLV
+Giá vàng 10
+Tổng tiền công
+Tiền thuế GTGT
+Chi phí khác
+Vàng mới tính bằng tiền
+Tổng tiền toa hàng
+Số tiền đã thanh toán
+Số tiền còn lại
+Người tạo 
+Người duyệt
+Ngày duyệt
+Trạng thái (Khởi tạo, Chờ duyệt, Đã duyệt, Không duyệt, Hủy) - ghim trái
+Chức năng: (dropdown) Enable các nút khi Trạng thái = Khởi tạo. - ghim trái
+Sửa 
+Mở popup Sửa Toa hàng với thông tin của Toa hàng đang chọn. 
+Enable form cho phép sửa thông tin.
+Xóa:
+Xóa Toa hàng: Cập nhật Trạng thái của Toa hàng NCC = Hủy
+Nút Thêm: mở form Thêm Toa hàng NCC rỗng.
+Tìm kiếm
+Danh sách có phân trang, cho phép: 
+Danh sách có phân trang
+Hiển thị tổng số bản ghi 
+Cho phép chuyển trang (về trang đầu, trang cuối, trang kế tiếp).
+Số bản ghi mỗi trang: Cho phép người dùng chọn số lượng bản ghi hiển thị mỗi trang (50, 100,...).
+Cho phép sắp xếp theo các cột
+Form Toa hàng NCC
+​Bao gồm 2 tab:
+Thông tin toa hàng
+Công nợ
+Image
+TAB 1 - Thông tin toa hàng
+Thông tin chung
+Trường thông tin bao gồm
+Mã toa 
+Tự sinh, duy nhất (Tự động: Mã NCC-Ngày lập(dd/MM/yy)- 3 số tự tăng.), 
+Không cho sửa
+Ngày lập *
+Bắt buộc, Ngày NCC lập toa. 
+Mặc định gán bằng ngày hiện tại cho phép điều chỉnh và không lớn hơn ngày hiện tại.
+Chi nhánh 
+Load theo Chi nhánh của User đăng nhập. 
+Không cho sửa
+Nhà cung cấp *
+Bắt buộc (dropdown  Lookup Nhà cung cấp (Active) (Đã duyệt) và Nhóm NCC = Vàng hoặc Tất cả.)
+Địa chỉ NCC (Load Địa chỉ theo Nhà cung cấp) 
+Không cho sửa
+Người tạo - không cho sửa (khi tạo lấy theo user đăng nhập)  (update 9/3/26)
+Người duyệt - không cho sửa (chỉ hiển thị thông tin sau khi duyệt).
+Ngày duyệt - không cho sửa (chỉ hiển thị ngày sau khi duyệt).
+Trạng thái (mặc định: Khởi tạo)  
+Không cho sửa
+Ẩn hiện form cho phép edit khi Trạng thái = Khởi tạo, các Trạng thái khác Disable các field và Grid (màu xám trong ảnh).
+Số món 
+Sum Số món từ Grid 
+Không cho sửa
+Tổng TL
+Sum Tổng TL từ Grid 
+Không cho sửa
+Tổng TL hột 
+Sum Tổng TL hột từ Grid 
+Không cho sửa
+Tổng TLV
+Sum Tổng TLV từ Grid 
+Không cho sửa
+Giá vàng 10*
+Tự nhập, >= 0
+Tổng tiền công 
+Sum Tổng Tiền công từ Grid 
+Không cho sửa
+Tiền thuế GTGT 
+Sum Chi phí chứng từ từ Grid 
+Chi phí khác 
+Sum Chi phí khác từ Grid 
+Không cho sửa
+Vàng mới tính bằng tiền 
+Sum Vàng tính thành tiền từ Grid 
+Không cho sửa
+Tổng tiền toa hàng 
+Không cho sửa
+= Tổng tiền công + Tiền thuế GTGT + Chi phí khác + Vàng mới tính bằng tiền
+Số tiền đã thanh toán
+Không cho sửa
+Khi có thông tin Phiếu chi hoàn tất (tab2) sẽ cập nhật Số tiền đã thanh toán trên Toa hàng NCC và cập nhật lại Số tiền còn lại.
+Số tiền còn lại
+Không cho sửa
+= Tổng tiền toa hàng - Số tiền đã thanh toán
+Ghi chú 
+Tệp đính kèm (upload file chứng từ -  Cho phép tải lên file hình ảnh, pdf, excel.)
+Validation: 
+Trường bắt buộc không được để trống.
+Nếu thiếu → cảnh báo: “Vui lòng nhập đầy đủ thông tin bắt buộc
+2. Grid Trọng lượng sau quy:
+Hiển thị bảng tổng hợp Trọng lượng sau quy của Chi tiết toa hàng theo Loại vàng quy và không cho phép sửa:
+Loại vàng quy (dropdown) - Lấy theo Loại vàng quy trong Nhà cung cấp.Loại vàng giao dịch
+TLV quy:
+TLV quy = SUM TLV Quy Group by Loại vàng ghi nhận công nợ.
+Lưu ý: Không sum dòng nếu cột Vàng quy thành tiền > 0.
+3. Chi tiết Toa hàng
+Cột hiển thị:
+Checkbox
+Cho phép chọn nhiều dòng và chỉ được chọn những dòng có Checkbox Đã tạo lô hàng = False
+Ghim trái
+STT 
+Ghim trái
+Không cho sửa, tự tăng.
+Loại vàng*
+Dropdown, Lookup đến Loại vàng
+Bắt buộc chọn khi thêm
+Ghim trái
+Đơn vị tính: load theo Loại vàng đã chọn - không cho sửa
+Loại hàng NCC*: dropdown, Lookup đến Loại hàng NCC, bắt buộc chọn khi thêm
+Số món*:  Số nguyên > 0, bắt buộc chọn khi thêm
+Tổng TL*: > 0 , bắt buộc 
+Về mặt hiển thị số thập phân thì theo Cấu hình hệ thống.Số thập phân trọng lượng.
+Về mặt làm tròn số thì theo Số thập phân trên NCC và Quy tắc làm tròn trên NCC.
+Ví dụ: TLVang mặc định hệ thống là: 1.1234 -> 4 số thập phân, Nhưng NCC A: số thập phân là 3 và Quy tắc làm tròn = Lên, thì TLVang lúc này là 1.1230
+Tổng TL hột: >= 0, 
+Về mặt hiển thị số thập phân thì theo Cấu hình hệ thống. 
+Về mặt làm tròn số thì theo Số thập phân trên NCC và Quy tắc làm tròn trên NCC
+Ví dụ: TLVang mặc định hệ thống là: 1.1234 -> 4 số thập phân, Nhưng NCC A: số thập phân là 3 và Quy tắc làm tròn = Lên, thì TLVang lúc này là 1.1230
+Tổng TLV: không cho sửa
+= Tổng TL - Tổng TL hột.
+Quy đổi (Tuổi bán/Tuổi tính công nợ): không cho sửa
+Lấy thông tin của Loại vàng trong grid Nhà cung cấp.Loại vàng giao dịch:
+- Tuổi bán/Tuổi quy chuẩn
+Loại vàng ghi nhận công nợ: không cho sửa
+- Lấy thông tin Loại vàng quy trong grid Loại vàng giao dịch của Nhà cung cấp.
+-  Theo Điều kiện: Loại vàng, Đơn vị tính, Loại hàng NCC của Chi tiết toa hàng trùng với Loại vàn, Đơn vị tín, Loại hàng NCC trong Loại vàng giao dịch của Nhà cung cấp.
+TLV quy: không cho sửa
+= Tổng TLV * Tuổi bán / Tuổi quy công nợ chuẩn
+Về mặt hiển thị số thập phân thì theo Cấu hình hệ thống. 
+Về mặt làm tròn số thì theo Số thập phân trên NCC và Quy tắc làm tròn trên NCC
+Ví dụ: TLVang mặc định hệ thống là: 1.1234 -> 4 số thập phân, Nhưng NCC A: số thập phân là 3 và Quy tắc làm tròn = Lên, thì TLVang lúc này là 1.1230
+Vàng tính thành tiền:
+>= 0
+Diễn giải:  1. Áp dụng với Vàng Ý 750 của PNJ bán theo Món.
+2. Nếu đã có Tổng tiền thì sẽ không ghi nhận công nợ vàng. Khi thanh toán Toa hàng NCC sẽ lấy Tổng tiền và Không lấy TL vàng.
+Tổng tiền công sau chiết khấu*: bắt buộc nhập, >= 0
+Nguồn gốc*: dropdown theo Enum Nguồn gốc sản phẩm (CCT, KCT, HTT(Z)), bắt buộc chọn khi thêm
+Số chứng từ: cho phép nhập
+Chi phí chứng từ: cho phép nhập
+>= 0
+Chi phí khác: cho phép nhập
+>= 0
+Số lô: Không cho sửa
+Sẽ được cập nhật từ Lô hàng
+Ghi chú: cho phép nhập
+Đã tạo lô hàng - Ghim phải, Không cho sửa, Checkbox
+Chức năng: - Ghim phải (dropdown) Các Nút: Enable khi Trạng thái của Toa hàng = Khởi tạo.
+Sửa: Cho phép sửa inline Toa hàng với thông tin của Toa hàng đang chọn.
+Nhân bản - tạo mới Chi tiết toa hàng với thông tin của Chi tiết đang chọn.
+Xóa: Hiển thị thông báo xác nhận xóa (Hủy/Xác nhận).
+Nếu xác nhận: cập nhật lại các field Số món, Tổng TL, Tổng TL hột, Tổng TLV, Tổng tiền công, Tiền thuế GTGT, Chi phí khác, Vàng tính thành tiền, Tồng tiền toa hàng trên Header của Toa hàng NCC.
+Tổng cộng: SUM các cột: Số món, Tổng TL, Tổng TL hột, Tổng TL vàng, Vàng tính thành tiền, Tổng tiền công sau chiết khấu, Chi phí chứng từ, Chi phí khác
+Nút "Thêm": 
+Thêm dòng : Cho phép add ngay trên grid Hoặc nhấn "Thêm dòng " để tạo 1 dòng mới
+Nút "Tạo lô hàng" : 
+1. Enable Trạng thái = Đã duyệt.
+2. Cho phép chọn nhiều dòng để tạo Lô hàng. Sum tổng các giá trị của các cột có đặc điểm chung theo Loại vàng, Đơn vị tính, Loại hàng NCC, Nguồn gốc.
+3. Nếu Loại vàng, Đơn vị tính, Loại hàng NCC, Nguồn gốc không giống nhau không cho phép tạo Lô hàng.
+4. Khi nhấn nút Tạo lô hàng:
+- Mở form Lô hàng để nhập thông tin.
+- Các thông tin lấy từ Toa hàng sang form Lô hàng: Mã toa gắn hyperlink, Nhà cung cấp, Danh sách các ID Chi tiết toa hàng, Số lượng, Tổng TL, TL hột, TLV, Tổng tiền công, Nguồn gôc sản phẩm, Chi phí chứng từ, Chi phí khác.
+5. Khi nhấn Tạo lô hàng thành công: Cập nhật Đã tạo lô hàng cho các dòng đã chọn.
+Danh sách có phân trang, cho phép: 
+Danh sách có phân trang
+Hiển thị tổng số bản ghi 
+Cho phép chuyển trang (về trang đầu, trang cuối, trang kế tiếp).
+Số bản ghi mỗi trang: Cho phép người dùng chọn số lượng bản ghi hiển thị mỗi trang (50, 100,...).
+Cho phép sắp xếp theo các cột
+Nút hành động trong form:
+Lưu: Lưu thông tin và đóng form khi các trướng bắt buộc được chọn.
+Đóng: Đóng form và không lưu thông tin
+Quy trình duyệt
+Image
+1. Tổng quan
+Hệ thống quản lý Toa hàng NCC phải bao gồm quy trình duyệt Toa hàng, với các trạng thái: 
+
+Khởi tạo → Chờ duyệt → Đã duyệt / Không duyệt / Hủy. 
+
+Các trạng thái này phải được theo dõi và cập nhật trong form theo các bước cụ thể, và các hành động (Trình duyệt, Duyệt, Không duyệt, Hủy) chỉ có thể thực hiện khi Toa hàng ở trạng thái Khởi tạo hoặc Chờ duyệt.
+
+2. Yêu cầu MUI Stepper và Nút hành động
+
+MUI Stepper sẽ chỉ hiển thị text của các trạng thái (Khởi tạo, Chờ duyệt, Đã duyệt / Không duyệt / Hủy) theo thứ tự như sau:
+
+Bước 1: Khởi tạo (màu xám): Hiển thị trạng thái ban đầu của Toa hàng.
+
+Bước 2: Chờ duyệt (màu vàng): Hiển thị khi Toa hàng đã được trình duyệt và đang chờ phê duyệt.
+
+Bước 3: Đã duyệt / Không duyệt / Hủy (màu xanh / đỏ / xám): Hiển thị khi Toa hàng đã được duyệt, không duyệt, hoặc hủy.
+
+Lưu ý: MUI Stepper chỉ theo dõi trạng thái hiện tại của Toa hàng, không cho phép người dùng click vào các bước để thay đổi trạng thái trực tiếp.
+
+3. Các Nút hành động trên Form
+
+A. Nút Trình duyệt (tương đương nút next)
+
+Hiển thị: Nút Trình duyệt chỉ được hiển thị khi trạng thái Toa hàng = Khởi tạo.
+
+Chức năng:
+
+Khi nhấn Trình duyệt, hệ thống sẽ hiển thị một popup xác nhận yêu cầu người dùng xác nhận hành động.
+
+Popup xác nhận: “Xác nhận trình duyệt?” (có 2 lựa chọn: Hủy / Xác nhận).
+
+Nếu người dùng chọn Xác nhận, hệ thống sẽ cập nhật Trạng thái = Chờ duyệt và khóa (readonly) các trường trên form, không cho phép sửa dữ liệu nữa.
+
+Sau khi chuyển trạng thái, nút Trình duyệt sẽ không còn hiển thị.
+
+Ghi log: Người thao tác, thời gian, Trạng thái chuyển từ Khởi tạo sang Chờ duyệt.
+
+B. Nút Duyệt (tương đương nút next)
+
+Hiển thị: Nút Duyệt chỉ được hiển thị khi trạng thái Toa hàng = Chờ duyệt và người dùng có quyền phê duyệt (admin/manager).
+
+Chức năng:
+
+Khi nhấn Duyệt, hệ thống sẽ hiển thị popup xác nhận yêu cầu người dùng xác nhận hành động.
+
+Popup xác nhận: “Xác nhận duyệt?” (có 2 lựa chọn: Hủy / Xác nhận).
+
+Nếu người dùng chọn Xác nhận, hệ thống sẽ:
+
+Cập nhật Trạng thái = Đã duyệt.
+
+Disable các trường (readonly) trên form và không cho phép sửa/xóa nữa.
+
+Enable nút “Tạo lô hàng” ở grid chi tiết Toa hàng.
+
+Cập nhật Công nợ NCC:
+a. Công nợ vàng: Theo các Loại vàng trong grid TRỌNG LƯỢNG SAU QUY:
+- Công nợ vàng = Công nợ vàng + TLV quy.
+b. Theo Tổng tiền toa hàng:
+- Công nợ tiền = Công nợ tiền + Tổng tiền toa hàng.
+Sau khi duyệt, hệ thống sẽ không cho phép người dùng sửa đổi các trường thông tin.
+
+Ghi log: Người thao tác, thời gian, Trạng thái chuyển từ Chờ duyệt sang Đã duyệt.
+
+C. Nút Không duyệt (tương đương nút back)
+
+Hiển thị: Nút Không duyệt chỉ được hiển thị khi trạng thái Toa hàng = Chờ duyệt và người dùng có quyền phê duyệt (admin/manager).
+
+Chức năng:
+
+Khi nhấn Không duyệt, hệ thống sẽ hiển thị popup xác nhận yêu cầu người dùng xác nhận hành động.
+
+Popup xác nhận: “Xác nhận không duyệt?” (có 2 lựa chọn: Hủy / Xác nhận).
+
+Nếu người dùng chọn Xác nhận, hệ thống sẽ:
+
+Cập nhật Trạng thái = Không duyệt.
+
+Disable các trường (readonly) trên form và không cho phép sửa/xóa nữa.
+
+Hiển thị Lý do không duyệt (textbox bắt buộc nhập lý do, ít nhất 10 ký tự).
+
+Ghi log: Người thao tác, thời gian, Trạng thái chuyển từ Chờ duyệt sang Không duyệt + Lý do không duyệt.
+
+D. Nút Hủy
+
+Hiển thị: Nút Hủy chỉ được hiển thị khi trạng thái Toa hàng = Khởi tạo.
+
+Chức năng:
+
+Khi nhấn Hủy, hệ thống sẽ hiển thị popup xác nhận yêu cầu người dùng xác nhận hành động.
+
+Popup xác nhận: “Xác nhận hủy Toa hàng?” (có 2 lựa chọn: Hủy / Xác nhận).
+
+Nếu người dùng chọn Xác nhận, hệ thống sẽ:
+
+Cập nhật Trạng thái = Hủy.
+
+Hiển thị Lý do hủy (textbox bắt buộc nhập lý do, ít nhất 10 ký tự).
+
+Disable các trường (readonly) trên form và không cho phép sửa/xóa nữa.
+
+Sau khi hủy, hệ thống sẽ không cho phép sửa đổi dữ liệu và hiển thị trạng thái “Hủy” trong MUI Stepper.
+
+Ghi log: Người thao tác, thời gian, Trạng thái chuyển từ Khởi tạo sang Hủy.
+
+Thông Báo Trạng Thái
+Khởi tạo: "Toa hàng đã được khởi tạo."
+
+Chờ duyệt: "Toa hàng đang chờ phê duyệt."
+
+Đã duyệt: "Toa hàng đã được phê duyệt."
+
+Không duyệt: "Toa hàng không được phê duyệt."
+
+Hủy: "Toa hàng đã bị hủy."
+
+TAB 2 - CÔNG NỢ - Chỉ xem
+Image
+Section 1: [Tiêu đề] Công nợ kỳ trước chia làm 2 (1/2 hiển thị "Công nợ vàng", 1/2 hiển thị "Công nợ tiền")
+Công nợ vàng
+Loại vàng
+Trọng lượng (Chỉ)
+Công nợ tiền
+Loại tiền
+Số tiền
+Section 2: [Tiêu đề] Danh sách phiếu chi
+Nút "Tạo phiếu chi"
+Grid bao gồm các cột:
+STT
+Số phiếu - cho phép click link tới chi tiết phiếu
+Ngày giao dịch
+Số tiền
+Hình thức thanh toán
+Dòng tổng cộng: SUM số tiền
+Quyền truy cập
+Người tạo (Nhân viên / Owner):
+
+Được tạo, sửa, xóa, trình duyệt, hủy phiếu khi trạng thái = “Khởi tạo”.
+Sau khi trình duyệt → chỉ được xem và in, không được chỉnh sửa.
+Quản lý chi nhánh
+
+Người dùng thuộc Nhóm quyền “Quản lý cửa hàng” hoặc “Admin cửa hàng”
+Có phân quyền Sửa
+Được phép sửa phiếu khi trạng thái = “Chờ duyệt”.
+Chỉ được xem và in các phiếu trong phạm vi chi nhánh.
+Người không có quyền:
+Không hiển thị menu 
+Không thể truy cập trực tiếp URL 
+***** Nguyên tắc chung******
+Hệ thống kiểm tra quyền thao tác dựa trên:
+Nhóm người dùng (Roles): xác định loại quyền tổng quát (CRUD, Duyệt, Không duyệt...).
+Phân quyền trên bản ghi (Record Permission): xác định user có quyền thao tác cụ thể trên phiếu hay không.
+Khi người dùng thao tác (Sửa, Xóa, Duyệt, Không duyệt, Hủy...) → hệ thống kiểm tra đồng thời cả Role + quyền trên bản ghi.
+Ghi log hành động (Audit Log Rules)
+
+Tất cả hành động thay đổi dữ liệu hoặc trạng thái của Phiếu nhập kho phải được ghi lại.
+UX & Kiểm tra dữ liệu
+Trường số chỉ nhận số, hỗ trợ format dấu phẩy/thập phân; chặn ký tự không hợp lệ.
+Enter trên form thực hiện Lưu; có trạng thái loading khi tính toán/nhập hàng.
+Nếu Số chứng từ nhập nhiều, hệ thống tự chuẩn hóa (trim, loại bỏ trùng).
+Tất cả tổng ở panel  phải khớp số liệu ở lưới.

@@ -1,0 +1,90 @@
+================================================================================
+                    HƯỚNG DẪN CÔNG VIỆC QC - DỰ ÁN HTJ
+              Tài liệu quy trình, phương pháp và đầu ra (V1.0)
+================================================================================
+
+Đối tượng sử dụng: QC mới, QC Junior, Nhân sự hỗ trợ kiểm thử.
+Mục đích: Giúp nhân sự hiểu quy trình QC và thực hiện công việc theo từng bước trong Sprint.
+
+--------------------------------------------------------------------------------
+1. QC LÀ AI & PHẠM VI TRÁCH NHIỆM
+--------------------------------------------------------------------------------
+- QC (Quality Control) là người kiểm tra phần mềm để đảm bảo chức năng hoạt động
+  đúng yêu cầu (AC) và quy tắc nghiệp vụ (Business Rules).
+- QC tham gia ngay từ bước đọc và phân tích yêu cầu (BA Review) để phát hiện sai
+  sót sớm chứ không chỉ chờ Dev bàn giao mới test.
+
+* NGUYÊN TẮC "5 KHÔNG" BẮT BUỘC:
+  1. KHÔNG tự nghĩ ra Business Rule khi tài liệu chưa quy định.
+  2. KHÔNG tự chọn một cách hiểu khi tài liệu/US mâu thuẫn (phải hỏi BA/PO).
+  3. KHÔNG đánh giá chức năng đúng chỉ vì giao diện hiển thị hợp lý.
+  4. KHÔNG đóng Bug khi chưa Retest đạt yêu cầu.
+  5. KHÔNG đánh dấu Passed nếu chưa thực sự thực thi và quan sát kết quả.
+
+--------------------------------------------------------------------------------
+2. QUY TRÌNH 8 BƯỚC CỦA QC TRONG SPRINT
+--------------------------------------------------------------------------------
+
+[Bước 1] TIẾP NHẬN & PHÂN TÍCH USER STORY (BA REVIEW)
+- Đọc theo thứ tự: Project Instructions -> Standards -> Template -> US/AC -> Business Rules -> UI/UX.
+- Phân tích rõ các thành phần: Actor, Permission, Input Fields, Workflow, Business Rules, Data, Integration, UI/UX.
+- Ghi nhận thắc mắc: Tạo danh sách GAP (thông tin thiếu), Conflict (mâu thuẫn), Open Questions (cần xác nhận).
+
+[Bước 2] XÂY DỰNG TEST SCENARIO
+- Chuyển đổi yêu cầu thành các kịch bản kiểm thử tổng quan.
+- Phân loại bao phủ: Positive (thành công), Negative (thất bại/lỗi), Boundary (giá trị biên), Quyền hạn và Ngoại lệ.
+
+[Bước 3] VIẾT TEST CASE (TC)
+- Viết kịch bản chi tiết theo template tiêu chuẩn dự án.
+- Bao phủ 10 nhóm kiểm thử:
+  A. Functional          F. Data
+  B. UI/UX               G. Integration
+  C. Validation          H. Performance
+  D. Business Rules      I. Security
+  E. Permission          J. Exception / Edge
+- Cấu trúc 1 TC: TC ID | Requirement/AC | Title | Preconditions | Test Data | Steps | Expected Result | Priority.
+
+[Bước 4] REVIEW CHẤT LƯỢNG TEST CASE
+- Rà soát chéo đảm bảo: Không trùng lặp, đủ bước, Expected Result có căn cứ, bao phủ 100% Requirement/AC.
+
+[Bước 5] CHUẨN BỊ MÔI TRƯỜNG VÀ DỮ LIỆU TEST
+- Xác nhận đúng môi trường (DEV/QA/UAT), phiên bản build, URL và tài khoản theo role.
+- Chuẩn bị sẵn dữ liệu kiểm thử (tránh dùng dữ liệu nhạy cảm thực tế).
+
+[Bước 6] THỰC THI KIỂM THỬ (TEST EXECUTION)
+- Khi Dev đẩy bài sang "Ready for test":
+  1. Chạy Smoke Test (kiểm tra các luồng chính).
+  2. Chạy chi tiết các Test Case theo độ ưu tiên.
+- Cập nhật trạng thái:
+  + Passed  : Kết quả thực tế khớp 100% Expected Result.
+  + Failed  : Kết quả thực tế sai so với Expected Result (tạo Bug).
+  + Blocked : Bị chặn không test được do lỗi môi trường hoặc tính năng trước đó hỏng.
+  + Not Run : Chưa thực thi.
+
+[Bước 7] GHI NHẬN BUG, RETEST VÀ REGRESSION
+- Log Bug chuẩn template trên ADO khi kết quả sai lệch so với AC/BR.
+- Retest: Chạy lại đúng TC bị lỗi sau khi Dev báo đã sửa. Chỉ đóng Bug khi Retest Passed.
+- Regression: Kiểm tra lại các chức năng liên quan xung quanh để đảm bảo không phát sinh lỗi mới.
+
+[Bước 8] BÁO CÁO QC CUỐI SPRINT
+- Tổng hợp chỉ số: Total TCs, Executed Rate, Pass/Fail Rate, Open Bugs, Risk & Coverage.
+
+--------------------------------------------------------------------------------
+3. LƯU Ý NGHIỆP VỤ ĐẶC THÙ DỰ ÁN HTJ (NGÀNH VÀNG - TÀI CHÍNH)
+--------------------------------------------------------------------------------
+- Vàng & Hàng hóa: Thận trọng kiểm tra ĐVT, Trọng lượng tổng, Trọng lượng hột, Trọng lượng vàng, Tuổi vàng/Hàm lượng.
+- Giá & Tính tiền: Kiểm tra kỹ công thức tính tiền công, tỷ giá, hao hụt, thứ tự giảm giá/khuyến mãi và làm tròn.
+- Thanh toán & Hóa đơn: Đối soát kỹ đa phương thức thanh toán (tiền mặt, quẹt thẻ, chuyển khoản) và việc phát hành HDDT.
+- CẢNH BÁO: Không tự suy đoán công thức tính toán tài chính. Mọi công thức phải căn cứ 100% từ Business Rules đã phê duyệt.
+
+--------------------------------------------------------------------------------
+4. KHUNG CÔNG VIỆC HÀNG NGÀY DÀNH CHO QC (DAILY ROUTINE)
+--------------------------------------------------------------------------------
+1. Đầu ngày (Daily Scrum): Báo cáo công việc hôm qua, hôm nay và các điểm bị nghẽn (Blockers).
+2. Khi chưa có Build: Xem US/Mockup -> Viết Test Case -> Cập nhật Tiến độ = [2. Viết TC] -> Đẩy review = [3. Chờ review].
+3. Khi Dev bàn giao Build (Tình trạng DEV = Ready for test):
+   - Cập nhật Tiến độ = [4. Đang chờ test] / [5. Đang test].
+   - Thực thi test -> Nếu có lỗi: Báo Bug & Cập nhật Tiến độ = [6. Chờ fix].
+   - Nếu Pass hoàn toàn: Cập nhật Tiến độ = [7. Hoàn thành].
+4. Cuối ngày: Cập nhật đầy đủ trạng thái Test Case, Bug và tiến độ trên Google Sheet quản lý Sprint.
+================================================================================

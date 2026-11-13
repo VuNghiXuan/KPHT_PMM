@@ -1,0 +1,172 @@
+@viết-quy-trình-test-nghiêp-vụ-pmv-03112026 : 
+1745 : USER STORY 1745QL giao dịch đổi trả (Review) B1: KH tới, Mang SP đã mua trước đó tới đổi/trả
+B2: NV định giá kiểm tra SP có đủ điều kiện đổi trả hay không (CS Đổi trả, thu đổi), nếu đủ điều kiện: cân kiểm lại trọng lượng, ghi lại mã SP, tiền công
+B3: NV bán hàng: lập giao dịch mới, thêm SP đổi trả vào grid Vàng thu - đổi
+B4: Hoàn tất giao dịch mới
+B5: NV bán hàng: Vào QL hóa đơn đổi trả: quét Số hóa đơn (cũ), In biên bản điều chỉnh hóa đơn (khách ký), xuất HDDT điều chỉnh CHUNG: https://docs.google.com/document/d/1r6-eKqT_eQe-DFS5zdjhyBTeFH8J84isEAVjeE5TLQ4/edit?usp=sharing
+
+QUẢN LÝ GIAO DỊCH ĐỔI TRẢ
+
+Màn hình Quản lý hóa đơn đổi trả gồm các thông tin sau:
+- Tiêu đề: "Quản lý hóa đơn đổi trả "
+- Breadcumd: "Mua bán > Quản lý giao dịch đổi trả "
+- [Section] THÔNG TIN TRA CỨU
+  - Chi nhánh
+    - Dropdown Lookup danh sách Chi nhánh active
+    - Mặc định load Chi nhánh của user đăng nhập
+  - Số giao dịch
+    - Text field, Tự động hiển thị format 
+    - Max 20 ký tự
+    - Cho phép quét
+  - Số HĐĐT
+    - Number field, Tự động hiển thị format 
+    - Max 20 ký tự
+  - Khách hàng
+    - Dropdown Lookup DS khách hàng active
+  - Trạng thái
+    - Dropdown (Tất cả, Chờ xuất HĐĐT, Đã xuất HĐĐT điều chỉnh)
+  - Từ ngày
+    - Datetime picker
+    - Mặc định hiển thị Từ ngày = Ngày hiện tại - Cấu hình hệ thống.Số ngày tra cứu giao dịch
+    - Từ ngày >= Đến ngày 
+  - Đến ngày
+    - Datetime picker
+    - Mặc định hiển thị Từ ngày = Ngày hiện tại
+  - Nút "Tra cứu"
+    - Thực hiện lọc các hóa đơn đổi trả theo thông tin tra cứu, hiển thị tại Danh sách hóa đơn đổi trả
+- [Section] DANH SÁCH HÓA ĐƠN ĐỔI TRẢ
+- Bộ lọc Lọc theo tất cả các cột
+- Mật độ mặc định = Tiêu chuẩn
+- Sắp xếp hiển thị theo phiếu được tạo gần nhất, có thanh cuộn ngang + dọc
+- Mặc định hiển thị tất cả hóa đơn có SP đổi trả theo khoảng ngày mặc định khi truy cập
+- Danh sách bao gồm các cột : 
+  - STT 
+    - Ghim trái
+  - Số giao dịch
+    - Ghim trái, 
+    - Độ rộng đủ để nhìn thấy đủ thông tin
+    - Hover: màu xanh
+      - Click: mở form "Xem hóa đơn đổi trả", nếu user có quyền sửa, form ở trạng thái được phép sửa: hiển thị nút Chỉnh sửa (footer)
+  - Ngày giao dịch
+  - Lần đổi trả
+  - Nhân viên giao dịch
+  - Khách hàng
+  - SĐT
+  - Số HĐĐT
+  - Ngày xuất HĐĐT
+  - Giao dịch đổi trả gần nhất
+  - Ngày đổi trả gần nahast
+  - Số HĐĐT điều chỉnh
+  - Ngày điều chỉnh HĐĐT
+  - Chức năng
+  - Trạng thái
+    - Ghim phải
+    - (Chờ xuất HĐĐT, Đã xuất HĐĐT điều chỉnh)
+  - Chức năng
+    - Ghim phải
+    - Cột chứa menu báo gồm:
+      - Xem: 
+        - Mở màn hình form "Xem hóa đơn đổi trả " với thông tin của bản ghi đang chọn.
+      - Chỉnh sửa: 
+        - Hiển thị khi Giao dịch đổi trả ở trạng thái = Chờ xuất HĐĐT 
+        - Mở màn hình form "Sửa hóa đơn đổi trả " với thông tin của bản ghi đang chọn.
+        - Form sửa chỉ enable nút Tạo biên bản điều chỉnh HĐĐT 
+  - Phân trang: 
+    - Hiển thị tổng số bản ghi 
+    - Cho phép chuyển trang (về trang trước, trang sau).
+    - Số bản ghi mỗi trang: Cho phép người dùng chọn số lượng bản ghi hiển thị mỗi trang (5, 10, 20 (mặc định), 50, 250).
+  - Cho phép sắp xếp theo cột
+2. MÀN HÌNH XEM HÓA ĐƠN ĐỔI TRẢ
+
+Form Hiển thị dữ liệu của Hóa đơn đổi trả đã chọn, bao gồm:
+- [Section] THÔNG TIN HÓA ĐƠN
+  - Hiển thị 2 dòng
+  - Không cho sửa
+  - Số giao dịch
+    - Clickable, mở giao dịch đổi trả, có nút "Quay lại" ở footer để trở về page hiện tại
+  - Ngày giao dịch 
+    - Load Ngày giao dịch của giao dịch mua bán gốc
+  - Nhân viên giao dịch
+    - Load Nhân viên giao dịch của giao dịch mua bán gốc
+  - Khách hàng
+    - Load Tên khách hàng của giao dịch mua bán gốc
+  - SĐT
+    - Load SDT khách hàng của giao dịch mua bán gốc
+  - Số HĐĐT
+    - Clickable mở Số HĐĐT , có nút "Quay lại" ở footer để trở về page hiện tại
+  - Ngày xuất HĐĐT
+    - Lấy theo Số HĐĐT của giao dịch mua bán gốc
+  - Lần đổi trả
+    - Hiển thị số lần hóa đơn gốc đã phát sinh giao dịch đổi trả thành công.
+    - Mặc định:
+      - Hóa đơn chưa từng đổi trả: 0.
+      - Sau mỗi lần lưu giao dịch đổi trả thành công: tăng +1.
+    - Không tăng nếu:
+      - Người dùng hủy popup.
+      - Lưu thất bại.
+      - Giao dịch đổi trả chưa hoàn tất.
+  - Chi nhánh
+    - Chi nhánh thực hiện giao dịch đổi trả 
+  - Giao dịch đổi trả gần nhất
+    - Hiển thị số giao dịch của Giao dịch đổi trả gần nhất
+  - Số HĐĐT điều chỉnh
+    - Clickable mở Số HĐĐT, có nút "Quay lại" ở footer để trở về page hiện tại
+  - Ngày điều chỉnh
+    - Lấy theo Ngày điều chỉnh của HĐĐT Điều chỉnh
+- [Section] DANH SÁCH SẢN PHẨM
+- Nếu >5 dòng: hiển thị nested scroll
+  - Grid bao gồm các cột
+    - STT
+      - Ghim trái
+    - Mã sản phẩm
+      - Ghim trái
+    - Tên sản phẩm
+    - Loại vàng
+    - Quầy hàng
+    - TL tổng
+    - TL hột
+    - TL vàng
+    - TL vàng thực
+    - Thêm/Cắt ni
+    - Tiền công
+    - Số điểm quy đổi
+    - Tiền hột
+    - Đơn giá bán
+    - Tiền chiết khấu
+    - Thành tiền
+    - Hình thức
+    - Số giao dịch đổi trả
+    - Ngày đổi trả
+    - Đã đổi trả
+      - Ghim phải
+      - Checkbox
+    - Dòng "Tổng": SUM các cột: TL tổng, TL hột, TL vàng, TL vàng thực, Thêm/Cắt ni, Tiền công, Số điểm quy đổi, Tiền hột, Tiền chiết khấu, Thành tiền
+  - Phân trang: 
+    - Hiển thị tổng số bản ghi 
+    - Cho phép chuyển trang (về trang trước, trang sau).
+    - Số bản ghi mỗi trang: Cho phép người dùng chọn số lượng bản ghi hiển thị mỗi trang (5, 10, 20 (mặc định), 50, 250).
+  - Cho phép sắp xếp theo cột
+- [Footer] Ghim cuối màn hình, không cuộn theo form
+  - Chỉnh sửa
+    - Hiển thị ở form Xem khi Giao dịch đổi trả ở trạng thái = Chờ xuất HĐĐT & user có quyền Sửa 
+  - Xuất HĐĐT điều chỉnh
+    - Hiển thị khi Giao dịch đổi trả ở trạng thái = Chờ xuất HĐĐT, user có quyền Sửa & Số HDDT điều chỉnh = null 
+  - In biên bản
+    - In biên bản theo mẫu (làm sau)
+  - Đóng
+    - Đóng form
+- Quyền truy cậpEX
+User không có quyền:
+- 
+Thực hiện phân cấp  về hiển thị data theo 4 nhóm: Nhân viên, Phòng ban, Chi nhánh, Công ty:
+1. Nhân viên: chỉ thấy những giao dịch mà họ thực hiện
+- Phòng ban: thấy giao dịch của toàn bộ nhân viên trong phòng ban
+- 3. Chi nhánh: thấy hết toàn bộ dữ liệu giao dịch của Chi nhánh
+- 4. Công ty: thấy toàn bộ dữ liệu
+***** Nguyên tắc chung******
+- Hệ thống kiểm tra quyền thao tác dựa trên:
+  - Nhóm người dùng (Roles): xác định loại quyền tổng quát (CRUD, Duyệt, Không duyệt...).
+  - Phân quyền trên bản ghi (Record Permission): xác định user có quyền thao tác cụ thể trên phiếu hay không.
+- Khi người dùng thao tác (Sửa, Xóa, Duyệt, Không duyệt, Hủy...) → hệ thống kiểm tra đồng thời cả Role + quyền trên bản ghi.
+ Audit log
+- Tất cả hành động thay đổi dữ liệu hoặc trạng thái của Phiếu phải được ghi lại. 

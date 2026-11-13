@@ -1,0 +1,253 @@
+https://docs.google.com/spreadsheets/d/1wf7ZFHQFfHOLzxHQ6McbgMpcSShS4F1oEpbcIukTPaI/edit?gid=1456336984#gid=1456336984
+
+Là Nhân viên Kho/Nhân viên giao dịch NCC, tôi muốn tạo – xem – cập nhật – phân bổ chi phí – nhập kho cho Lô hàng NCC, để theo dõi chi phí mua, quy đổi vàng và cập nhật tồn kho chính xác.CHUNG: https://docs.google.com/document/d/1r6-eKqT_eQe-DFS5zdjhyBTeFH8J84isEAVjeE5TLQ4/edit?usp=sharing
+DS Lô hàng NCC
+
+
+- DS Lô hàng hiển thị:
+  - Stt - ghim trái
+  - Số lô (Lot) - ghim trái, click mở form chi tiết lô hàng)
+  - Ngày tạo
+  - Nhà cung cấp
+  - Nguồn gốc sản phẩm
+  - Số lượng
+  - Tổng TL
+  - TL hột
+  - TL Vàng
+  - Tổng tiền công
+  - Toa hàng NCC
+  - Chi nhánh
+  - Trạng thái (Khởi tạo, Chờ duyệt, Đã duyệt, Không duyệt, Hủy) - ghim phải
+  - Chức năng: Sửa, Nhập hàng, Xóa - ghim phải
+    - Enable các nút Sửa, Xóa khi Trạng thái = Khởi tạo. 
+    - Enable nút Nhập hàng khi Trạng thái = Đã duyệt.
+    - Nút Sửa: Enable form cho phép sửa thông tin (chỉ cho sửa trường Ghi chú và Chi phí phân bổ( công vốn), tỷ giá vốn)
+    - Nút Xóa:
+      - Xóa Lô hàng NCC và bỏ đánh dấu Đã tạo lô hàng (trên các Chi tiết toa hàng NCC).
+      - Cập nhật Trạng thái của Lô hàng NCC = Hủy.
+    - Nút Nhập hàng: Bổ sung trong 1 US riêng khi xong phần Nhập hàng.
+- Tìm kiếm
+- Danh sách có phân trang, cho phép: 
+  - Danh sách có phân trang
+  - Hiển thị tổng số bản ghi 
+  - Cho phép chuyển trang (về trang đầu, trang cuối, trang kế tiếp).
+  - Số bản ghi mỗi trang: Cho phép người dùng chọn số lượng bản ghi hiển thị mỗi trang (50, 100,...).
+- Cho phép sắp xếp theo các cột
+Form Lô hàng NCC
+
+Thông tin chung
+
+- Section bao gồm các trường thông tin:
+  - Số lô (Lot) 
+    - Không cho sửa
+    - Quy tắc:
+    - Số lô = Mã Nhà cung cấp (1) + Ngày lập dd/MM/yy (2) + 2 STT tự tăng (3) + Số lượng sản phẩm (4)
+  - Nhà cung cấp: 
+    - Không cho sửa
+    - Lấy thông tin NCC từ Toa hàng NCC
+  - Nguồn gốc sản phẩm: 
+    - Không cho sửa
+    - Lấy theo cột Nguồn gốc sản phảm của Chi tiết toa hàng sau khi đã gom nhóm.
+  - Số chứng từ: 
+    - Không cho sửa
+    - Cộng chuỗi cột Số chứng từ (khác null) của các Chi tiết toa hàng và cách nhau bằng dấu " , "  
+  - Giá vàng 10:
+    - Lấy theo Giá vàng 10 trên Toa hàng NCC.
+  - Toa hàng NCC 
+    - Không cho sửa
+    - Hyperlink có thể mở về Toa hàng NCC
+  - Chi nhánh 
+    - Không cho sửa
+    - Lấy thông tin từ Toa hàng NCC
+  - Trạng thái
+    - Không cho sửa  (Khởi tạo / Chờ duyệt /  Đã duyệt / Đã nhập hàng / Không duyệt / Hủy)
+  - Ngày tạo
+    - Không cho sửa
+    - Mặc định là ngày hiện tại khi tạo
+  - Người tạo
+    - Không cho sửa
+    - Mặc định là user đang đăng nhập.
+  - Số lượng
+    - Không cho sửa
+    - Số nguyên
+  - Tổng TL
+    - Không cho sửa
+  - TL Hột
+    - Không cho sửa
+  - TL Vàng
+    - Không cho sửa
+  - Tổng tiền công
+    - Không cho sửa
+  - Chi phí phân bổ: 
+    - Công thức tính = Tổng từ 2 cột Chi phí chứng từ và Chi phí khác của các dòng được chọn từ grid Chi tiết Toa hàng NCC.
+  - Ghi chú:
+    - Cho phép nhập liệu
+  - Ngày duyệt
+    - Không cho sửa
+    - Tự động cập nhật khi Duyệt phiếu.
+  - Người duyệt
+    - Không cho sửa
+    - Tự động cập nhật khi Duyệt phiếu.
+- Bảng Chi tiết Lô hàng:
+  - Cột hiển thị đúng UI:  (Chỉ cho phép sửa 3 Trường: Loại vàng quy (tính giá vốn), Tỷ giá vốn, Chi phí phân bổ/SP còn lại không cho sửa)
+    - Chọn: Chỉ cho chọn 1 dòng và điều kiện dòng nào có Đã nhập hàng = False.
+    - Loại vàng
+    - Đơn vị tính
+    - Loại hàng NCC
+    - Số món
+    - Tổng TL
+    - Tổng TL hột
+    - Tổng TLV 
+    - Loại vàng bán:
+      - Lấy thông tin Loại vàng quy và ĐVT quy đổi theo bảng Cấu hình quy đổi tính giá vốn (theo cột Loại vàng, Đơn vị tính)
+      - a. Nếu Không tồn tại: mặc định lấy Loại vàng quy = Loại vàng và ĐVT quy đổi = ĐVT và Tỷ lệ quy đổi = 1.00. Set ReadOnly
+      - b. Nếu Tồn tại (1 hoặc N): lấy danh sách Loại vàng quy group theo Loại vàng. Khi chọn Loại vàng quy tự động lấy Tỷ lệ quy đổi và tính lại TL sau quy đổi.
+    - Đơn vị tính quy đổi 
+      - Load theo Loại vàng bán.
+    - Tổng TL QĐ
+      - = Tổng TL * Tỷ lệ quy đổi (có trong Cấu hình quy đổi tính giá vốn)
+    - Tổng TL hột QĐ
+      - = Tổng TL hột * Tỷ lệ quy đổi (có trong Cấu hình quy đổi tính giá vốn)
+    - Tổng TLV QĐ
+      - = Tổng TLV * Tỷ lệ quy đổi (có trong Cấu hình quy đổi tính giá vốn)
+    - Vàng tính thành tiền:
+      - Lấy theo thông tin Vàng tính thành tiền đã chọn và gom nhóm từ Toa hàng NCC.
+    - Tổng tiền công
+      - Lấy theo thông tin Tiền công đã chọn và gom nhóm từ Toa hàng NCC.
+    - Tỷ giá vốn: 
+      - Được tính khi Tạo Lô hàng NCC từ Toa hàng NCC:
+      1. Nếu Vàng tính thành tiền > 0 : Tỷ giá vốn = Vàng tính thành tiền/ Tổng TLV QĐ.
+      - 
+      - 2. Ngược lại, Vàng tính thành tiền <= 0:
+      - a. Nếu Loại vàng bán.ĐVT quy đổi = Chỉ:
+      - Tỷ giá vốn = Giá vàng 10 * Tuổi bán (Theo Loại vàng, ĐVT, Loại hàng NCC trong grid Loại vàng giao dịch của Nhà cung cấp)/100
+      - 
+      - b. Nếu Loại vàng bán.ĐVT quy đổi = Gram:
+      - Tỷ giá vốn =  (Giá vàng 10 * Tuổi bán (Theo Loại vàng, ĐVT, Loại hàng NCC trong grid Loại vàng giao dịch của Nhà cung cấp)/100)/3.75
+      - 
+    - Chi phí phân bố/SP: 
+      - Không cho sửa 
+      - Được cập nhật từ chức năng Phân bổ chi phí. Chi phí phân bổ (Công vốn) sẽ được phân bổ theo Tổng TLV QĐ.
+      - CPPB/SP = (TLV sau QĐ của SP / Tổng TLV sau quy) * Tổng CPPB (thông tin chung)
+    - Đã nhập hàng: 
+      - Checkbox
+      - Không cho sửa, sẽ được cập nhật lại khi Nhập hàng.
+    - Nút Chức năng trên grid:
+- Xóa:
+- Chỉ cho phép khi Trạng thái Lô hàng NCC = Khởi tạo. Khi Xóa sẽ rollback dữ liệu ngược lại bên Toa hàng NCC: cập nhật = Đã tạo lô hàng = False.
+- 
+- Cập nhật thông tin chung của Lô hàng theo NCC: Số lượng, Tổng TL, TL hột, TL Vàng, Tổng công.
+- 
+- Tính và Cập nhật lại cột Chi phí phân bổ/SP trong grid Chi tiết lô hàng NCC.
+  - Tổng cộng: Sum các cột : Số món, Tổng TL, Tổng TL hột, Tổng TLV, Tổng TL QĐ,  Tổng TL hột GD, Tổng TLV GD, Vàng tính thành tiền, Tổng tiền công, Chi phí phân bổ/SP
+  - Không cho để âm bất kỳ trọng lượng, số món. 
+  - Format lấy theo SL số thập phân trên Thông tin của Nhà cung cấp.
+    - Ví dụ: SL số thập phân = 4,
+    - Các số thập phân của Trọng lượng sẽ hiển thị 4 số thập phân.
+- Các nút hành động: 
+  - Phân bổ chi phí:
+    1. Hiển thị khi ô Chi phí phân bổ > 0.
+- 2. Khi bấm nút Trình duyệt: Sẽ kiểm tra cột Chi phí phân bổ/SP đã được phân bổ chưa (Chi phí phân bổ/SP > 0), nếu = 0: Thông báo chưa phân bổ chi phí vui lòng phân bổ trước khi trình duyệt.
+- 3. Khi nhấn nút:
+- Cập nhật cột Chi phí phân bổ/SP = Chi phí phân bổ theo Trọng lượng vàng.
+  - Lưu : Lưu thông tin, giữ nguyên form
+  - Lưu và đóng: Lưu và đóng form
+  - Nút "Nhập hàng": 
+    - Hiển thị trạng thái = Đã duyệt
+    - Sẽ được mô tả chi tiết ở Story Nhập hàng. Mở form Nhập hàng lấy các thông tin của Lô hàng chỉ mở các trường thông tin cần nhập: Tên sản phẩm, TL tổng, TL hột, Công bán, Nhà cung cấp.
+  - Đóng: Đóng form, không lưu. Nếu có thay đổi hiển thị xác nhận đóng
+Quy trình duyệt:
+
+1. Tổng quan
+
+- Hệ thống quản lý  Lô hàng NCC phải bao gồm quy trình duyệt, với các trạng thái:
+- Khởi tạo → Chờ duyệt → Đã duyệt / Không duyệt / Hủy. 
+- Các trạng thái này phải được theo dõi và cập nhật trong form theo các bước cụ thể, và các hành động (Trình duyệt, Duyệt, Không duyệt, Hủy) chỉ có thể thực hiện khi Lô hàng NCC ở trạng thái Khởi tạo
+- 2. Yêu cầu MUI Stepper và Nút hành độngMUI Stepper sẽ chỉ hiển thị text của các trạng thái (Khởi tạo, Chờ duyệt, Đã duyệt / Không duyệt / Hủy) theo thứ tự như sau:
+  - Bước 1: Khởi tạo (màu xám): Hiển thị Trạng thái ban đầu khi lập Lô hàng NCC.
+  - Bước 2: Chờ duyệt (màu vàng): Hiển thị khi Lô hàng NCC đã được trình duyệt và đang chờ phê duyệt.
+  - Bước 3: Đã duyệt / Không duyệt / Hủy (màu xanh / đỏ / xám): Hiển thị khi Lô hàng NCC đã được duyệt, không duyệt, hoặc hủy.
+- Lưu ý: MUI Stepper chỉ theo dõi trạng thái hiện tại của Lô hàng NCC, không cho phép người dùng click vào các bước để thay đổi trạng thái trực tiếp.
+3. Các Nút hành động từng quy trình
+- A. Nút Trình duyệt - Hiển thị ở bước 1
+  - Hiển thị: Nút Trình duyệt chỉ được hiển thị khi trạng thái Lô hàng NCC = Khởi tạo.
+  - Chức năng: 
+    - Khi nhấn Trình duyệt, hệ thống sẽ hiển thị một popup xác nhận yêu cầu người dùng xác nhận hành động.
+    - Popup xác nhận: “Xác nhận trình duyệt?” (có 2 lựa chọn: Hủy / Xác nhận).
+      - Nếu người dùng chọn Xác nhận, hệ thống sẽ cập nhật Trạng thái = Chờ duyệt
+      - Disable (readonly) các trường trên form, không cho phép sửa dữ liệu nữa.
+    - Sau khi chuyển trạng thái, nút Trình duyệt sẽ không còn hiển thị.
+  - Ghi log: Người thao tác, thời gian, Trạng thái chuyển từ Khởi tạo sang Chờ duyệt.
+- B. Nút Duyệt Hiển thị ở bước 2
+  - Hiển thị: Nút Duyệt chỉ được hiển thị khi trạng thái Lô hàng NCC = Chờ duyệt và người dùng có quyền phê duyệt (admin/manager).
+  - Chức năng: 
+    - Khi nhấn Duyệt, hệ thống sẽ hiển thị popup xác nhận yêu cầu người dùng xác nhận hành động.
+    - Popup xác nhận: “Xác nhận duyệt?” (có 2 lựa chọn: Hủy / Xác nhận).
+      - Nếu người dùng chọn Xác nhận, hệ thống sẽ:   Cập nhật Trạng thái = Đã duyệt.
+      - Cập nhật Số lô lên các Chi tiết trong grid Chi tiết toa hàng NCC.
+      - Disable các trường (readonly) trên form và không cho phép sửa/xóa nữa.
+    - Sau khi duyệt, hệ thống sẽ không cho phép người dùng sửa đổi các trường thông tin.
+  - Ghi log: Người thao tác, thời gian, Trạng thái chuyển từ Chờ duyệt sang Đã duyệt.
+- C. Nút Không duyệt Hiển thị ở bước 2
+  - Hiển thị: Nút Không duyệt chỉ được hiển thị khi trạng thái Lô hàng NCC = Chờ duyệt và người dùng có quyền phê duyệt (admin/manager).
+  - Chức năng: 
+    - Khi nhấn Không duyệt, hệ thống sẽ hiển thị popup xác nhận yêu cầu người dùng xác nhận hành động.
+    - Popup xác nhận: “Xác nhận không duyệt?” (có 2 lựa chọn: Hủy / Xác nhận).
+      - Nếu người dùng chọn Xác nhận, hệ thống sẽ:   Cập nhật Trạng thái = Không duyệt.
+      - Bỏ đánh dấu Đã tạo lô hàng (trên các Chi tiết toa hàng NCC).
+      - Disable các trường (readonly) trên form và không cho phép sửa/xóa nữa.
+    - Hiển thị Lý do không duyệt (textbox bắt buộc nhập lý do).
+  - Ghi log: Người thao tác, thời gian, Trạng thái chuyển từ Chờ duyệt sang Không duyệt + Lý do không duyệt.
+- D. Nút Hủy Hiển thị ở bước 1
+  - Hiển thị: Nút Hủy chỉ được hiển thị khi trạng thái Lô hàng NCC = Khởi tạo, được thực hiện bởi người tạo.
+  - Chức năng: 
+    - Khi nhấn Hủy, hệ thống sẽ hiển thị popup xác nhận yêu cầu người dùng xác nhận hành động.
+    - Popup xác nhận: “Xác nhận hủy Phiếu chốt giá?” (có 2 lựa chọn: Hủy / Xác nhận).
+      - Nếu người dùng chọn Xác nhận, hệ thống sẽ:   Cập nhật Trạng thái = Hủy.
+      - Nhập thị Lý do hủy (textbox bắt buộc nhập lý do).
+      - Disable các trường (readonly) trên form và không cho phép sửa/xóa nữa.
+    - Sau khi hủy, hệ thống sẽ không cho phép sửa đổi dữ liệu và hiển thị trạng thái “Hủy” trong MUI Stepper.
+  - Ghi log: Người thao tác, thời gian, Trạng thái chuyển từ Khởi tạo sang Hủy + Lý do hủy.
+Thông Báo Trạng Thái (toast)
+- Khởi tạo: "Lô hàng NCC đã được khởi tạo."
+- Chờ duyệt: "Lô hàng NCC đang chờ phê duyệt."
+- Đã duyệt: "Lô hàng NCC đã được phê duyệt."
+- Không duyệt: "Lô hàng NCC không được phê duyệt."
+- Hủy: "Lô hàng NCC đã bị hủy."
+- Hoàn tất: "Lô hàng NCC đã hoàn tất."
+
+Quyền truy cập
+- Người tạo (Nhân viên / Owner):
+  - Được tạo, sửa, xóa, trình duyệt, hủy phiếu khi trạng thái = “Khởi tạo”.
+  - Sau khi trình duyệt → chỉ được xem và in, không được chỉnh sửa.
+- Quản lý chi nhánh:
+  - Người dùng thuộc Nhóm quyền “Quản lý cửa hàng” hoặc “Admin cửa hàng”
+  - Có phân quyền Sửa
+  - Được phép sửa phiếu khi trạng thái = “Chờ duyệt”.
+  - Chỉ được xem và in các phiếu trong phạm vi chi nhánh.
+- Kế toán:
+- Người dùng thuộc Nhóm kế toán
+- Có phân quyền Sửa
+- Kế toán có quyền cập nhật: Được phép Cập nhật SP phiếu khi trạng thái = “Đã duyệt”.
+- Kế toán có quyền phân bổ chi phí: Được phép Phân bổ chi phí cho phiếu khi trạng thái = “Chờ duyệt”. Chi phí phân bổ (Công vốn) > 0.
+- Người không có quyền:
+- Không hiển thị menu 
+- Không thể truy cập trực tiếp URL 
+***** Nguyên tắc chung******
+- Hệ thống kiểm tra quyền thao tác dựa trên:
+  - Nhóm người dùng (Roles): xác định loại quyền tổng quát (CRUD, Duyệt, Không duyệt...).
+  - Phân quyền trên bản ghi (Record Permission): xác định user có quyền thao tác cụ thể trên phiếu hay không.
+- Khi người dùng thao tác (Sửa, Xóa, Duyệt, Không duyệt, Hủy...) → hệ thống kiểm tra đồng thời cả Role + quyền trên bản ghi.
+Audit log
+- Ghi log các sự kiện: Thêm/Sửa thông tin chung.
+- Cập nhật sản phẩm (trước/sau tổng TL/TLV; nguồn tham chiếu).
+- Phân bổ chi phí (tổng chi phí, phương pháp, kết quả từng dòng).
+- Nhập hàng (thời gian, user, số phiếu nhập).
+- Xóa lô (khi Nháp).
+- Log gồm: user, thời gian, IP, giá trị trước/sau.
+UX & Kiểm tra dữ liệu
+- Trường số chỉ nhận số, hỗ trợ format dấu phẩy/thập phân; chặn ký tự không hợp lệ.
+- Enter trên form thực hiện Lưu; có trạng thái loading khi tính toán/nhập hàng.
+- Nếu Số chứng từ nhập nhiều, hệ thống tự chuẩn hóa (trim, loại bỏ trùng).
+- Toa hàng (tham chiếu) hiển thị link để mở nhanh.
+- Tất cả tổng ở panel và cuối bảng phải khớp số liệu ở lưới.

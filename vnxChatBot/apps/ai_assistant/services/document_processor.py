@@ -375,11 +375,22 @@ class DocumentProcessorService:
                 domain_code = "GENERAL"
                 logger.info("ℹ️ [DOMAIN MATCH]: Không đạt ngưỡng độ tương đồng, gán nhãn mặc định 'Nghiệp vụ Chung'")
 
-            # 🏷️ 2. CHUẨN HÓA TIÊU ĐỀ THEO PHÂN HỆ
-            clean_raw_title = raw_title.replace("[Nghiệp vụ Chung]", "").strip()
-            chapter_title = f"Phần {index}: [{domain_name}] {clean_raw_title}"
+            # 🏷️ 2. CHUẨN HÓA TIÊU ĐỀ SẠCH SẼ (Chống lặp từ "Phần X:" và tên phân hệ thô)
+            cleaned_raw_title = raw_title
+            
+            # Xóa bỏ các tiền tố kiểu "Phần 1:", "Phần 2:", "Phần X" có thể bị lặp do LLM trả về
+            cleaned_raw_title = re.sub(r'^(Phần\s*\d+[:\s*]*)+', '', cleaned_raw_title, flags=re.IGNORECASE).strip()
+            
+            # Xóa bỏ các nhãn phân hệ thô nếu còn sót lại trong chuỗi title gốc
+            cleaned_raw_title = cleaned_raw_title.replace("[Nghiệp vụ Chung]", "").replace(f"[{domain_name}]", "").strip()
 
-            logger.info(f"📌 [Output Title]   : {chapter_title}")
+            if not cleaned_raw_title or cleaned_raw_title.lower() in ["none", "null"]:
+                cleaned_raw_title = original_filename
+                
+            # Đảm bảo duy nhất một tiền tố "Phần {index}:" ở đầu
+            chapter_title = f"Phần {index}: {cleaned_raw_title}"
+
+            logger.info(f"📌 [Output Title]    : {chapter_title}")
             logger.info(f"📝 [Output Summary] : {chapter_summary}")
             logger.info(f"📄 [Output Content] : {len(cleaned_content)} chars | Sample: {cleaned_content[:100]}...")
 
@@ -396,7 +407,7 @@ class DocumentProcessorService:
             else:
                 initial_status = KnowledgeStatus.PENDING
 
-            # 📌 4. TẠO METADATA TRÍCH DẪN NGUỒN TÀI LIỆU
+            # 📌 4. TẠO METADATA TRÍCH DẪN NGUỒN TÀI LIỆU & PHÂN HỆ
             source_metadata = {
                 "file_name": original_filename,
                 "raw_document_id": doc_id,
@@ -407,12 +418,12 @@ class DocumentProcessorService:
             # 💾 5. LƯU CSDL
             chapter = KnowledgeChapter.objects.create(
                 group_id=raw_document.group_id,
-                title=chapter_title,                 # Tiêu đề linh hoạt theo Domain
-                summary=chapter_summary,             # Tóm tắt
+                title=chapter_title,            # Tiêu đề gốc sạch sẽ, chuẩn chỉnh
+                summary=chapter_summary,            # Tóm tắt
                 suggested_content=cleaned_content,   # Nội dung do AI đề xuất
-                status=initial_status,               # Trạng thái tự động
+                status=initial_status,              # Trạng thái tự động
                 has_conflict=has_conflict,
-                metadata=source_metadata             # 👈 Sử dụng trường 'metadata' đúng theo Model
+                metadata=source_metadata            # Lưu domain & source vào metadata để UI render Badge
             )
             created_chapters.append(chapter)
             logger.info(f"💾 [STEP 4 - SAVE DB]: Đã tạo KnowledgeChapter ID={chapter.id} [Status: '{initial_status}'] thành công.")

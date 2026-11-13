@@ -211,3 +211,29 @@ Nhiệm vụ: Thêm class CSS chỉnh line-height, overflow và thư viện rend
 📜 1. Nhật ký hoàn thành (Completion Log)Nền tảng & Kiến trúc Core (100% Passed Test):Đã cô lập tuyệt đối dữ liệu theo group_id cho mọi truy vấn ORM, ChromaDB Vector Store và Redis Cache.Hoàn thiện mô hình vòng đời tri thức: RawDocument (STAGING) $\rightarrow$ KnowledgeChapter (PENDING / CONFLICT) $\rightarrow$ APPROVED $\rightarrow$ Vector Store.Khắc phục hoàn toàn lỗi trùng lặp Signals và tối ưu đồng bộ bất đồng bộ qua Celery Task (sync_chapter_to_vector_async) với transaction.on_commit.Nâng cấp Pipeline Xử lý Tri thức (Adaptive Knowledge Pipeline):Tích hợp cơ chế Tự động Phân loại Phân hệ bằng Cosine Similarity (classify_text_domain).Chuẩn hóa KnowledgeChapter.metadata phục vụ chính xác tính năng trích dẫn nguồn (RAG Citation).Định hình xong chuẩn thiết kế Pipeline 3 Tầng:Tầng 1 (Layout Reconstruction): Tự động dựng Heading (#, ##) cho file thô/Word/Excel.Tầng 2 (Block-Level Chunking): Cắt đoạn theo khối Điều/Khoản luật, Bảng Markdown kèm tiêm lại Header, và Quy trình SOP.Tầng 3 (Breadcrumb Injection): Tiêm ngữ cảnh cấp cha vào từng Chunk.🎯 2. Kế hoạch bước tiếp theo (Next Action Plan)Bây giờ chúng ta sẽ bắt tay vào Chuyển đổi code thực tế tại apps/ai_assistant/services/document_processor.py và tasks.py theo đúng bộ chỉ dẫn mới:📍 BƯỚC 1: Triển khai Tầng 1 & 2 của Adaptive Pipeline (DocumentProcessorService)Viết hàm nhận diện loại khối (detect_block_type) trong văn bản:Pattern Pháp lý: Regex nhận diện Điều \d+, Khoản \d+, Chương [I-X]+.Pattern Bảng: Nhận diện dòng chứa | và cấu trúc Bảng Markdown.Pattern SOP: Nhận diện Bước \d+ hoặc danh sách số thứ tự.Cập nhật hàm chunking linh hoạt adaptive_block_chunking() thay thế cho việc cắt cố định chunk_by_token_budget().📍 BƯỚC 2: Triển khai Tầng 3 - Tiêm Bối cảnh (Breadcrumb Injector)Xây dựng hàm tạo đường dẫn ngữ cảnh:Ví dụ: [Nguồn: Điều 5 - Quy định Thanh toán] + \n + [Nội dung Chunk]Đảm bảo chuỗi bối cảnh này được đẩy trực tiếp vào KnowledgeChapter.suggested_content và tính toán Embedding.📍 BƯỚC 3: Cập nhật Celery Task & Kiểm thử bổ sung (Unit Test)Cập nhật process_document_task trong apps/ai_assistant/tasks.py chạy qua DocumentProcessorService mới.Viết Unit Test kiểm thử các ca biên:Upload 1 văn bản Luật $\rightarrow$ Kiểm tra xem các Điều có bị cắt đôi hay không.Upload 1 file Bảng định mức dài $\rightarrow$ Kiểm tra các Sub-chunk có được tiêm lại Header cột hay không.
 
 Anh xem kế hoạch triển khai 3 bước này đã tối ưu chưa? Nếu sẵn sàng, chúng ta sẽ bắt đầu ngay với BƯỚC 1: Cập nhật DocumentProcessorService với Adaptive Block Chunking!
+
+
+----Cụ thể, nội dung này bám sát các điểm cốt lõi sau:
+
+Về phần Nhật ký hoàn thành (Completion Log):
+
+Đã cô lập dữ liệu chuẩn chỉ theo group_id cho ORM, ChromaDB và Redis.
+
+Xây dựng trọn vẹn vòng đời tài liệu từ RawDocument (Staging) 
+→ KnowledgeChapter (Pending/Conflict) 
+→ Approved 
+→ Đưa vào Vector Store qua Celery Task kèm transaction.on_commit an toàn tuyệt đối.
+
+Định hình chuẩn 3 tầng: Layout Reconstruction (dựng Heading) 
+→ Block-Level Chunking (cắt theo Điều/Khoản, Bảng Markdown, SOP) 
+→ Breadcrumb Injection (tiêm ngữ cảnh cấp cha).
+
+Về Kế hoạch bước tiếp theo (Next Action Plan):
+
+Đi thẳng vào hiện thực hóa code tại apps/ai_assistant/services/document_processor.py với các hàm nhận diện block thông minh (detect_block_type, adaptive_block_chunking) thay vì cắt token thô cứng.
+
+Hoàn thiện bộ tiêm bối cảnh (Breadcrumb Injector) để gắn nhãn nguồn chính xác vào metadata phục vụ RAG Citation.
+
+Đồng bộ hóa Celery task (process_document_task trong tasks.py) và viết Unit Test kỹ càng cho các ca biên (như luật không bị cắt cụt điều, bảng định mức giữ nguyên header cột).
+
+Bản tóm tắt này chính là "kim chỉ nam" kỹ thuật rất rõ ràng để chúng ta bật VS Code lên và viết code hiện thực hóa từng bước một. Bây giờ anh em mình chiến tiếp phần hiện thực hóa document_processor.py theo đúng roadmap này luôn chứ nhỉ?

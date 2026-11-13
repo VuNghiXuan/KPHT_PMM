@@ -1,80 +1,106 @@
-MÔ TẢ TÍNH NĂNG: FORM CẤU HÌNH GIAO DỊCH MUA BÁN
-1. Tiêu đề và Điều hướng (Breadcrumb)
-Tiêu đề màn hình: "Xem/Sửa cấu hình giao dịch mua bán"
+I. Tổng quan về chức năng
+Màn hình "Cấu hình giao dịch mua bán" là trung tâm quản lý toàn bộ các thiết lập vận hành cốt lõi cho quy trình giao dịch tại cửa hàng/doanh nghiệp vàng bạc, đá quý. Chức năng này giúp chuẩn hóa quy định làm tròn tiền tệ, quy tắc đổi trả hàng, thiết lập quầy thu ngân, quản lý hóa đơn điện tử (HĐĐT) và tích hợp thanh toán chuyển khoản QR.
 
-Breadcrumb (Đường dẫn): Cấu hình giao dịch mua bán > Xem/Sửa
+Màn hình được thiết kế phân cấp rõ ràng theo Công ty (áp dụng chung toàn hệ thống) hoặc theo Chi nhánh (áp dụng riêng cho từng địa điểm), kết hợp tính năng chỉnh sửa dòng linh hoạt (edit inline) giúp người dùng thao tác nhanh chóng, trực quan.
 
-2. Các Tab Chức Năng
-Giao diện được chia thành 5 tab linh hoạt, đảm bảo chuyển đổi mượt mà, không giật lag hay lệch UI. Các tab được phân quyền áp dụng theo Công ty hoặc Chi nhánh:
-
+II. Chi tiết các trường thông tin & Ứng dụng thực tế
 [Tab 1] Cấu hình chung (Áp dụng theo Công ty)
+Làm tròn số tiền:
 
-Làm tròn số tiền (*): Bắt buộc chọn. Dropdown gồm: Không làm tròn (Mặc định), Nghìn đồng, Chục nghìn, Trăm nghìn.
+Mô tả: Quy định mức làm tròn khi thanh toán (Không làm tròn, Nghìn đồng, Chục nghìn, Trăm nghìn).
 
-Loại làm tròn (*): Bắt buộc chọn. Dropdown gồm: Giữ nguyên, Làm tròn lên, Làm tròn xuống.
+Ứng dụng: Giúp giao dịch tiền mặt hoặc chuyển khoản không bị lẻ tiền lẻ, thuận tiện giao dịch.
 
-Quy định số tiền chuyển khoản (Chi tiền / Thu tiền) (*): Bắt buộc, định dạng số nguyên >= 0.
+Ví dụ: Tổng tiền hóa đơn là 1,234,567 VNĐ. Nếu chọn làm tròn "Nghìn đồng", hệ thống sẽ làm tròn thành 1,235,000 VNĐ.
 
-Số tiền chuyển khoản tối đa/lần (*): Bắt buộc, định dạng số nguyên >= 0.
+Loại làm tròn:
 
-Số ngày cho phép hủy giao dịch (*): Bắt buộc, định dạng số nguyên >= 0.
+Mô tả: Cách thức làm tròn (Giữ nguyên, Làm tròn lên, Làm tròn xuống).
 
-Quét mã nhân viên khi giao dịch: Checkbox, mặc định = true.
+Quy định số tiền chuyển khoản (Chi tiền / Thu tiền):
 
-Phương pháp tính doanh thu đổi vàng (*): Dropdown gồm: Cấn trừ, Độc lập.
+Mô tả: Giới hạn định mức số tiền cho phép chuyển khoản thu/chi (Số nguyên >= 0).
+
+Số tiền chuyển khoản tối đa/lần:
+
+Mô tả: Hạn mức tối đa cho một lần chuyển khoản để kiểm soát rủi ro dòng tiền.
+
+Số ngày cho phép hủy giao dịch:
+
+Mô tả: Khoảng thời gian tối đa nhân viên được phép hủy một giao dịch đã tạo kể từ thời điểm phát sinh.
+
+Quét mã nhân viên khi giao dịch:
+
+Mô tả: Yêu cầu nhân viên quét mã thẻ/QR cá nhân trước khi thực hiện giao dịch để ghi nhận trách nhiệm rõ ràng (Mặc định: Bật).
+
+Phương pháp tính doanh thu đổi vàng:
+
+Mô tả: Chọn phương thức ghi nhận doanh thu khi khách đổi vàng (Cấn trừ hoặc Độc lập).
 
 [Tab 2] Quy tắc đổi trả (Áp dụng theo Chi nhánh)
+Quản lý các điều kiện khi khách hàng muốn đổi hoặc trả lại sản phẩm.
 
-Quản lý danh sách quy tắc đổi trả dạng bảng (Grid) với các thao tác Sửa inline (sửa trực tiếp trên dòng) và Xóa (có popup xác nhận).
+Chi nhánh & Số ngày đổi trả:
 
-Các trường chính: Chi nhánh (*), Số ngày đổi trả (> 0), Quy tắc hồi công (Tiền công sau chiết khấu hoặc Không hồi), Thu hồi điểm đã đổi (Sản phẩm hoặc Hóa đơn), Loại vàng không đổi trả, và Quầy hàng không đổi trả.
+Ứng dụng: Xác định thời hạn khách được đổi trả tại chi nhánh đó (ví dụ: trong vòng 5 ngày, tính ngày mua = ngày 1).
+
+Quy tắc hồi công:
+
+Mô tả: Xử lý tiền công (tiền chế tác) khi khách đổi sản phẩm.
+
+Ví dụ: Nếu chọn "Tiền công sau chiết khấu" và món hàng cũ có tiền công cao hơn món hàng mới, hệ thống sẽ tính toán phần tiền công chênh lệch hoàn lại cho khách theo đúng quy tắc đã định.
+
+Thu hồi điểm đã đổi:
+
+Mô tả: Quyết định trừ điểm tích lũy của khách hàng theo từng Sản phẩm đổi trả hay trừ toàn bộ theo Hóa đơn.
+
+Loại vàng không đổi trả & Quầy hàng không đổi trả:
+
+Ứng dụng: Cấu hình các nhóm mặt hàng nhạy cảm (như vàng mới đặc thù) hoặc quầy hàng (như quầy đá quý) không áp dụng chính sách đổi trả. Nếu giao dịch phát sinh, hệ thống chỉ hiển thị cảnh báo màu đỏ nhắc nhở nhân viên nhưng vẫn cho phép linh động thực hiện nếu có sự đồng ý của quản lý.
 
 [Tab 3] Quầy thu ngân (Áp dụng theo Chi nhánh)
+Loại áp dụng: Lựa chọn mô hình vận hành là "Nhiều quầy thu ngân" hoặc "Một quầy thu ngân".
 
-Loại áp dụng (*): Dropdown (Nhiều quầy thu ngân hoặc Một quầy thu ngân).
+Grid Chi tiết quầy thu ngân:
 
-Khi chọn Một quầy thu ngân, hiển thị bảng chi tiết cho phép thêm/sửa dòng trực tiếp (inline) với các thông tin: Chi nhánh, Khu vực, Quầy thu ngân, và Loại giao dịch. Hệ thống tự động kiểm tra trùng lặp để cảnh báo.
+Ứng dụng: Liên kết chặt chẽ giữa Chi nhánh – Khu vực – Quầy thu ngân – Loại giao dịch (như Mua bán, Đổi vàng, Dặt hàng...).
+
+Giúp phân quyền rõ ràng quầy nào được phép thực hiện loại giao dịch nào, tránh việc thu ngân thu sai quầy hoặc nhầm lẫn luồng tiền.
 
 [Tab 4] Mẫu HĐĐT (Hóa đơn điện tử) (Áp dụng theo Công ty)
+Quản lý việc phát hành hóa đơn điện tử tự động hoặc thủ công.
 
-Cho phép cấu hình danh sách mẫu hóa đơn điện tử theo từng loại giao dịch dưới dạng bảng chỉnh sửa inline.
+Loại giao dịch & Mẫu HĐĐT / Ký hiệu HĐĐT: Cấu hình mẫu hóa đơn tương ứng cho từng nghiệp vụ (Mua bán, Đổi vàng, Đặt hàng, Dịch vụ, hoặc Điều chỉnh hóa đơn).
 
-Hỗ trợ các loại giao dịch (bao gồm cả Điều chỉnh hóa đơn), chọn Mẫu HĐĐT, cách xuất chi tiết sản phẩm (3 cách), cấu hình tự động xuất hóa đơn kèm thời gian (phút), quầy hàng không áp dụng (dành cho HTJ), và trạng thái kích hoạt.
+Cách xuất chi tiết sản phẩm: Lựa chọn hiển thị chi tiết (Cách 1: Tách riêng Tiền vàng, Tiền công, Chiết khấu; Cách 2: Tổng tiền SP và Chiết khấu; Cách 3: Tổng tiền).
+
+Tự động xuất HĐĐT & Thời gian xuất (phút):
+
+Ứng dụng: Khi bật tính năng tự động xuất (ví dụ sau 15 phút), hệ thống sẽ tự động đẩy dữ liệu sang đơn vị cung cấp hóa đơn điện tử mà thu ngân không cần bấm thủ công, tiết kiệm thời gian và đảm bảo tuân thủ thuế.
+
+Quầy hàng không áp dụng: Loại trừ một số quầy đặc thù (ví dụ: quầy đá rời không cần xuất HĐĐT cùng vàng).
 
 [Tab 5] Chuyển khoản (Áp dụng theo Chi nhánh)
+Quản lý thông tin tài khoản ngân hàng nhận/chuyển tiền và tích hợp mã QR.
 
-Cấu hình tài khoản ngân hàng và phương thức chuyển khoản/nhận tiền theo từng Chi nhánh và Khu vực.
+Tích hợp QR thanh toán:
 
-Hỗ trợ cấu hình Tích hợp QR thanh toán (QR tĩnh hoặc QR động kết hợp API sinh QR tối đa 500 ký tự với cơ chế validate chặt chẽ).
+Ứng dụng: Nếu bật, hệ thống tự động sinh mã QR thanh toán (Tĩnh hoặc Động tùy cấu hình) ngay tại màn hình thu ngân khi khách chọn thanh toán chuyển khoản, giúp khách quét mã nhanh chóng và hạn chế sai sót số tiền/nội dung chuyển khoản.
 
-Cho phép thêm, sửa inline, xóa và tự động điền thông tin Chủ tài khoản, Ngân hàng, Loại tài khoản khi chọn Số tài khoản (STK).
+API sinh QR: Đường dẫn kết nối cổng thanh toán, được hệ thống kiểm tra chặt chẽ định dạng URL và giới hạn tối đa 500 ký tự để đảm bảo bảo mật, ổn định.
 
-3. Khu vực Footer & Phân quyền
-Nút thao tác (Footer)
-Chỉnh sửa: Chuyển màn hình từ chế độ chỉ xem sang chế độ chỉnh sửa (dành cho người có quyền).
+STK, Chủ TK, Ngân hàng, Loại TK:
 
-Lưu: Chỉ hiển thị ở chế độ sửa, cho phép lưu dữ liệu khi các thông tin bắt buộc đã hợp lệ và có sự thay đổi.
+Ứng dụng: Khi chọn số tài khoản theo khu vực, hệ thống tự động điền (fill) chính xác Tên chủ tài khoản và Ngân hàng, nhân viên không phải nhập thủ công, tránh việc chuyển nhầm tiền.
 
-Phân quyền truy cập
-Người có quyền “Sửa”: Được phép xem và chỉnh sửa toàn bộ cấu hình giao dịch mua bán.
+III. Phân quyền truy cập & Kiểm soát hệ thống
+Người có quyền "Sửa": Được phép thay đổi, cập nhật cấu hình và bấm lưu các thiết lập trên toàn bộ các tab.
 
-Người có quyền “Xem”: Chỉ được xem thông tin, các trường ở trạng thái chỉ đọc (readonly), ẩn các nút thao tác Thêm/Sửa/Lưu.
+Người có quyền "Xem": Chỉ được đọc thông tin, toàn bộ các trường hiển thị ở chế độ readonly (chỉ đọc), ẩn các nút Thêm/Sửa/Lưu.
 
-Người không có quyền: Không nhìn thấy menu cấu hình; nếu cố tình truy cập qua đường dẫn URL trực tiếp, hệ thống sẽ trả về màn hình 403 (Forbidden).
+Người không có quyền: Hoàn toàn không nhìn thấy menu cấu hình này. Nếu cố tình truy cập bằng đường dẫn URL trực tiếp, hệ thống sẽ chặn và hiển thị màn hình lỗi 403 Forbidden.
 
-4. Tính năng Audit Log (Nhật ký hệ thống)
-Mô tả chức năng
-Audit Log là tính năng tự động ghi lại toàn bộ dấu vết hoạt động của người dùng trên màn hình Cấu hình giao dịch mua bán. Hệ thống sẽ ghi nhận "Ai đã làm gì, vào lúc nào, thay đổi từ giá trị cũ thành giá trị mới ra sao" để phục vụ cho việc kiểm tra, đối soát và bảo mật.
+IV. Nhật ký hệ thống (Audit Log)
+Mô tả: Mọi thao tác thay đổi cấu hình của người dùng (như thêm mới dòng quy tắc đổi trả, sửa hạn mức chuyển khoản, đổi tài khoản ngân hàng, bật/tắt QR...) đều được hệ thống ghi lại chi tiết: Ai làm? Làm lúc mấy giờ? Thay đổi từ giá trị cũ nào sang giá trị mới nào?
 
-Cách sử dụng sao cho dễ hiểu
-Theo dõi tự động: Người quản trị không cần thao tác kích hoạt gì thêm. Mỗi khi một nhân sự có quyền thực hiện hành động Thêm mới, Chỉnh sửa thông tin (như đổi số ngày đổi trả, bật/tắt QR thanh toán, thêm dòng cấu hình HĐĐT) hoặc Xóa dữ liệu, hệ thống tự động lưu lại lịch sử ngầm.
-
-Xem lại lịch sử (khi cần tra cứu): Khi xảy ra sự cố cấu hình bị thay đổi sai lệch hoặc cần biết ai đã thực hiện một thiết lập nào đó, quản trị viên có thể truy cập vào mục Nhật ký hệ thống (Audit Log) của phần mềm để lọc theo:
-
-Tên người dùng thực hiện thao tác.
-
-Thời gian diễn ra hành động.
-
-Hành động cụ thể (Thêm, Sửa, Xóa) trên tab nào của cấu hình giao dịch mua bán.
-
-Lợi ích: Giúp minh bạch hóa trách nhiệm của từng cá nhân khi cấu hình hệ thống tài chính - bán hàng và dễ dàng khôi phục hoặc truy vết nguyên nhân khi có lỗi phát sinh.
+Ứng dụng thực tế: Giúp ban quản lý dễ dàng tra cứu, quy trách nhiệm khi xảy ra sự cố sai lệch cấu hình tài chính hoặc kiểm tra lịch sử thay đổi chính sách của cửa hàng.

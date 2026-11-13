@@ -1,0 +1,47 @@
+BẢNG TÍNH TOÁN MÔ HÌNH VÀ ƯỚC LƯỢNG BỘ TEST CASE (ZERO OMISSION PLAN)
+
+Phạm vi bóc tách:
+
+Màn hình 1: Danh sách Lô hàng NCC (Search, Filter, Pagination 50/100, Sort, Sticky columns STT/Số lô/Trạng thái/Chức năng, Action Dropdown: Sửa, Nhập hàng, Xóa mềm & Rollback Toa hàng NCC).
+
+Màn hình 2: Form Lô hàng NCC - Section Thông tin chung (Mã Số lô tự sinh Mã NCC + dd/MM/yy + 2 số tự tăng + Số lượng SP, Hyperlink Toa hàng NCC, Chi phí phân bổ = Sum Chi phí chứng từ & Chi phí khác từ Toa hàng NCC, Ghi chú).
+
+Màn hình 2: Grid Chi tiết Lô hàng NCC & Công thức quy đổi (Chọn 1 dòng Đã nhập hàng = False, Inline edit 3 trường: Loại vàng quy, Tỷ giá vốn, Chi phí phân bổ/SP; Công thức TL QĐ/TL hột QĐ/TLV QĐ theo Cấu hình quy đổi; 2 trường hợp tính Tỷ giá vốn theo Chỉ / Gram / Vàng tính thành tiền > 0; Checkbox Đã nhập hàng; Dòng Tổng cộng; Rollback dữ liệu Toa hàng khi xóa dòng).
+
+Quy trình duyệt MUI Stepper & Nút hành động (Khởi tạo -> Chờ duyệt -> Đã duyệt / Không duyệt / Hủy; Stepper 3 bước; Popup xác nhận & Bắt buộc nhập lý do Hủy/Không duyệt; Toast thông báo trạng thái).
+
+Phân quyền & Kiểm thử An toàn Dữ liệu (4 Cấp độ / Roles: NV Owner, Quản lý chi nhánh, Kế toán - Cập nhật SP & Phân bổ chi phí, Chặn 403; Audit Log Rules; Format số thập phân theo Cấu hình NCC).
+
+Phân tích Thành phần UI & Nghiệp vụ:
+
+Số lượng Màn hình / Section / Grid: 2 Màn hình/Form chính, 3 Section/Grid lớn.
+
+Số lượng Component / Field / Button / Action: 35+ Fields (Header & Grid), 15+ Buttons/Actions.
+
+Số lượng Quy tắc Nghiệp vụ / Công thức tính toán: 14+ Quy tắc (Số lô tự sinh, Công thức TL QĐ, 2 công thức Tỷ giá vốn theo Chỉ/Gram/Thành tiền, Công thức Phân bổ chi phí (TLV sau QĐ / Tổng TLV sau quy) * Tổng CPPB, Rollback Đã tạo lô hàng = False trên Toa hàng NCC).
+
+Số lượng Trạng thái / Workflow / Phân quyền: 6 Trạng thái (Khởi tạo, Chờ duyệt, Đã duyệt, Đã nhập hàng, Không duyệt, Hủy), 3 Nhóm quyền chính (Owner, Quản lý, Kế toán).
+
+ƯỚC LƯỢNG SỐ LƯỢNG TEST CASE BAN ĐẦU: 180 Test Cases
+
+Phân bổ ước tính số lượng TC chi tiết theo 10 Nhóm Kiểm thử:
+
+A. Functional Test (Danh sách, Thêm/Sửa/Xóa, Rollback Toa hàng, Nút Phân bổ chi phí, Trình duyệt / Duyệt / Không duyệt / Hủy, Nút Nhập hàng): 35 TCs
+
+B. UI/UX Test (MUI Stepper 3 bước, Ghim trái STT/Số lô, Ghim phải Trạng thái/Chức năng, Căn lề Grid, Toast msg, Format số thập phân theo NCC): 20 TCs
+
+C. Validation Test (Blur check, Bắt buộc lý do Hủy/Không duyệt, Chặn nhập số âm trọng lượng/số món, Validate chưa phân bổ chi phí trước khi Trình duyệt): 25 TCs
+
+D. Business Rules & Formulas (Mã Số lô tự sinh Mã NCC+dd/MM/yy+2 STT+Số lượng, Công thức TL QĐ, 2 Trường hợp Tỷ giá vốn, Công thức CPPB/SP, Sum Header & Footer): 30 TCs
+
+E. Workflow, Popup & Dialog Test (Popup Trình duyệt/Duyệt/Không duyệt/Hủy, Inline edit 3 trường, Popup đóng form chưa lưu): 20 TCs
+
+F. Permission / Role Test (NV Owner, Quản lý CN, Kế toán - Quyền Cập nhật SP & Phân bổ chi phí, Chặn URL 403, Role + Record Permission): 15 TCs
+
+G. Data Integrity & Audit Log (Rollback Đã tạo lô hàng = False trên Toa hàng NCC khi xóa, Cascade recalculate, Audit Log Rules): 10 TCs
+
+H. Integration & API Response (Hyperlink Toa hàng NCC, Chuyển tiếp Form Nhập hàng #306, Sync trạng thái Đã nhập hàng): 10 TCs
+
+I. Data Security & Masking (Xử lý ký tự đặc biệt ô Ghi chú/Số chứng từ, Chống SQLi/XSS, Format dữ liệu): 5 TCs
+
+J. Exception, Edge Cases & Performance (Double click nút Phân bổ/Trình duyệt, Concurrency check, Chi phí phân bổ = 0, Format 4 số lẻ đặc thù NCC): 10 TCs

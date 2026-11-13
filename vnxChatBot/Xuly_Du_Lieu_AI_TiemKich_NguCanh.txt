@@ -1,25 +1,22 @@
-🏛️ Tổng quan Kiến trúc Giải pháp                                 [FILE ĐẦU VÀO]
-                                       │
-                ┌──────────────────────┴──────────────────────┐
-                ▼                                             ▼
-       [LỚP 1: CẤP DOCUMENT]                       [BÓC TÁCH LAYOUT-AWARE]
-   Đọc 1.000 ký tự đầu file bằng LLM/Regex           Trích xuất Markdown Table chuẩn
-   xác định Ngành, Phân hệ & Loại văn bản            từ Docling/Marker
-                │                                             │
-                └──────────────────────┬──────────────────────┘
-                                       │
-                                       ▼
-                             [LỚP 2: CẤP CHUNK]
-                Gom nhóm 800 - 1.200 Tokens + Cắt thông minh:
-                • Bảng ngắn: Giữ nguyên khối.
-                • Bảng dài: Cắt theo hàng + Tiêm lại Header Bảng.
-                • Văn bản Pháp luật: Tách theo Điều / Khoản.
-                                       │
-                                       ▼
-                          [TIÊM CONTEXT HEADER]
-            Tự động chèn Nhãn Ngữ cảnh Động vào đầu mỗi Chunk
-                                       │
-                                       ▼
-                           [LƯU CHROMADB & METADATA]
-            Lưu Vector Embedding kèm Metadata Filtering đa tầng
-📑 1. Nhận diện Đa tầng Linh hoạt (Two-Tier Framework)Hệ thống nhận diện tự động mọi văn bản mới từ bất kỳ ngành nghề nào thông qua 2 lớp phân tích:🔹 Lớp 1: Phân loại Cấp Document (Đọc 1.000 ký tự đầu)Cơ chế: Dùng LLM prompt nhẹ / Regex quét phần mở đầu file.Kết quả: Trích xuất các thuộc tính tĩnh:🏢 Ngành (Industry): Tài chính, Y tế, Ngân hàng, Bất động sản...💼 Phân hệ (Domain Scope): Đổi vàng cấn trừ, Thẩm định tài sản, Quản lý dược...📜 Loại văn bản (Doc Type): Văn bản pháp luật (VBPL), Quy trình Nghiệp vụ, Hướng dẫn sử dụng (HDSD).🔹 Lớp 2: Trích xuất Cấp Chunk (Trích xuất động theo đoạn)Cơ chế: Dùng Regex bóc tách cấu trúc tiêu đề (#, ##, Điều, Khoản) và phát hiện khối Bảng Markdown (| ... |).🛡️ 2. Phương án Xử lý Bảng biểu & Văn bản Pháp lý📊 Bảng biểu Markdown (Tables)Dưới 1.200 tokens: Giữ nguyên toàn bộ Bảng trong cùng 1 Chunk, không cắt xẻo.Trường hợp Bảng quá dài ($> 1.200$ tokens):Tách bảng thành các nhóm hàng ($10 - 15$ hàng/chunk).Tiêm lại Header Bảng: Tự động chèn dòng Tiêu đề cột (| STT | Tên | Giá |) vào đầu Chunk tiếp theo để không mất nghĩa.🏛️ Văn bản Pháp luật (VBPL: Luật, Nghị định, Thông tư)Chỉ ngắt Chunk tại ranh giới Điều hoặc Khoản.Mọi Chunk thuộc văn bản luật đều bắt buộc mang thông tin định danh đầy đủ của Điều/Khoản đó.🏷️ 3. Định dạng Context Header theo từng Loại Văn bảnTrước khi chuyển Chunk thành Vector Embedding để đưa vào ChromaDB, hệ thống tiêm 1 dòng chữ ngữ cảnh ở ngay đầu Chunk:Loại Văn bảnCấu trúc Context Header Tiêm vào ChunkVăn bản Pháp lý 🏛️[NGÀNH: <Ngành> | LOẠI: VBPL | TÊN: <Tên luật> | CHƯƠNG: <X> | ĐIỀU: <Y>]Quy trình Nghiệp vụ 💼[NGÀNH: <Ngành> | PHÂN HỆ: <Phân hệ> | CHƯƠNG: <Tên chương> | BẢNG: <Có/Không>]Hướng dẫn / Sổ tay 📖[NGÀNH: <Ngành> | LOẠI: HDSD | TÊN: <Tên sổ tay> | MỤC: <Tiêu mục>]🎯 4. Chống Xung đột Vector Đa ngành (Vector Collision)Khi mở rộng ra nhiều ngành khác nhau, ChromaDB sẽ áp dụng 2 cơ chế tìm kiếm kết hợp:Lọc cứng (Metadata Filter): Lọc theo industry, domain_scope, group_id trước.Lọc mềm (Semantic Vector Search): Tìm kiếm vector chính xác trong phạm vi đã lọc.
+ Tài liệu Định hướng Kiến trúc & Lộ trình Triển khai Toàn diện được tổng hợp lại từ toàn bộ ý tưởng và mong muốn của Vũ.📘 TÀI LIỆU KIẾN TRÚC & LỘ TRÌNH PHÁT TRIỂN NỀN TẢNG AI B2B ĐA NĂNG (VIBE CODING APPROACH)I. TẦM NHÌN SẢN PHẨM & MÔ HÌNH HOẠT ĐỘNGMục tiêu: Xây dựng một nền tảng Universal B2B AI Platform (dùng cho mọi doanh nghiệp: vàng bạc trang sức, kế toán, tài chính, toán học, lập trình...) có thể chạy độc lập (Standalone) hoặc nhúng Widget vào bất kỳ Website/ERP nào.Nguyên tắc tính toán: Triệt tiêu hoàn toàn ảo giác (Zero Hallucination) đối với các con số tài chính/kế toán bằng mô hình Hybrid RAG + Secure Code Sandbox (AI không tự nhẩm tiền mà sinh code Python chạy ra kết quả chính xác 100%).Nguyên tắc phát triển (Vibe Coding Loop): Dùng AI miễn phí (Gemini) ở giai đoạn dựng móng $\rightarrow$ Dựng công cụ Agentic Vibe Code Local kết nối Ollama $\rightarrow$ Để Ollama tự sinh code, sửa code, hoàn thiện giao diện và phát triển nốt các tính năng còn lại của hệ thống.II. LỘ TRÌNH 3 GIAI ĐOẠN: TỪ GEMINI ĐẾN LOCAL OLLAMA VIBE-CODING┌─────────────────────────────────────────────────────────────────────────────┐
+│ GIAI ĐOẠN 1: DỰNG MÓNG (Dùng Gemini Free Web / API)                         │
+│ • Thiết kế Core Engine, REST API chuẩn hóa.                                │
+│ • Hoàn thiện Master-Detail Dashboard & Embeddable Widget (Shadow DOM/Iframe). │
+│ • Tách rời Backend & UI.                                                   │
+└────────────────────────────────────┬────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ GIAI ĐOẠN 2: THIẾT LẬP TỰ ĐỘNG HÓA VIBE CODING (Local / Ollama)             │
+│ • Tích hợp các Agentic Coding Tool mã nguồn mở (Roo Code / Aider / Continue)│
+│ • Kết nối LLM Local (Qwen 2.5 Coder chạy trên Ollama).                      │
+│ • Cấu hình Git Auto-Diff & Side-by-Side Review.                            │
+└────────────────────────────────────┬────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ GIAI ĐOẠN 3: TỰ TIẾN HÓA & BẬT ENGINE RIÊNG (Self-Evolving System)           │
+│ • Nhập Prompt yêu cầu ➔ Local AI lập Plan ➔ Sinh Code ➔ Test ➔ Tự Patch.    │
+│ • Chuyển toàn bộ RAG Engine & Sandbox Execution sang Ollama Local hoàn toàn.│
+└─────────────────────────────────────────────────────────────────────────────┘
+III. BẢN THIẾT KẾ CHI TIẾT TỪNG GIAI ĐOẠN📍 Giai đoạn 1: Dựng móng & Tách rời Kiến trúc (Đang thực hiện)Mục tiêu: Dùng Gemini (Chat/API miễn phí) để dựng sẵn phần "khung xương" vững chắc, sẵn sàng để AI sau này chỉ việc đọc code và mở rộng.Tách biệt Core Backend & UI (Decoupled Architecture):Backend (Django/Python): Cung cấp các RESTful APIs & WebSockets tiêu chuẩn cho chat, truy vấn tri thức, và thực thi code.UI Dashboard: Tối ưu Master-Detail Dashboard để quản lý tri thức, hiển thị bảng biểu, công thức.UI Chat (Widget): Đóng gói ô chat thành một file JS nhẹ (sử dụng Shadow DOM hoặc Iframe) để có thể nhúng vào bất kỳ website nào bằng một dòng mã <script>.Cơ chế Interactive Knowledge Completion (AI Tự Hỏi Admin):Khi upload tài liệu thô (Word, PDF, Bảng giá), backend phân tích nếu thấy thiếu công thức hoặc mơ hồ sẽ tạo cảnh báo trên Dashboard để Admin bổ sung.📍 Giai đoạn 2: Thiết lập Trạm Vibe Coding Local (Không tốn chi phí AI ngoài)Mục tiêu: Vũ không cần tự viết lại một công cụ Vibe Code từ đầu. Chúng ta tận dụng các framework mã nguồn mở đỉnh cao có sẵn trên VS Code và kết nối trực tiếp với Ollama chạy dưới máy local của Vũ.Cấu hình Công cụ Vibe Coding Local:Công cụ cài trên VS Code: Sử dụng Roo Code (Roo Cline) hoặc Aider hoặc Continue.dev (đều là các công cụ Vibe Coding hàng đầu hoàn toàn miễn phí).Backend LLM: Kết nối các extension này tới Ollama đang chạy trên máy tính với mô hình Qwen 2.5 Coder (7B/14B) — mô hình lập trình local mạnh nhất hiện nay.Luồng làm việc chuẩn Vibe Coding:Bước 1 (Prompt): Vũ gõ yêu cầu tính năng trên VS Code (VD: "Tạo cho tao API bóc tách công thức toán từ file PDF và tự sinh hàm Python").Bước 2 (Planning): Qwen 2.5 (Ollama) sẽ đọc toàn bộ cấu trúc thư mục dự án Django, đưa ra Kế hoạch từng bước (Execution Plan) và liệt kê các file cần sửa.Bước 3 (Approval): Vũ bấm Approve (Duyệt) trên giao diện.Bước 4 (Auto Code & Diff View): Ollama tự động sửa code trực tiếp trên VS Code, hiển thị bảng so sánh Side-by-Side (Diff View). Vũ kiểm tra xem đúng ý chưa rồi bấm Accept.📍 Giai đoạn 3: Hệ thống Tự Tiến Hóa & Vận Hành Độc LậpMục tiêu: Bàn giao toàn bộ việc phát triển dự án cho "Đội ngũ AI Local" và triển khai cho khách hàng.Dynamic Tool Registry & Code Sandbox:Khi Admin gõ quy tắc nghiệp vụ bằng tiếng Việt tự nhiên (VD: "Thu đổi vàng 610 trừ 2% hao hụt và trừ voucher"), AI Local (Ollama) tự dịch thành hàm Python.Hàm này được lưu vào Dynamic Tool Registry và chạy trong một Secure Sandbox (Restricted Python/Docker) cách ly tuyệt đối, đảm bảo an toàn hệ thống.Agentic Multi-Agent Orchestration:Supervisor Agent: Phân loại câu hỏi của người dùng.RAG Agent: Tra cứu điều khoản chính sách (GraphRAG + Vector DB).Math/Code Agent: Gọi các hàm Python trong Sandbox để tính toán con số chính xác 100%.Response Synthesizer: Tổng hợp câu trả lời kèm link trích dẫn điều khoản/công thức.IV. TÓM TẮT CÁC BƯỚC VŨ CẦN LÀM NGAY BÂY GIỜBước 1 (Hoàn tất UI hiện tại): Chốt xong file knowledge_dashboard.html & knowledge_dashboard.js (Master-Detail mượt mà, đồng bộ tab chuẩn) mà anh em mình vừa xử lý.Bước 2 (Cài đặt Trạm Vibe Coding):Mở Ollama lên, pull model lập trình: ollama run qwen2.5-coderCài extension Roo Code (hoặc Continue) trên VS Code.Cấu hình extension kết nối tới http://localhost:11434 (Ollama).Bước 3 (Thử nghiệm Vibe Code):Bật Roo Code lên, gõ prompt yêu cầu nó nâng cấp tính năng tiếp theo (ví dụ: "Thêm trường rules và formulas vào model KnowledgeChapter trong Django").Thưởng thức cảm giác AI tự duyệt file, tự đề xuất code và tự bấm apply!

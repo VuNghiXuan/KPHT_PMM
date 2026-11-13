@@ -1,0 +1,59 @@
+<!-- group_chat/partials/knowledges/_detail_pane.html -->
+<div class="card border-0 shadow-sm rounded-3 detail-panel-sticky">
+    <!-- TRẠNG THÁI CHƯA CHỌN MỤC NÀO -->
+    <div id="detailEmptyState"
+        class="card-body text-center py-5 d-flex flex-column align-items-center justify-content-center"
+        style="min-height: 450px;">
+        <i class="fas fa-hand-pointer fa-3x text-primary opacity-50 mb-3"></i>
+        <h6 class="fw-bold text-secondary">Chọn một chương từ danh sách bên trái</h6>
+        <p class="text-muted small">Xem toàn bộ nội dung trích xuất, chi tiết mâu thuẫn và thực hiện phê duyệt trực tiếp
+            tại đây.</p>
+    </div>
+
+    <!-- KHUNG NỘI DUNG CHI TIẾT CHƯƠNG ĐƯỢC CHỌN -->
+    <div id="detailContentPane" class="card-body p-4 d-none">
+        <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+            <div>
+                <span class="badge bg-warning text-dark mb-2" id="detailStatusBadge">PENDING</span>
+                <h5 class="fw-bold text-dark mb-1" id="detailTitle">Tiêu đề chương</h5>
+                <small class="text-muted"><i class="far fa-calendar-alt me-1"></i>Cập nhật: <span
+                        id="detailUpdatedAt">---</span></small>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="openEditModal()">
+                    <i class="fas fa-edit me-1"></i> Chỉnh sửa
+                </button>
+                <button type="button" class="btn btn-danger btn-sm rounded-pill" id="singleRejectBtn">
+                    <i class="fas fa-times me-1"></i> Từ chối
+                </button>
+                <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold" id="singleApproveBtn">
+                    <i class="fas fa-check me-1"></i> Phê duyệt
+                </button>
+            </div>
+        </div>
+
+        <div id="detailConflictBanner" class="alert alert-danger border-0 rounded-3 mb-3 p-3" style="display: none;">
+            <h6 class="fw-bold mb-1"><i class="fas fa-exclamation-triangle me-1"></i> Cảnh báo mâu thuẫn tri thức!</h6>
+            <p class="small mb-1" id="detailConflictReason">Chương này có nội dung mâu thuẫn với dữ liệu hiện có trong
+                hệ thống.</p>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="fw-bold text-secondary small text-uppercase">Tóm tắt nội dung:</h6>
+            <div class="bg-light p-3 rounded-3 border text-dark fs-6" id="detailSummary">---</div>
+        </div>
+
+        <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-secondary small text-uppercase mb-0">Nội dung trích xuất chi tiết:</h6>
+                <button class="btn btn-sm btn-link text-decoration-none p-0" onclick="openAIRewriteModal()">
+                    <i class="fas fa-magic text-warning me-1"></i> Nhờ AI viết lại
+                </button>
+            </div>
+            <div class="p-3 bg-white border rounded-3 text-dark" id="detailBodyContent"
+                style="word-break: break-word; min-height: 200px; max-height: 400px; overflow-y: auto;">
+                ---
+            </div>
+        </div>
+    </div>
+</div>

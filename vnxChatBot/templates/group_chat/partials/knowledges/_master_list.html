@@ -1,0 +1,69 @@
+<!-- group_chat/partials/knowledges/_master_list.html -->
+<div class="card-body p-2 master-list-panel" id="masterChapterList">
+    {% if chapters %}
+    {% for chapter in chapters %}
+    <div class="card border mb-2 chapter-item-card rounded-3 shadow-xs {% if forloop.first and request.GET.first %}active{% endif %}"
+        id="chapter-card-{{ chapter.id }}" data-chapter-id="{{ chapter.id }}" data-status="{{ chapter.status }}"
+        data-has-conflict="{{ chapter.has_conflict|yesno:'true,false' }}" onclick="selectChapter('{{ chapter.id }}')">
+
+        <!-- Thẻ JSON chứa dữ liệu chi tiết phục vụ JS Master-Detail -->
+        <script type="application/json" id="chapter-data-{{ chapter.id }}">
+                {
+                    "id": "{{ chapter.id }}",
+                    "title": "{{ chapter.title|escapejs }}",
+                    "summary": "{{ chapter.summary|default:''|escapejs }}",
+                    "content": "{{ chapter.suggested_content|default:''|escapejs }}",
+                    "status": "{{ chapter.status }}",
+                    "updated_at": "{{ chapter.updated_at|date:'d/m/Y H:i' }}",
+                    "has_conflict": {{ chapter.has_conflict|yesno:'true,false' }},
+                    "conflict_reason": "{{ chapter.conflict_reason|default:''|escapejs }}"
+                }
+            </script>
+
+        <div class="card-body p-2 position-relative">
+            <div class="d-flex align-items-start">
+                <div class="form-check me-2 pt-1" onclick="event.stopPropagation();">
+                    <input class="form-check-input chapter-select-checkbox" type="checkbox"
+                        id="select-chapter-{{ chapter.id }}" value="{{ chapter.id }}"
+                        aria-label="Chọn chương {{ chapter.title }}">
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex gap-1 align-items-center">
+                            <!-- Badge Trạng thái -->
+                            <span
+                                class="badge {% if chapter.status == 'pending' %}bg-warning text-dark{% elif chapter.status == 'conflict_detected' %}bg-danger{% else %}bg-success{% endif %} rounded-2 px-2"
+                                style="font-size: 0.7rem;">
+                                {{ chapter.status|upper }}
+                            </span>
+                            <!-- Badge Phân hệ Domain -->
+                            {% if chapter.metadata.domain_name %}
+                            <span
+                                class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-2 px-1"
+                                style="font-size: 0.65rem;">
+                                {{ chapter.metadata.domain_name }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted" style="font-size: 0.75rem;">
+                            <i class="far fa-clock me-1"></i>{{ chapter.updated_at|date:"H:i" }}
+                        </small>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1 text-truncate fs-6" title="{{ chapter.title }}">
+                        {{ chapter.title }}
+                    </h6>
+                    <p class="text-muted small mb-0 text-truncate" style="font-size: 0.8rem;">
+                        {{ chapter.summary|default:"Không có tóm tắt..." }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-inbox fa-3x mb-2 text-light-emphasis"></i>
+        <p class="small mb-0">Không có chương tri thức nào trong danh sách này.</p>
+    </div>
+    {% endif %}
+</div>

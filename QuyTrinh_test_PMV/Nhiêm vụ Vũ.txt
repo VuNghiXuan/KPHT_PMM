@@ -1,0 +1,53 @@
+================================================================================
+          QUY TRÌNH PHỐI HỢP & NHIỆM VỤ CẬP NHẬT TRÊN SHEET SPRINT RELEASE
+================================================================================
+
+1. CÁC CỘT CHÍNH TRÊN FILE GOOGLE SHEET
+- Cột "Tình trạng DEV": Trạng thái code của Dev trên ADO Board (TO DO, PENDING, DONE,...).
+- Cột "Tiến độ": Trạng thái vòng đời kiểm thử của Tester (1. Mới -> 2. Viết TC -> 3. Chờ review -> 4. Đang chờ test -> 5. Đang test -> 6. Chờ fix -> 7. Hoàn thành).
+- Cột "Link Story": Đường dẫn tới User Story trên Azure DevOps (ADO).
+- Cột "Link sheet": Đường dẫn tới bản vẽ Mockup UI.
+- Cột "QC": Tên người đảm nhận kiểm thử (Tester).
+- Cột "DEV": Tên Developer phụ trách code.
+
+--------------------------------------------------------------------------------
+2. PHÂN CHIA NHIỆM VỤ (AI CẬP NHẬT CỘT NÀO & Ở ĐÂU)
+
+A. NHIỆM VỤ CỦA DEVELOPER (DEV):
+- Cập nhật ở đâu: Cập nhật trực tiếp trên ADO Board (Board làm việc chính) và đồng bộ sang Sheet.
+- Cột Dev quản lý/theo dõi:
+  + Chuyển trạng thái thẻ trên ADO Board: To Do -> Doing -> Code Review -> Ready for test.
+  + Cập nhật/Đồng bộ giá trị tương ứng vào cột "Tình trạng DEV" trên Google Sheet mỗi ngày.
+
+B. NHIỆM VỤ CỦA TESTER (CỤ THỂ LÀ ANH VŨ):
+- Cập nhật ở đâu: Trực tiếp trên cột "Tiến độ" của Google Sheet quản lý Sprint.
+- Các mốc hành động của Tester dựa theo sự thay đổi của các cột:
+  
+  1. KHI NÀO BẮT ĐẦU VIẾT TEST CASE (TC)?
+     - Nhìn vào cột "Link Story" & "Link sheet": Khi tính năng đã có đủ User Story và Mockup UI.
+     - Hành động: Lấy thông tin nghiệp vụ và UI để bắt đầu viết Test Case.
+     - Cập nhật ngay: Chuyển cột "Tiến độ" -> [2. Viết TC].
+
+  2. KHI NÀO CHỜ REVIEW & CHỜ TEST?
+     - Khi viết TC xong: Chuyển cột "Tiến độ" -> [3. Chờ review] để người quản lý/PO kiểm tra lại.
+     - Nhìn vào cột "Tình trạng DEV" (hoặc ADO Board): Khi Dev chuyển task sang "Ready for test" (Dev đã làm xong).
+     - Hành động: Chuẩn bị máy/dữ liệu test và chuyển cột "Tiến độ" -> [4. Đang chờ test].
+
+  3. KHI NÀO TEST THỰC TẾ & BÁO BUG?
+     - Hành động: Bật màn hình hệ thống lên chạy Test Case.
+     - Cập nhật: Chuyển cột "Tiến độ" -> [5. Đang test].
+     - Nếu phát hiện lỗi (Bug): Viết phiếu báo lỗi theo chuẩn template ADO, đẩy lại cho Dev và chuyển cột "Tiến độ" -> [6. Chờ fix].
+     - Nếu Dev fix xong hoặc Test Pass 100%: Test lại và chuyển cột "Tiến độ" -> [7. Hoàn thành].
+
+--------------------------------------------------------------------------------
+3. TÓM TẮT DÒNG THỜI GIAN THEO DÕI HÀNG NGÀY
+
+[Bắt đầu Sprint] 
+  --> Tester nhìn "Link Story / Link sheet" --> Viết TC --> Cập nhật Tiến độ = [2. Viết TC]
+  --> Viết xong TC --> Cập nhật Tiến độ = [3. Chờ review]
+  --> Dev code xong (Tình trạng DEV = Ready for test) 
+  --> Tester chuyển Tiến độ = [4. Đang chờ test] 
+  --> Bắt đầu chạy test --> Chuyển Tiến độ = [5. Đang test]
+  --> Có lỗi: Báo bug --> Chuyển Tiến độ = [6. Chờ fix]
+  --> Pass hoàn toàn: Chuyển Tiến độ = [7. Hoàn thành] (Kết thúc task).
+================================================================================

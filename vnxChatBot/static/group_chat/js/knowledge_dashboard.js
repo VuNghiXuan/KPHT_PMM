@@ -1,27 +1,43 @@
 /**
  * File: static/group_chat/js/knowledge_dashboard.js
- * Mô tả: Xử lý tương tác Master-Detail, duyệt hàng loạt (Batch Operations) và AI Power.
+ * Mô tả: Xử lý tương tác Master-Detail, duyệt hàng loạt (Batch Operations), AI Power và Đồng bộ Tab thông minh.
  */
 
 // Biến lưu trữ trạng thái dữ liệu trên Client
 let activeChapterData = null;
 
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("📚 Knowledge Dashboard JS (Master-Detail) đã khởi tạo.");
+    console.log("📚 Knowledge Dashboard JS (Master-Detail) đã khởi tạo chuẩn.");
 
     // 1. Lắng nghe các sự kiện chính
     initBatchToolbar();
     initFilterHandler();
     updateChapterCounts();
 
-    // 2. Tự động chọn chương đầu tiên trong danh sách (nếu có)
-    const firstCard = document.querySelector('.chapter-item-card');
-    if (firstCard) {
-        const firstId = firstCard.dataset.chapterId;
-        selectChapter(firstId);
-    }
+    // 💡 2. Tự động chọn chương đầu tiên của Tab đang active (Ưu tiên Tab Đã duyệt nếu hết Chờ duyệt)
+    autoSelectFirstChapterInActiveTab();
 
-    // 3. Dọn dẹp backdrop dư thừa khi modal đóng
+    // 3. Lắng nghe sự kiện chuyển Tab Bootstrap để tự động đồng bộ Master-Detail
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tabEl => {
+        tabEl.addEventListener('shown.bs.tab', function (event) {
+            const targetPaneId = event.target.getAttribute('data-bs-target');
+            const targetPane = document.querySelector(targetPaneId);
+            if (targetPane) {
+                const firstCard = targetPane.querySelector('.chapter-item-card');
+                if (firstCard) {
+                    selectChapter(firstCard.dataset.chapterId);
+                } else {
+                    // Nếu tab trống, ẩn nội dung detail và hiện empty state của tab đó
+                    const emptyState = targetPane.querySelector('[id^="detailEmptyState"]') || document.getElementById('detailEmptyState');
+                    const contentPane = targetPane.querySelector('[id^="detailContentPane"]') || document.getElementById('detailContentPane');
+                    if (emptyState) emptyState.classList.remove('d-none');
+                    if (contentPane) contentPane.classList.add('d-none');
+                }
+            }
+        });
+    });
+
+    // 4. Dọn dẹp backdrop dư thừa khi modal đóng
     document.addEventListener('hidden.bs.modal', function () {
         if (!document.querySelector('.modal.show')) {
             document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
@@ -31,31 +47,33 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 4. Đăng ký sự kiện nút bấm trong Modal & UI
+    // 5. Đăng ký sự kiện nút bấm trong Modal & UI
     const saveBtn = document.getElementById('saveChapterChangesBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', saveChapterEdit);
-    }
+    if (saveBtn) saveBtn.addEventListener('click', saveChapterEdit);
 
     const aiSubmitBtn = document.getElementById('submitAIRewriteBtn');
-    if (aiSubmitBtn) {
-        aiSubmitBtn.addEventListener('click', submitAIRewrite);
-    }
+    if (aiSubmitBtn) aiSubmitBtn.addEventListener('click', submitAIRewrite);
 
     const editBtn = document.getElementById('editChapterBtn');
-    if (editBtn) {
-        editBtn.addEventListener('click', openEditModal);
-    }
+    if (editBtn) editBtn.addEventListener('click', openEditModal);
 
     const aiModalBtn = document.getElementById('openAIRewriteBtn');
-    if (aiModalBtn) {
-        aiModalBtn.addEventListener('click', openAIRewriteModal);
-    }
+    if (aiModalBtn) aiModalBtn.addEventListener('click', openAIRewriteModal);
 });
 
 /* ==========================================================================
    HELPER FUNCTIONS (CÁC HÀM BỔ TRỢ)
    ========================================================================== */
+
+function autoSelectFirstChapterInActiveTab() {
+    const activePane = document.querySelector('.tab-pane.show.active');
+    if (activePane) {
+        const firstCard = activePane.querySelector('.chapter-item-card');
+        if (firstCard) {
+            selectChapter(firstCard.dataset.chapterId);
+        }
+    }
+}
 
 function getOrCreateModal(modalId) {
     const modalEl = document.getElementById(modalId);
@@ -91,7 +109,7 @@ function getGroupId() {
    ========================================================================== */
 
 function selectChapter(chapterId) {
-    // 1. Đổi class active giữa các Card bên danh sách
+    // 1. Đổi class active giữa các Card bên danh sách (trên toàn trang)
     const cards = document.querySelectorAll('.chapter-item-card');
     cards.forEach(card => card.classList.remove('active'));
 
@@ -126,36 +144,36 @@ function selectChapter(chapterId) {
         conflictReason: chapterData.conflict_reason
     };
 
-    // 4. Hiển thị Detail Pane & cập nhật thông tin
-    const emptyState = document.getElementById('detailEmptyState');
-    const contentPane = document.getElementById('detailContentPane');
+    // 4. Hiển thị Detail Pane (Tìm trong tab đang active hoặc toàn trang) đè lên trạng thái trống
+    const activePane = document.querySelector('.tab-pane.show.active') || document;
+    const emptyState = activePane.querySelector('#detailEmptyState') || document.getElementById('detailEmptyState');
+    const contentPane = activePane.querySelector('#detailContentPane') || document.getElementById('detailContentPane');
+
     if (emptyState) emptyState.classList.add('d-none');
     if (contentPane) contentPane.classList.remove('d-none');
 
-    const titleEl = document.getElementById('detailTitle');
-    const summaryEl = document.getElementById('detailSummary');
-    const bodyContentEl = document.getElementById('detailBodyContent');
-    const updatedAtEl = document.getElementById('detailUpdatedAt');
+    const titleEl = activePane.querySelector('#detailTitle') || document.getElementById('detailTitle');
+    const summaryEl = activePane.querySelector('#detailSummary') || document.getElementById('detailSummary');
+    const bodyContentEl = activePane.querySelector('#detailBodyContent') || document.getElementById('detailBodyContent');
+    const updatedAtEl = activePane.querySelector('#detailUpdatedAt') || document.getElementById('detailUpdatedAt');
 
     if (titleEl) titleEl.innerText = chapterData.title || 'Không có tiêu đề';
     if (updatedAtEl) updatedAtEl.innerText = chapterData.updated_at || '';
 
-    // 💡 Render Markdown ➔ HTML cho Tóm tắt & Nội dung chi tiết (Dùng marked.js + DOMPurify)
+    // Render Markdown ➔ HTML cho Tóm tắt & Nội dung chi tiết
     const renderMarkdown = (rawText) => {
         if (!rawText || rawText.trim() === '') return '';
         if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
             return DOMPurify.sanitize(marked.parse(rawText));
         }
-        return rawText; // Fallback nếu chưa tải xong thư viện
+        return rawText;
     };
 
-    // Render Tóm tắt
     if (summaryEl) {
         const rawSummary = chapterData.summary || 'Không có tóm tắt';
         summaryEl.innerHTML = renderMarkdown(rawSummary);
     }
 
-    // Render Nội dung chi tiết (Bao gồm Bảng Markdown) 📊
     if (bodyContentEl) {
         const rawContent = (chapterData.content && chapterData.content.trim() !== '')
             ? chapterData.content
@@ -164,7 +182,7 @@ function selectChapter(chapterId) {
     }
 
     // Cập nhật Badge Trạng thái
-    const badge = document.getElementById('detailStatusBadge');
+    const badge = activePane.querySelector('#detailStatusBadge') || document.getElementById('detailStatusBadge');
     if (badge) {
         badge.innerText = (chapterData.status || 'pending').toUpperCase();
         badge.className = 'badge mb-2 ' + (
@@ -174,8 +192,8 @@ function selectChapter(chapterId) {
     }
 
     // Cảnh báo mâu thuẫn
-    const conflictBanner = document.getElementById('detailConflictBanner');
-    const conflictReasonElem = document.getElementById('detailConflictReason');
+    const conflictBanner = activePane.querySelector('#detailConflictBanner') || document.getElementById('detailConflictBanner');
+    const conflictReasonElem = activePane.querySelector('#detailConflictReason') || document.getElementById('detailConflictReason');
 
     if (conflictBanner) {
         if (chapterData.has_conflict || chapterData.status === 'conflict_detected') {
@@ -189,8 +207,8 @@ function selectChapter(chapterId) {
     }
 
     // 5. Gán sự kiện cho nút Phê duyệt / Từ chối đơn lẻ
-    const singleApproveBtn = document.getElementById('singleApproveBtn');
-    const singleRejectBtn = document.getElementById('singleRejectBtn');
+    const singleApproveBtn = activePane.querySelector('#singleApproveBtn') || document.getElementById('singleApproveBtn');
+    const singleRejectBtn = activePane.querySelector('#singleRejectBtn') || document.getElementById('singleRejectBtn');
 
     if (singleApproveBtn) {
         singleApproveBtn.onclick = () => approveChapter(getGroupId(), chapterId);
@@ -200,31 +218,8 @@ function selectChapter(chapterId) {
     }
 }
 
-function loadChapterBodyContent(chapterId) {
-    const bodyContentEl = document.getElementById('detailBodyContent');
-    if (!bodyContentEl) return;
-
-    bodyContentEl.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Đang tải nội dung...</span>';
-
-    const groupId = getGroupId();
-    fetch(`/groups/${groupId}/knowledge/chapters/${chapterId}/detail-api/`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success' || data.content) {
-                const content = data.content || data.body || 'Không có nội dung chi tiết.';
-                bodyContentEl.innerText = content;
-                if (activeChapterData) activeChapterData.content = content;
-            } else {
-                bodyContentEl.innerText = 'Không thể tải nội dung chi tiết.';
-            }
-        })
-        .catch(() => {
-            bodyContentEl.innerText = activeChapterData?.summary || 'Nội dung chưa được tải.';
-        });
-}
-
 /* ==========================================================================
-   BATCH OPERATIONS LOGIC (THAO TÁC HÀNG LOẠT)
+   BATCH OPERATIONS & FILTER LOGIC
    ========================================================================== */
 
 function initBatchToolbar() {
@@ -234,13 +229,13 @@ function initBatchToolbar() {
 
     if (selectAllCb) {
         selectAllCb.addEventListener('change', function () {
-            const visibleCheckboxes = document.querySelectorAll('.chapter-item-card:not([style*="display: none"]) .chapter-select-checkbox');
+            const visibleCheckboxes = document.querySelectorAll('.tab-pane.show.active .chapter-select-checkbox');
             visibleCheckboxes.forEach(cb => cb.checked = selectAllCb.checked);
             updateSelectedCount();
         });
     }
 
-    document.getElementById('masterChapterList')?.addEventListener('change', function (e) {
+    document.addEventListener('change', function (e) {
         if (e.target.classList.contains('chapter-select-checkbox')) {
             updateSelectedCount();
         }
@@ -268,7 +263,7 @@ function initBatchToolbar() {
 }
 
 function getSelectedChapterIds() {
-    const checkboxes = document.querySelectorAll('.chapter-select-checkbox:checked');
+    const checkboxes = document.querySelectorAll('.tab-pane.show.active .chapter-select-checkbox:checked');
     return Array.from(checkboxes).map(cb => cb.value);
 }
 
@@ -320,17 +315,13 @@ function executeBatchAction(actionType, chapterIds) {
         });
 }
 
-/* ==========================================================================
-   FILTER LOGIC (BỘ LỌC TRẠNG THÁI)
-   ========================================================================== */
-
 function initFilterHandler() {
     const filterSelect = document.getElementById('statusFilterSelect');
     if (!filterSelect) return;
 
     filterSelect.addEventListener('change', function () {
         const filterValue = this.value;
-        const cards = document.querySelectorAll('.chapter-item-card');
+        const cards = document.querySelectorAll('.tab-pane.show.active .chapter-item-card');
 
         cards.forEach(card => {
             const status = card.dataset.status;
@@ -340,16 +331,11 @@ function initFilterHandler() {
                 card.style.display = 'none';
             }
         });
-
-        const selectAllCb = document.getElementById('selectAllChapters');
-        if (selectAllCb) selectAllCb.checked = false;
-        document.querySelectorAll('.chapter-select-checkbox').forEach(cb => cb.checked = false);
-        updateSelectedCount();
     });
 }
 
 /* ==========================================================================
-   SINGLE CHAPTER ACTIONS & EDIT MODAL
+   SINGLE CHAPTER ACTIONS & MODALS
    ========================================================================== */
 
 function approveChapter(groupId, chapterId) {
@@ -445,10 +431,6 @@ function saveChapterEdit() {
         })
         .catch(err => console.error('Lỗi lưu chương:', err));
 }
-
-/* ==========================================================================
-   AI REWRITE LOGIC
-   ========================================================================== */
 
 function openAIRewriteModal() {
     if (!activeChapterData) {
