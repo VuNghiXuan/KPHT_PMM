@@ -39,7 +39,9 @@ Google:
 
 	----Bán lẻ ----
 		Vu_Ban
-Vu_MuaBanLe@gmail.com
+		Vu_MuaBanLe@gmail.com
+		Vu_gdNCC@gmail.com
+
 
 
 
@@ -47,6 +49,14 @@ Vu_MuaBanLe@gmail.com
 	6. Công thức nhâp phần mêm:
 		+ Giá vốn: OriginLabor +( GoldWeight * LossRate * GoldRate )+ TaxAmount + OtherCosts 
 		+ Công vốn: OriginLabor +( GoldWeight * LossRate * GoldRate )+ TaxAmount + OtherCosts +200000
+
+	6a Công thức mới: 
+		1. Công vốn: ( GoldWeight * GoldRate * LossRate ) + OriginLabor + AllocationCostPerProduct 
+
+			Trong đó:  AllocationCostPerProduct (CP phân bổ thay cho tổng các CP khác)
+		
+		2. Công bán: (GoldWeight * GoldRate) * CustomerRate  + OriginLabor + AllocationCostPerProduct
+
 	
 	7. Issue QC với thảo:https://docs.google.com/spreadsheets/d/1e_Y5jUeIhyBz8E6JCgzgevxm0iheMh9OLdxu8fV4n0U/edit?gid=0#gid=0
 	8. Phần test chung Cty: https://docs.google.com/spreadsheets/d/1Z0yx-azekSVWWJq8MrYoI9Y5e_k78e3WjihowDW_NAg/edit?gid=1688224319#gid=1688224319
